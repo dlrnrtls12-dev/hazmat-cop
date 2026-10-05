@@ -85,63 +85,63 @@ SUPPORTED_MODELS = [
     }
 ]
 
-# 에이전트 목록 및 기본 모델 매핑
+# 에이전트 목록 및 기본 모델 매핑 (OpenAI 플랜 한도 절약 & 초고속 최적화)
 DEFAULT_CONFIG = {
     "calc_agent": {
-        "model_id": "gemini-3.8-flash",
+        "model_id": "gpt-4o-mini",
         "temperature": 0.2,
-        "reasoning_effort": "medium",
+        "reasoning_effort": "low",
         "max_tokens": 500,
-        "note": "수량계산 & 위법판정관 (Gemini 3.8 Flash 미디엄 추론: 초고속 연산 & 토큰 절약)"
+        "note": "수량계산 & 위법판정관 (GPT-4o-mini: 초고속 정밀 연산 & 토큰 극소 소모)"
     },
     "infer_agent": {
-        "model_id": "gemini-3.8-flash",
-        "temperature": 0.4,
-        "reasoning_effort": "high",
+        "model_id": "gpt-4o-mini",
+        "temperature": 0.3,
+        "reasoning_effort": "medium",
         "max_tokens": 650,
-        "note": "미상물질 & 화학감별관 (Gemini 3.8 Flash 하이 추론: 화학 화합물·MSDS 심층 역산)"
+        "note": "미상물질 & 화학감별관 (GPT-4o-mini: 화학 화합물·MSDS 신속 역산)"
     },
     "procedure_agent": {
-        "model_id": "gemini-3.8-flash",
+        "model_id": "gpt-4o-mini",
         "temperature": 0.2,
-        "reasoning_effort": "medium",
+        "reasoning_effort": "low",
         "max_tokens": 500,
-        "note": "단속절차 & 포렌식수사관 (Gemini 3.8 Flash 미디엄 추론: 적법절차 체크 & 서식 신속 출력)"
+        "note": "단속절차 & 포렌식수사관 (GPT-4o-mini: 적법절차 체크 & 서식 신속 출력)"
     },
     "history_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
-        "reasoning_effort": "high",
+        "reasoning_effort": "medium",
         "max_tokens": 750,
         "note": "연혁법령 & 부칙해석관 [★GPT 특화] (구 소방법 연혁 추적 & 부칙 제2조 심층 법리 분석)"
     },
     "public_agent": {
-        "model_id": "gemini-3.8-flash",
+        "model_id": "gpt-4o-mini",
         "temperature": 0.3,
-        "reasoning_effort": "high",
+        "reasoning_effort": "medium",
         "max_tokens": 650,
-        "note": "공공데이터 & 유권해석관 (Gemini 3.8 Flash 하이 추론: 대용량 사업장 DB & 유권해석 매칭)"
+        "note": "공공데이터 & 유권해석관 (GPT-4o-mini: 공공데이터 & 유권해석 매칭)"
     },
     "tactics_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.3,
-        "reasoning_effort": "high",
+        "reasoning_effort": "medium",
         "max_tokens": 750,
         "note": "기획단속 & 변명차단관 [★GPT 특화] (3대 서류 입증, 피의자 궤변 논파 & 고난도 수사전략)"
     },
     "coordinator_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
-        "reasoning_effort": "high",
+        "reasoning_effort": "medium",
         "max_tokens": 800,
         "note": "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 및 최종 작전명령서 작성)"
     },
     "main_chatbot": {
-        "model_id": "gemini-3.8-flash",
+        "model_id": "gpt-4o-mini",
         "temperature": 0.3,
-        "reasoning_effort": "high",
+        "reasoning_effort": "medium",
         "max_tokens": 800,
-        "note": "메인 법률상담 AI 비서 (Gemini 3.8 Flash 하이 추론: 삼단논법 5단계 토큰 절약형 판정)"
+        "note": "메인 법률상담 AI 비서 (GPT-4o-mini: 삼단논법 5단계 고속 판정 & 토큰 알뜰 절약)"
     }
 }
 
@@ -275,46 +275,54 @@ class AgentModelManager:
         elif preset_id == "all-offline":
             for k in current:
                 current[k]["model_id"] = "offline-heuristic"
-        elif preset_id == "hybrid-recommended":
-            current["calc_agent"]["model_id"] = "gemini-3.8-flash"
-            current["calc_agent"]["reasoning_effort"] = "medium"
+        elif preset_id in ["hybrid-recommended", "openai-plan-optimal"]:
+            current["calc_agent"]["model_id"] = "gpt-4o-mini"
+            current["calc_agent"]["reasoning_effort"] = "low"
             current["calc_agent"]["temperature"] = 0.2
             current["calc_agent"]["max_tokens"] = 500
+            current["calc_agent"]["note"] = "수량계산 & 위법판정관 (GPT-4o-mini: 초고속 정밀 연산 & 토큰 극소 소모)"
 
-            current["infer_agent"]["model_id"] = "gemini-3.8-flash"
-            current["infer_agent"]["reasoning_effort"] = "high"
-            current["infer_agent"]["temperature"] = 0.4
+            current["infer_agent"]["model_id"] = "gpt-4o-mini"
+            current["infer_agent"]["reasoning_effort"] = "medium"
+            current["infer_agent"]["temperature"] = 0.3
             current["infer_agent"]["max_tokens"] = 650
+            current["infer_agent"]["note"] = "미상물질 & 화학감별관 (GPT-4o-mini: 화학 화합물·MSDS 신속 역산)"
 
-            current["procedure_agent"]["model_id"] = "gemini-3.8-flash"
-            current["procedure_agent"]["reasoning_effort"] = "medium"
+            current["procedure_agent"]["model_id"] = "gpt-4o-mini"
+            current["procedure_agent"]["reasoning_effort"] = "low"
             current["procedure_agent"]["temperature"] = 0.2
             current["procedure_agent"]["max_tokens"] = 500
+            current["procedure_agent"]["note"] = "단속절차 & 포렌식수사관 (GPT-4o-mini: 적법절차 체크 & 서식 신속 출력)"
 
             current["history_agent"]["model_id"] = "gpt-6.1-sol"
-            current["history_agent"]["reasoning_effort"] = "high"
+            current["history_agent"]["reasoning_effort"] = "medium"
             current["history_agent"]["temperature"] = 0.2
             current["history_agent"]["max_tokens"] = 750
+            current["history_agent"]["note"] = "연혁법령 & 부칙해석관 [★GPT 특화] (구 소방법 연혁 추적 & 부칙 제2조 심층 법리 분석)"
 
-            current["public_agent"]["model_id"] = "gemini-3.8-flash"
-            current["public_agent"]["reasoning_effort"] = "high"
+            current["public_agent"]["model_id"] = "gpt-4o-mini"
+            current["public_agent"]["reasoning_effort"] = "medium"
             current["public_agent"]["temperature"] = 0.3
             current["public_agent"]["max_tokens"] = 650
+            current["public_agent"]["note"] = "공공데이터 & 유권해석관 (GPT-4o-mini: 공공데이터 & 유권해석 매칭)"
 
             current["tactics_agent"]["model_id"] = "gpt-6.1-sol"
-            current["tactics_agent"]["reasoning_effort"] = "high"
+            current["tactics_agent"]["reasoning_effort"] = "medium"
             current["tactics_agent"]["temperature"] = 0.3
             current["tactics_agent"]["max_tokens"] = 750
+            current["tactics_agent"]["note"] = "기획단속 & 변명차단관 [★GPT 특화] (3대 서류 입증, 피의자 궤변 논파 & 고난도 수사전략)"
 
             current["coordinator_agent"]["model_id"] = "gpt-6.1-sol"
-            current["coordinator_agent"]["reasoning_effort"] = "high"
+            current["coordinator_agent"]["reasoning_effort"] = "medium"
             current["coordinator_agent"]["temperature"] = 0.2
             current["coordinator_agent"]["max_tokens"] = 800
+            current["coordinator_agent"]["note"] = "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 및 최종 작전명령서 작성)"
 
-            current["main_chatbot"]["model_id"] = "gemini-3.8-flash"
-            current["main_chatbot"]["reasoning_effort"] = "high"
+            current["main_chatbot"]["model_id"] = "gpt-4o-mini"
+            current["main_chatbot"]["reasoning_effort"] = "medium"
             current["main_chatbot"]["temperature"] = 0.3
             current["main_chatbot"]["max_tokens"] = 800
+            current["main_chatbot"]["note"] = "메인 법률상담 AI 비서 (GPT-4o-mini: 삼단논법 5단계 고속 판정 & 토큰 알뜰 절약)"
 
         cls.save_config(current)
         return current
@@ -400,11 +408,35 @@ class AgentModelManager:
                 "mode": "llm"
             }
         except Exception as e:
+            err_msg = str(e)
+            # Google Gemini 402(크레딧 소진) 또는 일시 장애 발생 시, 사용자의 OpenAI(gpt-4o-mini)로 즉시 자동 무중단 전환
+            if ("402" in err_msg or "credits are depleted" in err_msg or "RESOURCE_EXHAUSTED" in err_msg) and model_id.startswith("gemini-"):
+                openai_key = os.getenv("OPENAI_API_KEY")
+                if openai_key:
+                    try:
+                        fallback_client = OpenAI(api_key=openai_key)
+                        fallback_model = "gpt-4o-mini"
+                        fb_res = fallback_client.chat.completions.create(
+                            model=fallback_model,
+                            messages=messages,
+                            max_tokens=max_tokens,
+                            temperature=temperature
+                        )
+                        elapsed_ms = int((time.time() - start_time) * 1000)
+                        return {
+                            "success": True,
+                            "content": fb_res.choices[0].message.content,
+                            "model": f"{fallback_model} (Gemini 402 소진 자동 전환)",
+                            "elapsed_ms": elapsed_ms,
+                            "mode": "llm"
+                        }
+                    except Exception as fb_err:
+                        print(f"[AgentModelManager] Fallback to OpenAI gpt-4o-mini failed: {fb_err}")
             return {
                 "success": False,
                 "mode": "error",
                 "model": model_id,
-                "error": str(e)
+                "error": err_msg
             }
 
     @classmethod
@@ -452,9 +484,14 @@ class AgentModelManager:
             }
         except Exception as e:
             elapsed_ms = int((time.time() - start) * 1000)
+            err_msg = str(e)
+            if "402" in err_msg or "credits are depleted" in err_msg:
+                user_msg = "Google AI Studio 선불 크레딧 소진(402) - OpenAI 모델(gpt-4o-mini 등) 사용 권장"
+            else:
+                user_msg = f"통신 에러: {err_msg}"
             return {
                 "success": False,
                 "model": model_id,
-                "message": f"통신 에러: {str(e)}",
+                "message": user_msg,
                 "elapsed_ms": elapsed_ms
             }

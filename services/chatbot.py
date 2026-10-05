@@ -128,11 +128,23 @@ class HazmatChatbot:
             if llm_res["success"]:
                 return llm_res["content"]
             else:
-                err_str = str(llm_res.get('error', ''))
-                if '402' in err_str or 'credits are depleted' in err_str:
-                    from services.multi_agent_service import MultiAgentService
-                    offline_summary = MultiAgentService._generate_offline_agent_reply("tactics_agent", user_message, "")
-                    return f"💡 [안내: Google Gemini 3.8 Flash 크레딧 소진(402) 감지 - AI Studio 충전 전까지 내장 특사경 룰 엔진으로 즉시 전문 답변을 제공합니다]\n\n" + offline_summary
-                return f"⚠️ AI 챗봇 호출 오류 ({llm_res.get('model', 'offline')}): {err_str}"
+                # 2차 긴급 안전망: OpenAI gpt-4o-mini로 즉시 무중단 답변 생성
+                openai_key = os.getenv("OPENAI_API_KEY")
+                if openai_key:
+                    try:
+                        emergency_client = OpenAI(api_key=openai_key)
+                        em_res = emergency_client.chat.completions.create(
+                            model="gpt-4o-mini",
+                            messages=messages,
+                            max_tokens=700,
+                            temperature=0.3
+                        )
+                        return em_res.choices[0].message.content
+                    except Exception as em_err:
+                        print(f"[HazmatChatbot] Emergency OpenAI fallback failed: {em_err}")
+
+                from services.multi_agent_service import MultiAgentService
+                offline_summary = MultiAgentService._generate_offline_agent_reply("tactics_agent", user_message, "")
+                return f"💡 [안내: AI 모델 일시 지연으로 내장 특사경 룰 엔진으로 즉시 전문 답변을 제공합니다]\n\n" + offline_summary
         except Exception as e:
             return f"⚠️ AI 챗봇 호출 중 오류가 발생했습니다: {str(e)}"
