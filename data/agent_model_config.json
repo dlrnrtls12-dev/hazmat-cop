@@ -22,8 +22,8 @@
   },
   "history_agent": {
     "model_id": "gpt-6.1-sol",
-    "temperature": 0.2,
-    "reasoning_effort": "high",
+    "temperature": 0.4,
+    "reasoning_effort": "medium",
     "max_tokens": 750,
     "note": "연혁법령 & 부칙해석관 [★GPT 특화] (구 소방법 연혁 추적 & 부칙 제2조 심층 법리 분석)"
   },
@@ -36,8 +36,8 @@
   },
   "tactics_agent": {
     "model_id": "gpt-6.1-sol",
-    "temperature": 0.3,
-    "reasoning_effort": "high",
+    "temperature": 0.4,
+    "reasoning_effort": "medium",
     "max_tokens": 750,
     "note": "기획단속 & 변명차단관 [★GPT 특화] (3대 서류 입증, 피의자 궤변 논파 & 고난도 수사전략)"
   },
