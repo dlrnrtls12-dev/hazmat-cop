@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Variables
+.env
+*.env
+!.env.example
+
+# Evidence uploads (keep directory with .gitkeep)
+static/evidence/*
+!static/evidence/.gitkeep
+
+# Temporary / Scratch Files
+*.tmp
+*.log
+scratch/
+desktop_apis_extracted.txt
+hwp_out.txt
+
+# OS Generated
+.DS_Store
+Thumbs.db
+ehthumbs.db
