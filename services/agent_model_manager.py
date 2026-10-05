@@ -91,57 +91,57 @@ DEFAULT_CONFIG = {
         "model_id": "gpt-4o-mini",
         "temperature": 0.1,
         "reasoning_effort": "low",
-        "max_tokens": 800,
-        "note": "수량계산 & 위법판정관 (초고속 연산 및 결정론적 수치 검증)"
+        "max_tokens": 400,
+        "note": "수량계산 & 위법판정관 (초고속 연산 및 결정론적 수치 검증, 토큰 절약형)"
     },
     "infer_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "medium",
-        "max_tokens": 800,
+        "max_tokens": 500,
         "note": "미상물질 & 화학감별관 (인화점·MSDS 분석 및 제4류 품명 화학적 역산)"
     },
     "procedure_agent": {
         "model_id": "gpt-4o-mini",
         "temperature": 0.1,
         "reasoning_effort": "low",
-        "max_tokens": 800,
+        "max_tokens": 500,
         "note": "단속절차 & 포렌식수사관 (형소법 적법절차 체크 및 공문서 신속 출력)"
     },
     "history_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "high",
-        "max_tokens": 1000,
+        "max_tokens": 650,
         "note": "연혁법령 & 부칙해석관 (구 소방법 연혁 추적 및 부칙 제2조 심층 법리 분석)"
     },
     "public_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "medium",
-        "max_tokens": 800,
+        "max_tokens": 500,
         "note": "공공데이터 & 유권해석관 (경기도 사업장 DB 및 법제처 유권해석 정밀 매칭)"
     },
     "tactics_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.3,
         "reasoning_effort": "high",
-        "max_tokens": 1000,
+        "max_tokens": 650,
         "note": "기획단속 & 변명차단관 (3대 서류 입증, 피의자 궤변 논파 및 고난도 수사전략)"
     },
     "coordinator_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "high",
-        "max_tokens": 1200,
-        "note": "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 명령서 작성)"
+        "max_tokens": 750,
+        "note": "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 명령서 압축 작성)"
     },
     "main_chatbot": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
-        "reasoning_effort": "high",
+        "reasoning_effort": "low",
         "max_tokens": 1200,
-        "note": "메인 법률상담 AI 비서 (삼단논법 기반 5단계 판정)"
+        "note": "메인 법률상담 AI 비서 (삼단논법 기반 5단계 고밀도 압축 판정, 토큰 절약형)"
     }
 }
 
@@ -372,9 +372,10 @@ class AgentModelManager:
             }
             # 최신 차세대 추론 모델(gpt-6, o1, o3, gpt-5 등) 파라미터 자동 호환
             if any(p in model_id.lower() for p in ["gpt-6", "o1", "o3", "gpt-5"]):
-                create_kwargs["max_completion_tokens"] = max_tokens
-                # 추론 강도 (reasoning_effort: low, medium, high) 전달
-                effort = cfg.get("reasoning_effort", "medium")
+                # 추론 모델은 reasoning_tokens와 completion_tokens를 합산하므로 최소 1200 버퍼 보장
+                create_kwargs["max_completion_tokens"] = max(max_tokens, 1200)
+                # 추론 강도 (reasoning_effort: low, medium, high) 전달 - 토큰 절약의 핵심
+                effort = cfg.get("reasoning_effort", "low")
                 if effort in ["low", "medium", "high"]:
                     create_kwargs["reasoning_effort"] = effort
             else:

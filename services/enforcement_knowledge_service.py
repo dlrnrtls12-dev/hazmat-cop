@@ -224,10 +224,10 @@ class EnforcementKnowledgeService:
                             if doc["id"] not in [d["id"] for d in relevant_docs]:
                                 relevant_docs.append(doc)
 
-        for doc in relevant_docs[:3]:
-            # 핵심 텍스트 요약 (최대 1000자)
-            snippet = doc["content"][:1000].replace("\n\n", "\n")
-            matched_chunks.append(f"[소방청 공식 지침/자료: {doc['filename']}]\n{snippet}")
+        for doc in relevant_docs[:2]:
+            # 토큰 절약: 핵심 텍스트 요약 (최대 350자 압축)
+            snippet = doc["content"][:350].replace("\n\n", "\n")
+            matched_chunks.append(f"[소방청 지침: {doc['filename']}]\n{snippet}")
 
         if not matched_chunks:
             # 기본 실무 원칙 주입

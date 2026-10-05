@@ -233,8 +233,13 @@ class MultiAgentService:
             sys_content += f"\n\n[실시간 도메인 데이터]\n{rag_context}"
 
         messages = [{"role": "system", "content": sys_content}]
+        # 토큰 절약: 최근 4개(2턴) 대화만 유지하고, 이전 어시스턴트 답변은 200자로 축약
         if history:
-            messages.extend(history[-6:])
+            for h in history[-4:]:
+                content = h.get("content", "")
+                if h.get("role") == "assistant" and len(content) > 200:
+                    content = content[:200] + "..."
+                messages.append({"role": h.get("role"), "content": content})
         messages.append({"role": "user", "content": message})
 
         llm_res = AgentModelManager.call_agent_llm(agent_id, messages)
@@ -366,7 +371,7 @@ class MultiAgentService:
             {"role": "user", "content": prompt}
         ]
 
-        llm_res = AgentModelManager.call_agent_llm("coordinator_agent", messages, override_max_tokens=1000)
+        llm_res = AgentModelManager.call_agent_llm("coordinator_agent", messages, override_max_tokens=650)
         if llm_res["success"]:
             command_text = llm_res["content"]
             model_used = llm_res["model"]
