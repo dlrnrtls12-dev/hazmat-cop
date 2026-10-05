@@ -153,7 +153,59 @@ async def get_applicable_law_as_of_endpoint(
     )
     if not applicable:
         return JSONResponse(status_code=404, content={"message": f"'{date}' 기준 시행되던 법령 정보를 찾을 수 없습니다."})
-    return applicable
+
+    ver = applicable.get("matched_version") or {}
+    detail = applicable.get("detail") or {}
+    clean_date = date.replace("-", "").replace(".", "").strip()
+    is_pre_2004 = clean_date < "20040530"
+
+    matched_law = {
+        "title": ver.get("law_name") or detail.get("law_name") or "위험물안전관리법",
+        "law_no": f"제{ver.get('promulgation_no')}호" if ver.get("promulgation_no") else "",
+        "effective_date": ver.get("effective_date", date),
+        "promulgation_date": ver.get("promulgation_date", "-"),
+        "change_type": ver.get("change_type", "일부개정"),
+        "mst": ver.get("mst", ""),
+        "detail_url": ver.get("detail_url", ""),
+        "addenda": detail.get("addenda", []),
+        "articles_count": detail.get("articles_count", 0)
+    }
+
+    if is_pre_2004:
+        context_code = "PRE_2004_FIRE_ACT"
+        primary_rule = "종전 「소방법」 적용 대상: 위험물안전관리법 부칙 제2조(기존시설 특례) 승계 인정"
+        guidance = (
+            f"입력하신 인허가·완공일({date})은 위험물안전관리법 제정(2004.5.30) 이전입니다. "
+            "당시 구 「소방법」에 따라 적법하게 완공·허가받은 제조소등은 현행법 부칙 제2조에 의해 기존 허가 지위를 승계받습니다. "
+            "따라서 현행 신규 시설기준 미달을 이유로 즉시 무허가 취급(형사입건)으로 단속할 수 없으며, 종전 소방법 기준 적합성 및 개정법 부칙의 소급·유예 규정을 대조 검토해야 합니다."
+        )
+    else:
+        context_code = "HAZMAT_ACT_ENFORCED"
+        primary_rule = f"위험물안전관리법 적용 대상: 인허가일({date}) 당시 시행령·시행규칙 기준 적용"
+        guidance = (
+            f"입력하신 일자({date}) 당시 시행되던 위험물안전관리법 본문 및 해당 시점의 기술기준(위치·구조·설비)이 적용됩니다. "
+            "이후 법령 개정으로 기준이 강화된 경우라도 해당 개정 법령 부칙의 경과조치(기존 시설 특례 또는 적용 유예) 여부를 확인하십시오."
+        )
+
+    transition_analysis = {
+        "historical_context": context_code,
+        "primary_rule": primary_rule,
+        "guidance": guidance,
+        "applicable_principles": [
+            "행위시법 및 인허가 당시 법령 기준 원칙",
+            "부칙 제2조 기존 제조소등에 관한 경과조치 특례 승계",
+            "인허가 범위를 초과한 무단 증축·위치변경·품명변경은 현행법 위반 엄정 처벌"
+        ]
+    }
+
+    return {
+        "as_of_date": date,
+        "matched_law": matched_law,
+        "matched_version": ver,
+        "detail": detail,
+        "transition_analysis": transition_analysis,
+        "is_pre_2004": is_pre_2004
+    }
 
 # =========================================================================
 # 현장 채증 사진 및 전자서명 & 미상 물질 감별 API

@@ -3003,13 +3003,22 @@
                     return;
                 }
 
-                const targetLaw = data.matched_law;
-                const transition = data.transition_analysis;
-                const safeTitle = (targetLaw.title || '').replace(/'/g, "\\'");
+                const targetLaw = data.matched_law || data.matched_version || {};
+                const transition = data.transition_analysis || {
+                    historical_context: (data.is_pre_2004 ? 'PRE_2004_FIRE_ACT' : 'HAZMAT_ACT_ENFORCED'),
+                    primary_rule: (data.is_pre_2004 ? '종전 「소방법」 적용 대상: 위험물안전관리법 부칙 제2조(기존시설 특례) 승계 인정' : '위험물안전관리법 당시 시행령·시행규칙 기준 적용'),
+                    guidance: '해당 시점 당시 유효했던 법령본과 부칙 경과조치를 종합 검토하십시오.'
+                };
+                const lawTitle = targetLaw.title || targetLaw.law_name || '위험물안전관리법';
+                const lawNo = targetLaw.law_no || (targetLaw.promulgation_no ? `제${targetLaw.promulgation_no}호` : '법률');
+                const efDate = targetLaw.effective_date || date;
+                const promDate = targetLaw.promulgation_date || '-';
+                const safeTitle = lawTitle.replace(/'/g, "\\'");
 
                 let addendaHtml = '';
-                if (targetLaw.addenda && targetLaw.addenda.length > 0) {
-                    addendaHtml = targetLaw.addenda.map(a => `
+                const addendaList = (targetLaw.addenda && targetLaw.addenda.length > 0) ? targetLaw.addenda : ((data.detail && data.detail.addenda) ? data.detail.addenda : []);
+                if (addendaList && addendaList.length > 0) {
+                    addendaHtml = addendaList.map(a => `
                         <div class="p-3 rounded-lg bg-white border border-slate-200 space-y-1">
                             <span class="font-bold text-slate-900">${a.title || '부칙 규정'}</span>
                             <p class="text-slate-700 leading-relaxed text-[11px] whitespace-pre-wrap">${a.content || ''}</p>
@@ -3026,16 +3035,16 @@
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div class="flex items-center gap-2">
                                     <span class="px-2 py-0.5 rounded-md bg-blue-600 text-white font-black text-xs">적용 법령</span>
-                                    <h4 class="text-sm font-black text-slate-900">${targetLaw.title}</h4>
-                                    <span class="text-[11px] text-slate-500 font-mono">(${targetLaw.law_no || '법률'})</span>
+                                    <h4 class="text-sm font-black text-slate-900">${lawTitle}</h4>
+                                    <span class="text-[11px] text-slate-500 font-mono">(${lawNo})</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-[11px]">
-                                    <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">시행: <strong>${targetLaw.effective_date}</strong></span>
-                                    <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">공포: ${targetLaw.promulgation_date}</span>
+                                    <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">시행: <strong>${efDate}</strong></span>
+                                    <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">공포: ${promDate}</span>
                                 </div>
                             </div>
                             <p class="text-[11px] text-slate-600">
-                                📅 <strong>입력된 기준일자 [${data.as_of_date}]</strong> 당시에 유효했던 법령본입니다.
+                                📅 <strong>입력된 기준일자 [${data.as_of_date || date}]</strong> 당시에 유효했던 법령본입니다.
                             </p>
                         </div>
 
@@ -3075,11 +3084,11 @@
                                 ※ 종전 소방법 시절 적법 허가를 득한 기존 시설은 위험물안전관리법 부칙 제2조에 의해 무허가 처벌 대상이 아닙니다.
                             </div>
                             <div class="flex items-center gap-2">
-                                <button type="button" onclick="openLawHistoryModal('${targetLaw.mst || ''}', '${targetLaw.ef_yd || ''}')" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-800 font-bold text-[11px] hover:bg-slate-100 flex items-center gap-1">
+                                <button type="button" onclick="openLawHistoryModal('${targetLaw.mst || ''}', '${targetLaw.ef_yd || targetLaw.effective_date_raw || ''}')" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-800 font-bold text-[11px] hover:bg-slate-100 flex items-center gap-1">
                                     <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
                                     <span>법령·부칙 전문보기</span>
                                 </button>
-                                <button type="button" onclick="askChatbotWithHistory('${data.as_of_date}', '${safeTitle}', '${targetLaw.law_no || ''}')" class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] flex items-center gap-1 shadow-2xs">
+                                <button type="button" onclick="askChatbotWithHistory('${data.as_of_date || date}', '${safeTitle}', '${lawNo}')" class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] flex items-center gap-1 shadow-2xs">
                                     <i data-lucide="bot" class="w-3.5 h-3.5"></i>
                                     <span>AI 챗봇에 연혁 검토 질의</span>
                                 </button>
