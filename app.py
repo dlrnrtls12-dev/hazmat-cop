@@ -455,6 +455,46 @@ async def chat_endpoint(req: ChatRequest):
     answer = chatbot.ask(req.message, req.history)
     return {"response": answer}
 
+# =========================================================================
+# 6대 전문 서브에이전트 관제 & 1:1 대화 & 에이전트 간 합동 회의 API
+# =========================================================================
+from services.multi_agent_service import MultiAgentService
+
+class AgentChatRequest(BaseModel):
+    agent_id: str
+    message: str
+    history: Optional[List[Dict[str, str]]] = None
+
+class AgentCollabRequest(BaseModel):
+    scenario: str
+
+@app.get("/api/agents/list")
+async def get_agents_list_endpoint():
+    """
+    6대 전문 서브에이전트 메타데이터 및 상태 목록 조회 API
+    """
+    return MultiAgentService.get_subagents_list()
+
+@app.post("/api/agents/chat")
+async def agent_chat_endpoint(req: AgentChatRequest):
+    """
+    특정 서브에이전트와의 1:1 심층 전문 상담 대화 API
+    """
+    result = MultiAgentService.chat_with_agent(
+        agent_id=req.agent_id,
+        message=req.message,
+        history=req.history
+    )
+    return result
+
+@app.post("/api/agents/collaborate")
+async def agent_collaborate_endpoint(req: AgentCollabRequest):
+    """
+    6대 서브에이전트 간의 자율 합동 토론 및 단속 작전 명령 수립 회의 API
+    """
+    result = MultiAgentService.run_multi_agent_collaboration(req.scenario)
+    return result
+
 def get_local_ip() -> str:
     """
     동일 Wi-Fi / 사내 네트워크 상의 모바일 기기 접속을 위한 로컬 IPv4 주소 자동 감지
