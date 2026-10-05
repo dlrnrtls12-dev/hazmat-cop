@@ -264,7 +264,7 @@
                             </label>
                         </div>
 
-                        <button onclick="calculateAndAssess()" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+                        <button onclick="calculateAndAssess(true)" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
                             <i data-lucide="zap" class="w-4 h-4"></i>
                             지정수량 배수 계산 및 종합 위법 판정
                         </button>
@@ -2448,9 +2448,12 @@
             items[itemIndex].name = val;
         }
 
-        async function calculateAndAssess() {
-            const valid = items.filter(it => it.name.trim() !== "");
-            if (valid.length === 0) return alert("화학물질명을 입력해 주세요.");
+        async function calculateAndAssess(showAlert = false) {
+            const valid = items.filter(it => it.name && it.name.trim() !== "");
+            if (valid.length === 0) {
+                if (showAlert) alert("화학물질명을 입력해 주세요.");
+                return;
+            }
 
             const payload = {
                 items: valid.map(it => ({
@@ -5962,7 +5965,10 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             renderItemRows();
-            calculateAndAssess();
+            const hasValid = items.some(it => it.name && it.name.trim() !== "");
+            if (hasValid) {
+                calculateAndAssess(false);
+            }
             loadCatalogStats();
             initSignaturePads();
             updateNetworkStatus();
