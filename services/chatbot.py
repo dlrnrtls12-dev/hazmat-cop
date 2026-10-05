@@ -128,6 +128,11 @@ class HazmatChatbot:
             if llm_res["success"]:
                 return llm_res["content"]
             else:
-                return f"⚠️ AI 챗봇 호출 오류 ({llm_res.get('model', 'offline')}): {llm_res.get('error', '모델 설정을 확인해주세요.')}"
+                err_str = str(llm_res.get('error', ''))
+                if '402' in err_str or 'credits are depleted' in err_str:
+                    from services.multi_agent_service import MultiAgentService
+                    offline_summary = MultiAgentService._generate_offline_agent_reply("tactics_agent", user_message, "")
+                    return f"💡 [안내: Google Gemini 3.8 Flash 크레딧 소진(402) 감지 - AI Studio 충전 전까지 내장 특사경 룰 엔진으로 즉시 전문 답변을 제공합니다]\n\n" + offline_summary
+                return f"⚠️ AI 챗봇 호출 오류 ({llm_res.get('model', 'offline')}): {err_str}"
         except Exception as e:
             return f"⚠️ AI 챗봇 호출 중 오류가 발생했습니다: {str(e)}"

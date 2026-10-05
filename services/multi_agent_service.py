@@ -255,7 +255,13 @@ class MultiAgentService:
             }
         else:
             fallback = cls._generate_offline_agent_reply(agent_id, message, rag_context)
-            note = f"(설정된 모델 '{llm_res.get('model', 'offline')}' 오프라인 룰 엔진 전환: {llm_res.get('error', '')})\n\n" if llm_res.get("mode") == "error" else ""
+            err_str = str(llm_res.get('error', ''))
+            if '402' in err_str or 'credits are depleted' in err_str:
+                note = f"💡 [안내: Google Gemini 3.8 Flash 크레딧 소진(402) 감지 - AI Studio(ai.studio) 충전 전까지 내장 특사경 룰 엔진으로 즉시 전문 답변을 제공합니다]\n\n"
+            elif llm_res.get("mode") == "error":
+                note = f"(설정된 모델 '{llm_res.get('model', 'offline')}' 오프라인 룰 엔진 전환: {err_str})\n\n"
+            else:
+                note = ""
             return {
                 "agent_id": agent_id,
                 "agent_name": meta["name"],

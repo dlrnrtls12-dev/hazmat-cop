@@ -88,60 +88,60 @@ SUPPORTED_MODELS = [
 # 에이전트 목록 및 기본 모델 매핑
 DEFAULT_CONFIG = {
     "calc_agent": {
-        "model_id": "gpt-4o-mini",
-        "temperature": 0.1,
-        "reasoning_effort": "low",
-        "max_tokens": 400,
-        "note": "수량계산 & 위법판정관 (초고속 연산 및 결정론적 수치 검증, 토큰 절약형)"
-    },
-    "infer_agent": {
-        "model_id": "gpt-6.1-sol",
+        "model_id": "gemini-3.8-flash",
         "temperature": 0.2,
         "reasoning_effort": "medium",
         "max_tokens": 500,
-        "note": "미상물질 & 화학감별관 (인화점·MSDS 분석 및 제4류 품명 화학적 역산)"
+        "note": "수량계산 & 위법판정관 (Gemini 3.8 Flash 미디엄 추론: 초고속 연산 & 토큰 절약)"
+    },
+    "infer_agent": {
+        "model_id": "gemini-3.8-flash",
+        "temperature": 0.4,
+        "reasoning_effort": "high",
+        "max_tokens": 650,
+        "note": "미상물질 & 화학감별관 (Gemini 3.8 Flash 하이 추론: 화학 화합물·MSDS 심층 역산)"
     },
     "procedure_agent": {
-        "model_id": "gpt-4o-mini",
-        "temperature": 0.1,
-        "reasoning_effort": "low",
+        "model_id": "gemini-3.8-flash",
+        "temperature": 0.2,
+        "reasoning_effort": "medium",
         "max_tokens": 500,
-        "note": "단속절차 & 포렌식수사관 (형소법 적법절차 체크 및 공문서 신속 출력)"
+        "note": "단속절차 & 포렌식수사관 (Gemini 3.8 Flash 미디엄 추론: 적법절차 체크 & 서식 신속 출력)"
     },
     "history_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "high",
-        "max_tokens": 650,
-        "note": "연혁법령 & 부칙해석관 (구 소방법 연혁 추적 및 부칙 제2조 심층 법리 분석)"
+        "max_tokens": 750,
+        "note": "연혁법령 & 부칙해석관 [★GPT 특화] (구 소방법 연혁 추적 & 부칙 제2조 심층 법리 분석)"
     },
     "public_agent": {
-        "model_id": "gpt-6.1-sol",
-        "temperature": 0.2,
-        "reasoning_effort": "medium",
-        "max_tokens": 500,
-        "note": "공공데이터 & 유권해석관 (경기도 사업장 DB 및 법제처 유권해석 정밀 매칭)"
+        "model_id": "gemini-3.8-flash",
+        "temperature": 0.3,
+        "reasoning_effort": "high",
+        "max_tokens": 650,
+        "note": "공공데이터 & 유권해석관 (Gemini 3.8 Flash 하이 추론: 대용량 사업장 DB & 유권해석 매칭)"
     },
     "tactics_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.3,
         "reasoning_effort": "high",
-        "max_tokens": 650,
-        "note": "기획단속 & 변명차단관 (3대 서류 입증, 피의자 궤변 논파 및 고난도 수사전략)"
+        "max_tokens": 750,
+        "note": "기획단속 & 변명차단관 [★GPT 특화] (3대 서류 입증, 피의자 궤변 논파 & 고난도 수사전략)"
     },
     "coordinator_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "high",
-        "max_tokens": 750,
-        "note": "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 명령서 압축 작성)"
+        "max_tokens": 800,
+        "note": "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 및 최종 작전명령서 작성)"
     },
     "main_chatbot": {
-        "model_id": "gpt-6.1-sol",
-        "temperature": 0.2,
-        "reasoning_effort": "low",
-        "max_tokens": 1200,
-        "note": "메인 법률상담 AI 비서 (삼단논법 기반 5단계 고밀도 압축 판정, 토큰 절약형)"
+        "model_id": "gemini-3.8-flash",
+        "temperature": 0.3,
+        "reasoning_effort": "high",
+        "max_tokens": 800,
+        "note": "메인 법률상담 AI 비서 (Gemini 3.8 Flash 하이 추론: 삼단논법 5단계 토큰 절약형 판정)"
     }
 }
 
@@ -276,37 +276,45 @@ class AgentModelManager:
             for k in current:
                 current[k]["model_id"] = "offline-heuristic"
         elif preset_id == "hybrid-recommended":
-            current["calc_agent"]["model_id"] = "gpt-4o-mini"
-            current["calc_agent"]["reasoning_effort"] = "low"
-            current["calc_agent"]["temperature"] = 0.1
+            current["calc_agent"]["model_id"] = "gemini-3.8-flash"
+            current["calc_agent"]["reasoning_effort"] = "medium"
+            current["calc_agent"]["temperature"] = 0.2
+            current["calc_agent"]["max_tokens"] = 500
 
-            current["infer_agent"]["model_id"] = "gpt-6.1-sol"
-            current["infer_agent"]["reasoning_effort"] = "medium"
-            current["infer_agent"]["temperature"] = 0.2
+            current["infer_agent"]["model_id"] = "gemini-3.8-flash"
+            current["infer_agent"]["reasoning_effort"] = "high"
+            current["infer_agent"]["temperature"] = 0.4
+            current["infer_agent"]["max_tokens"] = 650
 
-            current["procedure_agent"]["model_id"] = "gpt-4o-mini"
-            current["procedure_agent"]["reasoning_effort"] = "low"
-            current["procedure_agent"]["temperature"] = 0.1
+            current["procedure_agent"]["model_id"] = "gemini-3.8-flash"
+            current["procedure_agent"]["reasoning_effort"] = "medium"
+            current["procedure_agent"]["temperature"] = 0.2
+            current["procedure_agent"]["max_tokens"] = 500
 
             current["history_agent"]["model_id"] = "gpt-6.1-sol"
             current["history_agent"]["reasoning_effort"] = "high"
             current["history_agent"]["temperature"] = 0.2
+            current["history_agent"]["max_tokens"] = 750
 
-            current["public_agent"]["model_id"] = "gpt-6.1-sol"
-            current["public_agent"]["reasoning_effort"] = "medium"
-            current["public_agent"]["temperature"] = 0.2
+            current["public_agent"]["model_id"] = "gemini-3.8-flash"
+            current["public_agent"]["reasoning_effort"] = "high"
+            current["public_agent"]["temperature"] = 0.3
+            current["public_agent"]["max_tokens"] = 650
 
             current["tactics_agent"]["model_id"] = "gpt-6.1-sol"
             current["tactics_agent"]["reasoning_effort"] = "high"
             current["tactics_agent"]["temperature"] = 0.3
+            current["tactics_agent"]["max_tokens"] = 750
 
             current["coordinator_agent"]["model_id"] = "gpt-6.1-sol"
             current["coordinator_agent"]["reasoning_effort"] = "high"
             current["coordinator_agent"]["temperature"] = 0.2
+            current["coordinator_agent"]["max_tokens"] = 800
 
-            current["main_chatbot"]["model_id"] = "gpt-6.1-sol"
+            current["main_chatbot"]["model_id"] = "gemini-3.8-flash"
             current["main_chatbot"]["reasoning_effort"] = "high"
-            current["main_chatbot"]["temperature"] = 0.2
+            current["main_chatbot"]["temperature"] = 0.3
+            current["main_chatbot"]["max_tokens"] = 800
 
         cls.save_config(current)
         return current
