@@ -3,7 +3,8 @@
     "model_id": "gpt-6.1-sol",
     "temperature": 0.1,
     "max_tokens": 800,
-    "note": "수량계산 & 위법판정관 (정밀 계산을 위해 낮은 온도 유지)"
+    "note": "수량계산 & 위법판정관 (정밀 계산을 위해 낮은 온도 유지)",
+    "reasoning_effort": "low"
   },
   "infer_agent": {
     "model_id": "gpt-6.1-sol",
