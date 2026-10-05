@@ -92,42 +92,42 @@ DEFAULT_CONFIG = {
         "temperature": 0.1,
         "reasoning_effort": "low",
         "max_tokens": 800,
-        "note": "수량계산 & 위법판정관 (정밀 계산을 위해 낮은 온도 유지)"
+        "note": "수량계산 & 위법판정관 (초고속 연산 및 결정론적 수치 검증)"
     },
     "infer_agent": {
-        "model_id": "gpt-4o-mini",
+        "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "medium",
         "max_tokens": 800,
-        "note": "미상물질 & 화학감별관 (인화점 및 화학물질 역산)"
+        "note": "미상물질 & 화학감별관 (인화점·MSDS 분석 및 제4류 품명 화학적 역산)"
     },
     "procedure_agent": {
         "model_id": "gpt-4o-mini",
         "temperature": 0.1,
         "reasoning_effort": "low",
         "max_tokens": 800,
-        "note": "단속절차 & 포렌식수사관 (엄격한 형소법 적법절차 통제)"
+        "note": "단속절차 & 포렌식수사관 (형소법 적법절차 체크 및 공문서 신속 출력)"
     },
     "history_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "high",
         "max_tokens": 1000,
-        "note": "연혁법령 & 부칙해석관 (구 소방법 심층 법리 분석)"
+        "note": "연혁법령 & 부칙해석관 (구 소방법 연혁 추적 및 부칙 제2조 심층 법리 분석)"
     },
     "public_agent": {
-        "model_id": "gpt-4o-mini",
+        "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
         "reasoning_effort": "medium",
         "max_tokens": 800,
-        "note": "공공데이터 & 유권해석관 (경기도 사업장 및 법제처 해석 매칭)"
+        "note": "공공데이터 & 유권해석관 (경기도 사업장 DB 및 법제처 유권해석 정밀 매칭)"
     },
     "tactics_agent": {
         "model_id": "gpt-6.1-sol",
         "temperature": 0.3,
         "reasoning_effort": "high",
         "max_tokens": 1000,
-        "note": "기획단속 & 변명차단관 (3대 서류 입증 및 날카로운 수사전략)"
+        "note": "기획단속 & 변명차단관 (3대 서류 입증, 피의자 궤변 논파 및 고난도 수사전략)"
     },
     "coordinator_agent": {
         "model_id": "gpt-6.1-sol",
@@ -220,15 +220,55 @@ class AgentModelManager:
         if preset_id == "all-gpt-6-sol":
             for k in current:
                 current[k]["model_id"] = "gpt-6.1-sol"
+            current["calc_agent"]["reasoning_effort"] = "low"
+            current["calc_agent"]["temperature"] = 0.1
+            current["procedure_agent"]["reasoning_effort"] = "low"
+            current["procedure_agent"]["temperature"] = 0.1
+            current["infer_agent"]["reasoning_effort"] = "medium"
+            current["infer_agent"]["temperature"] = 0.2
+            current["public_agent"]["reasoning_effort"] = "medium"
+            current["public_agent"]["temperature"] = 0.2
+            current["history_agent"]["reasoning_effort"] = "high"
+            current["history_agent"]["temperature"] = 0.2
+            current["tactics_agent"]["reasoning_effort"] = "high"
+            current["tactics_agent"]["temperature"] = 0.3
+            current["coordinator_agent"]["reasoning_effort"] = "high"
+            current["coordinator_agent"]["temperature"] = 0.2
+            current["main_chatbot"]["reasoning_effort"] = "high"
+            current["main_chatbot"]["temperature"] = 0.2
         elif preset_id == "all-gemini-38-flash":
             for k in current:
                 current[k]["model_id"] = "gemini-3.8-flash"
+            current["calc_agent"]["reasoning_effort"] = "low"
+            current["procedure_agent"]["reasoning_effort"] = "low"
+            current["infer_agent"]["reasoning_effort"] = "medium"
+            current["public_agent"]["reasoning_effort"] = "medium"
+            current["history_agent"]["reasoning_effort"] = "high"
+            current["tactics_agent"]["reasoning_effort"] = "high"
+            current["coordinator_agent"]["reasoning_effort"] = "high"
+            current["main_chatbot"]["reasoning_effort"] = "high"
         elif preset_id == "all-gpt-4o-mini":
             for k in current:
                 current[k]["model_id"] = "gpt-4o-mini"
+            current["calc_agent"]["reasoning_effort"] = "low"
+            current["procedure_agent"]["reasoning_effort"] = "low"
+            current["infer_agent"]["reasoning_effort"] = "medium"
+            current["public_agent"]["reasoning_effort"] = "medium"
+            current["history_agent"]["reasoning_effort"] = "high"
+            current["tactics_agent"]["reasoning_effort"] = "high"
+            current["coordinator_agent"]["reasoning_effort"] = "high"
+            current["main_chatbot"]["reasoning_effort"] = "high"
         elif preset_id == "all-gpt-4o":
             for k in current:
                 current[k]["model_id"] = "gpt-4o"
+            current["calc_agent"]["reasoning_effort"] = "low"
+            current["procedure_agent"]["reasoning_effort"] = "low"
+            current["infer_agent"]["reasoning_effort"] = "medium"
+            current["public_agent"]["reasoning_effort"] = "medium"
+            current["history_agent"]["reasoning_effort"] = "high"
+            current["tactics_agent"]["reasoning_effort"] = "high"
+            current["coordinator_agent"]["reasoning_effort"] = "high"
+            current["main_chatbot"]["reasoning_effort"] = "high"
         elif preset_id == "all-gemini-flash":
             for k in current:
                 current[k]["model_id"] = "gemini-3.8-flash"
@@ -237,13 +277,36 @@ class AgentModelManager:
                 current[k]["model_id"] = "offline-heuristic"
         elif preset_id == "hybrid-recommended":
             current["calc_agent"]["model_id"] = "gpt-4o-mini"
-            current["infer_agent"]["model_id"] = "gpt-4o-mini"
+            current["calc_agent"]["reasoning_effort"] = "low"
+            current["calc_agent"]["temperature"] = 0.1
+
+            current["infer_agent"]["model_id"] = "gpt-6.1-sol"
+            current["infer_agent"]["reasoning_effort"] = "medium"
+            current["infer_agent"]["temperature"] = 0.2
+
             current["procedure_agent"]["model_id"] = "gpt-4o-mini"
+            current["procedure_agent"]["reasoning_effort"] = "low"
+            current["procedure_agent"]["temperature"] = 0.1
+
             current["history_agent"]["model_id"] = "gpt-6.1-sol"
-            current["public_agent"]["model_id"] = "gpt-4o-mini"
+            current["history_agent"]["reasoning_effort"] = "high"
+            current["history_agent"]["temperature"] = 0.2
+
+            current["public_agent"]["model_id"] = "gpt-6.1-sol"
+            current["public_agent"]["reasoning_effort"] = "medium"
+            current["public_agent"]["temperature"] = 0.2
+
             current["tactics_agent"]["model_id"] = "gpt-6.1-sol"
+            current["tactics_agent"]["reasoning_effort"] = "high"
+            current["tactics_agent"]["temperature"] = 0.3
+
             current["coordinator_agent"]["model_id"] = "gpt-6.1-sol"
+            current["coordinator_agent"]["reasoning_effort"] = "high"
+            current["coordinator_agent"]["temperature"] = 0.2
+
             current["main_chatbot"]["model_id"] = "gpt-6.1-sol"
+            current["main_chatbot"]["reasoning_effort"] = "high"
+            current["main_chatbot"]["temperature"] = 0.2
 
         cls.save_config(current)
         return current
