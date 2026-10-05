@@ -862,7 +862,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-end gap-2">
-                                    <button type="button" onclick="lookupLawHistoryAsOf()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 transition-colors shadow-2xs">
+                                    <button type="button" onclick="lookupLawHistoryAsOf(true)" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 transition-colors shadow-2xs">
                                         <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
                                         <span>당시 법령·부칙 조회</span>
                                     </button>
@@ -2277,7 +2277,7 @@
             } else if (tabId === 'screening') {
                 searchChemicalBiz();
                 searchLegalInterpretations();
-                lookupLawHistoryAsOf();
+                lookupLawHistoryAsOf(false);
                 loadGuidelines();
             } else if (tabId === 'multiagent') {
                 initMultiAgentTab();
@@ -3969,19 +3969,27 @@
             lookupLawHistoryAsOf();
         }
 
-        async function lookupLawHistoryAsOf() {
-            const date = document.getElementById('history-asof-date').value;
-            const lawName = document.getElementById('history-law-query').value.trim() || '위험물안전관리법';
+        async function lookupLawHistoryAsOf(showAlert = false) {
+            const dateInput = document.getElementById('history-asof-date');
+            const date = dateInput ? dateInput.value : '';
+            const lawName = (document.getElementById('history-law-query') ? document.getElementById('history-law-query').value.trim() : '') || '위험물안전관리법';
             const container = document.getElementById('law-history-result');
-            if (!date) return alert("기준일자(준공·인허가일)를 입력해 주세요.");
-
-            container.innerHTML = `
-                <div class="p-6 text-center text-slate-400 flex items-center justify-center gap-2">
-                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-blue-600"></i>
-                    <span>${date} 기준 당시 적용 법령 및 부칙 경과조치 분석 중...</span>
-                </div>
-            `;
-            lucide.createIcons();
+            if (!date) {
+                if (showAlert) {
+                    showSaveToast("기준일자(준공·인허가일)를 입력해 주세요.");
+                }
+                if (container) {
+                    container.innerHTML = `
+                        <div class="p-8 text-center text-slate-400 space-y-2">
+                            <i data-lucide="calendar-search" class="w-8 h-8 text-slate-300 mx-auto"></i>
+                            <p class="font-bold text-slate-600 text-xs">기준일자(준공·인허가일)를 입력하신 후 [당시 법령·부칙 조회] 버튼을 눌러주세요.</p>
+                            <p class="text-[11px] text-slate-400">1958년 제정 구 소방법부터 2004년 분법 전후 부칙 제2조 경과조치를 자동으로 추적 분석합니다.</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                }
+                return;
+            }
 
             try {
                 const res = await fetch(`/api/laws/history/as-of?date=${encodeURIComponent(date)}&law_name=${encodeURIComponent(lawName)}`);
