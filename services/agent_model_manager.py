@@ -44,6 +44,14 @@ SUPPORTED_MODELS = [
         "description": "가장 뛰어난 추론 능력과 정밀한 법률 포섭 및 수사전략 지휘에 적합"
     },
     {
+        "id": "gemini-3.8-flash",
+        "provider": "gemini",
+        "name": "Gemini 3.8 Flash",
+        "tag": "Google / 3.8 플래시 최신판",
+        "badge": "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+        "description": "구글 차세대 최신 초고속 모델, 대용량 위험물 데이터 및 화학물질 초고속 분석"
+    },
+    {
         "id": "gemini-2.5-flash",
         "provider": "gemini",
         "name": "Gemini 2.5 Flash",
@@ -82,48 +90,56 @@ DEFAULT_CONFIG = {
     "calc_agent": {
         "model_id": "gpt-4o-mini",
         "temperature": 0.1,
+        "reasoning_effort": "low",
         "max_tokens": 800,
         "note": "수량계산 & 위법판정관 (정밀 계산을 위해 낮은 온도 유지)"
     },
     "infer_agent": {
         "model_id": "gpt-4o-mini",
         "temperature": 0.2,
+        "reasoning_effort": "medium",
         "max_tokens": 800,
         "note": "미상물질 & 화학감별관 (인화점 및 화학물질 역산)"
     },
     "procedure_agent": {
         "model_id": "gpt-4o-mini",
         "temperature": 0.1,
+        "reasoning_effort": "low",
         "max_tokens": 800,
         "note": "단속절차 & 포렌식수사관 (엄격한 형소법 적법절차 통제)"
     },
     "history_agent": {
-        "model_id": "gpt-4o",
+        "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
+        "reasoning_effort": "high",
         "max_tokens": 1000,
         "note": "연혁법령 & 부칙해석관 (구 소방법 심층 법리 분석)"
     },
     "public_agent": {
         "model_id": "gpt-4o-mini",
         "temperature": 0.2,
+        "reasoning_effort": "medium",
         "max_tokens": 800,
         "note": "공공데이터 & 유권해석관 (경기도 사업장 및 법제처 해석 매칭)"
     },
     "tactics_agent": {
-        "model_id": "gpt-4o",
+        "model_id": "gpt-6.1-sol",
         "temperature": 0.3,
+        "reasoning_effort": "high",
         "max_tokens": 1000,
         "note": "기획단속 & 변명차단관 (3대 서류 입증 및 날카로운 수사전략)"
     },
     "coordinator_agent": {
-        "model_id": "gpt-4o",
+        "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
+        "reasoning_effort": "high",
         "max_tokens": 1200,
         "note": "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 명령서 작성)"
     },
     "main_chatbot": {
-        "model_id": "gpt-4o",
+        "model_id": "gpt-6.1-sol",
         "temperature": 0.2,
+        "reasoning_effort": "high",
         "max_tokens": 1200,
         "note": "메인 법률상담 AI 비서 (삼단논법 기반 5단계 판정)"
     }
@@ -204,6 +220,9 @@ class AgentModelManager:
         if preset_id == "all-gpt-6-sol":
             for k in current:
                 current[k]["model_id"] = "gpt-6.1-sol"
+        elif preset_id == "all-gemini-38-flash":
+            for k in current:
+                current[k]["model_id"] = "gemini-3.8-flash"
         elif preset_id == "all-gpt-4o-mini":
             for k in current:
                 current[k]["model_id"] = "gpt-4o-mini"
@@ -212,7 +231,7 @@ class AgentModelManager:
                 current[k]["model_id"] = "gpt-4o"
         elif preset_id == "all-gemini-flash":
             for k in current:
-                current[k]["model_id"] = "gemini-flash-latest"
+                current[k]["model_id"] = "gemini-3.8-flash"
         elif preset_id == "all-offline":
             for k in current:
                 current[k]["model_id"] = "offline-heuristic"
@@ -291,7 +310,10 @@ class AgentModelManager:
             # 최신 차세대 추론 모델(gpt-6, o1, o3, gpt-5 등) 파라미터 자동 호환
             if any(p in model_id.lower() for p in ["gpt-6", "o1", "o3", "gpt-5"]):
                 create_kwargs["max_completion_tokens"] = max_tokens
-                # gpt-6.1-sol 및 o1은 temperature 기본값(1)만 지원하므로 명시적 전달 생략
+                # 추론 강도 (reasoning_effort: low, medium, high) 전달
+                effort = cfg.get("reasoning_effort", "medium")
+                if effort in ["low", "medium", "high"]:
+                    create_kwargs["reasoning_effort"] = effort
             else:
                 create_kwargs["max_tokens"] = max_tokens
                 create_kwargs["temperature"] = temperature

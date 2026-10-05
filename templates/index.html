@@ -1413,12 +1413,12 @@
                         </span>
                         <span class="text-[10px] text-indigo-500 font-normal">최고 성능 법률 심층 추론</span>
                     </button>
-                    <button type="button" onclick="applyAgentPreset('all-gemini-flash')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
+                    <button type="button" onclick="applyAgentPreset('all-gemini-38-flash')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
                         <span class="flex items-center gap-1">
                             <i data-lucide="orbit" class="w-3.5 h-3.5 text-sky-600 group-hover:scale-110 transition-transform"></i>
-                            <span>🌐 전체 Gemini Flash</span>
+                            <span>🌐 전체 Gemini 3.8 Flash</span>
                         </span>
-                        <span class="text-[10px] text-sky-500 font-normal">Google 최신 차세대 고속</span>
+                        <span class="text-[10px] text-sky-500 font-normal">Google 3.8 최신 초고속</span>
                     </button>
                     <button type="button" onclick="applyAgentPreset('all-offline')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
                         <span class="flex items-center gap-1">
@@ -4886,6 +4886,7 @@
                 { id: "gpt-6.1-sol", name: "GPT-6.1-sol (차세대)" },
                 { id: "gpt-4o", name: "GPT-4o (플래그십)" },
                 { id: "gpt-4o-mini", name: "GPT-4o-mini (고속)" },
+                { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash (최신)" },
                 { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
                 { id: "gemini-flash-latest", name: "Gemini Flash" },
                 { id: "gemini-pro-latest", name: "Gemini Pro" },
@@ -4901,6 +4902,8 @@
                     const sel = (m.id === currentModelId) ? 'selected' : '';
                     return `<option value="${m.id}" ${sel}>🤖 ${m.name}</option>`;
                 }).join('');
+
+                const currentEffort = currentCfg.reasoning_effort || ((currentCfg.temperature !== undefined && currentCfg.temperature <= 0.2) ? 'low' : ((currentCfg.temperature !== undefined && currentCfg.temperature >= 0.7) ? 'high' : 'medium'));
 
                 return `
                     <div class="clean-card rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-purple-400 hover:shadow-md transition-all border-slate-200">
@@ -4943,16 +4946,27 @@
                             </div>
                         </div>
 
-                        <!-- 1:1 상담 시작 버튼 & 옆의 언어모델 선택 드롭박스 -->
-                        <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
-                            <button type="button" onclick="startSubagentChat('${agent.id}')" class="flex-1 py-2 px-3 rounded-xl ${colors.btn} font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all">
-                                <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-                                <span>1:1 상담 시작하기</span>
-                            </button>
-                            <div class="w-36 sm:w-44 flex-shrink-0" title="이 에이전트와 대화할 언어모델 선택">
-                                <select onchange="changeCardAgentModel('${agent.id}', this.value)" class="w-full text-[11px] font-bold rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 py-2 px-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-2xs cursor-pointer truncate transition-colors">
-                                    ${modelOptionsHtml}
-                                </select>
+                        <!-- 1:1 상담 시작 버튼 & 옆의 언어모델 선택 드롭박스 & 추론 강도 단위 토글 -->
+                        <div class="pt-3 border-t border-slate-100 space-y-2">
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="startSubagentChat('${agent.id}')" class="flex-1 py-2 px-3 rounded-xl ${colors.btn} font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all">
+                                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                                    <span>1:1 상담 시작하기</span>
+                                </button>
+                                <div class="w-36 sm:w-44 flex-shrink-0" title="이 에이전트와 대화할 언어모델 선택">
+                                    <select onchange="changeCardAgentModel('${agent.id}', this.value)" class="w-full text-[11px] font-bold rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 py-2 px-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-2xs cursor-pointer truncate transition-colors">
+                                        ${modelOptionsHtml}
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- 추론 강도 단위 (낮음 / 중간 / 높음) 빠른 토글 바 -->
+                            <div class="flex items-center justify-between gap-1 px-2 py-1 bg-slate-50 rounded-xl border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-500">추론 강도:</span>
+                                <div class="flex items-center gap-1">
+                                    <button type="button" onclick="changeCardAgentEffort('${agent.id}', 'low')" class="px-2 py-0.5 rounded text-[10px] font-bold transition-all ${currentEffort === 'low' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-500 hover:bg-slate-200'}">🟢 낮음</button>
+                                    <button type="button" onclick="changeCardAgentEffort('${agent.id}', 'medium')" class="px-2 py-0.5 rounded text-[10px] font-bold transition-all ${currentEffort === 'medium' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-500 hover:bg-slate-200'}">🟡 중간</button>
+                                    <button type="button" onclick="changeCardAgentEffort('${agent.id}', 'high')" class="px-2 py-0.5 rounded text-[10px] font-bold transition-all ${currentEffort === 'high' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-500 hover:bg-slate-200'}">🔴 높음</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4976,8 +4990,44 @@
                     body: JSON.stringify({ config: agentModelsConfig })
                 });
                 showSaveToast(`[${agentName}] 대화 모델이 '${modelName}'(으)로 즉시 변경되었습니다.`);
+                if (typeof renderAgentModelCards === 'function') {
+                    renderAgentModelCards();
+                }
             } catch (e) {
                 console.error('Failed to auto-save model change:', e);
+            }
+        }
+
+        async function changeCardAgentEffort(agentId, level) {
+            if (!agentModelsConfig[agentId]) agentModelsConfig[agentId] = {};
+            agentModelsConfig[agentId].reasoning_effort = level;
+            if (level === 'low') {
+                agentModelsConfig[agentId].temperature = 0.1;
+            } else if (level === 'high') {
+                agentModelsConfig[agentId].temperature = 0.8;
+            } else {
+                agentModelsConfig[agentId].temperature = 0.4;
+            }
+
+            const agentObj = (cachedSubagents || []).find(a => a.id === agentId);
+            const agentName = agentObj ? agentObj.name : agentId;
+            const levelLabel = level === 'low' ? '🟢 낮음' : (level === 'high' ? '🔴 높음' : '🟡 중간');
+
+            try {
+                await fetch('/api/agents/models', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config: agentModelsConfig })
+                });
+                showSaveToast(`[${agentName}] 추론 강도가 '${levelLabel}' 단위로 설정되었습니다.`);
+                renderSubagentCards();
+                updateAgentChatProfileHeader();
+                if (typeof renderAgentModelCards === 'function') {
+                    renderAgentModelCards();
+                }
+                lucide.createIcons();
+            } catch (e) {
+                console.error('Failed to auto-save effort change:', e);
             }
         }
 
@@ -5024,6 +5074,7 @@
                 { id: "gpt-6.1-sol", name: "GPT-6.1-sol (차세대)" },
                 { id: "gpt-4o", name: "GPT-4o (플래그십)" },
                 { id: "gpt-4o-mini", name: "GPT-4o-mini (고속)" },
+                { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash (최신)" },
                 { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
                 { id: "gemini-flash-latest", name: "Gemini Flash" },
                 { id: "gemini-pro-latest", name: "Gemini Pro" },
@@ -5035,6 +5086,8 @@
                 const sel = (m.id === currentModelId) ? 'selected' : '';
                 return `<option value="${m.id}" ${sel}>🤖 ${m.name}</option>`;
             }).join('');
+
+            const currentEffort = currentCfg.reasoning_effort || ((currentCfg.temperature !== undefined && currentCfg.temperature <= 0.2) ? 'low' : ((currentCfg.temperature !== undefined && currentCfg.temperature >= 0.7) ? 'high' : 'medium'));
 
             headerEl.innerHTML = `
                 <div class="flex items-center space-x-3">
@@ -5052,10 +5105,15 @@
                         <p class="text-[11px] text-slate-500 mt-0.5">${agent.role_title}</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                     <select onchange="changeCardAgentModel('${agent.id}', this.value)" class="text-xs font-bold rounded-xl border border-slate-300 bg-white hover:bg-slate-50 py-1.5 px-2 text-slate-800 shadow-2xs cursor-pointer" title="현재 상담 언어모델 변경">
                         ${modelOptionsHtml}
                     </select>
+                    <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200" title="추론 및 엄격도 단위">
+                        <button type="button" onclick="changeCardAgentEffort('${agent.id}', 'low')" class="px-1.5 py-1 rounded-lg text-[10px] font-bold transition-all ${currentEffort === 'low' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-200'}" title="낮음 (초고속 응답)">🟢 낮음</button>
+                        <button type="button" onclick="changeCardAgentEffort('${agent.id}', 'medium')" class="px-1.5 py-1 rounded-lg text-[10px] font-bold transition-all ${currentEffort === 'medium' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-200'}" title="중간 (권장)">🟡 중간</button>
+                        <button type="button" onclick="changeCardAgentEffort('${agent.id}', 'high')" class="px-1.5 py-1 rounded-lg text-[10px] font-bold transition-all ${currentEffort === 'high' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-200'}" title="높음 (심층 법리추론)">🔴 높음</button>
+                    </div>
                     <button type="button" onclick="clearSubagentHistory('${agent.id}')" class="text-xs text-slate-400 hover:text-slate-700 px-2.5 py-1.5 rounded-xl hover:bg-slate-200 border border-slate-200 transition-colors">
                         대화 비우기
                     </button>
@@ -5389,6 +5447,8 @@
                     tag: '기본 모델'
                 };
 
+                const currentEffort = cfg.reasoning_effort || (currentTemp <= 0.2 ? 'low' : (currentTemp >= 0.7 ? 'high' : 'medium'));
+
                 return `
                     <div class="clean-card rounded-2xl p-4 bg-white border border-slate-200 shadow-2xs hover:shadow-sm transition-all space-y-3.5 flex flex-col justify-between" id="model-card-${agent.id}">
                         <!-- Card Header -->
@@ -5423,6 +5483,29 @@
                                 </select>
                             </div>
 
+                            <!-- 추론 및 엄격도 단위 (낮음 / 중간 / 높음) 3단계 원클릭 스위치 -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">
+                                    추론 및 엄격도 단위 설정
+                                </label>
+                                <div class="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                                    <button type="button" onclick="setAgentEffortLevel('${agent.id}', 'low')" class="py-1 px-1 rounded-lg text-[10px] font-bold transition-all ${currentEffort === 'low' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-200'}">
+                                        🟢 낮음
+                                    </button>
+                                    <button type="button" onclick="setAgentEffortLevel('${agent.id}', 'medium')" class="py-1 px-1 rounded-lg text-[10px] font-bold transition-all ${currentEffort === 'medium' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-200'}">
+                                        🟡 중간
+                                    </button>
+                                    <button type="button" onclick="setAgentEffortLevel('${agent.id}', 'high')" class="py-1 px-1 rounded-lg text-[10px] font-bold transition-all ${currentEffort === 'high' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-200'}">
+                                        🔴 높음
+                                    </button>
+                                </div>
+                                <div class="flex justify-between text-[9px] text-slate-400 mt-0.5 px-0.5">
+                                    <span>초고속 응답</span>
+                                    <span>균형 (권장)</span>
+                                    <span>심층 법리추론</span>
+                                </div>
+                            </div>
+
                             <!-- Temperature Slider -->
                             <div>
                                 <div class="flex items-center justify-between text-[11px] mb-1">
@@ -5451,6 +5534,36 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        async function setAgentEffortLevel(agentId, level) {
+            if (!agentModelsConfig[agentId]) agentModelsConfig[agentId] = {};
+            agentModelsConfig[agentId].reasoning_effort = level;
+            if (level === 'low') {
+                agentModelsConfig[agentId].temperature = 0.1;
+            } else if (level === 'high') {
+                agentModelsConfig[agentId].temperature = 0.8;
+            } else {
+                agentModelsConfig[agentId].temperature = 0.4;
+            }
+            renderAgentModelCards();
+            if (typeof renderSubagentCards === 'function') {
+                renderSubagentCards();
+            }
+            lucide.createIcons();
+            
+            const levelLabel = level === 'low' ? '🟢 낮음 (초고속)' : (level === 'high' ? '🔴 높음 (심층 법리추론)' : '🟡 중간 (균형 권장)');
+            showSaveToast(`[단위 설정] '${levelLabel}'으로 변경되었습니다.`);
+
+            try {
+                await fetch('/api/agents/models', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config: agentModelsConfig })
+                });
+            } catch (e) {
+                console.error('Failed to auto-save effort level:', e);
+            }
         }
 
         function handleAgentModelChange(agentId, newModelId) {
