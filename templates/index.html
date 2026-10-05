@@ -117,6 +117,13 @@
                     <kbd class="hidden lg:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-blue-300 font-mono border border-slate-700">Ctrl+K</kbd>
                 </button>
 
+                <!-- 한방에 모든 정보 초기화 버튼 -->
+                <button type="button" onclick="resetAllGlobalData()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/40 text-rose-300 text-xs font-bold transition-all shadow-xs group" title="계산기 입력 내역, 서류 작성란 등 모든 입력 데이터를 한방에 초기화합니다">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-400 group-hover:-rotate-90 transition-transform"></i>
+                    <span class="hidden sm:inline">전체 초기화</span>
+                    <span class="sm:hidden">초기화</span>
+                </button>
+
                 <!-- Realtime Network Status (3단계 오프라인 퍼스트) -->
                 <div id="network-status-badge" class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30" title="실시간 네트워크 통신 상태">
                     <span id="network-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -195,6 +202,10 @@
                                 적발 위험물 내역 입력 (용기 규격 × 수량)
                             </h2>
                             <div class="flex items-center gap-2">
+                                <button type="button" onclick="resetCalculatorInputs()" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs" title="입력된 위험물 및 용기 목록을 모두 초기화합니다">
+                                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-600"></i>
+                                    <span>초기화</span>
+                                </button>
                                 <button type="button" onclick="openUnlabeledModal()" class="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs" title="라벨 없는 미상 물질 인화점 역산 및 시료 채취 마법사">
                                     <i data-lucide="help-circle" class="w-3.5 h-3.5 text-amber-600"></i>
                                     <span>무표시 미상물질 감별기</span>
@@ -546,11 +557,17 @@
                 <div class="lg:col-span-7 space-y-5">
                     <div class="clean-card rounded-xl p-5 space-y-4">
                         
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <i data-lucide="file-signature" class="w-4 h-4 text-blue-600"></i>
-                                스마트 서류 생성기
-                            </h3>
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                    <i data-lucide="file-signature" class="w-4 h-4 text-blue-600"></i>
+                                    스마트 서류 생성기
+                                </h3>
+                                <button type="button" onclick="resetDocumentInputs()" class="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold flex items-center gap-1 transition-colors shadow-2xs" title="작성된 서식 정보 및 서명, 사진을 초기화합니다">
+                                    <i data-lucide="rotate-ccw" class="w-3 h-3 text-rose-600"></i>
+                                    <span>서식 초기화</span>
+                                </button>
+                            </div>
                             <div class="flex space-x-1.5 text-xs">
                                 <button onclick="selectDocType('violation')" id="doc-btn-violation" class="px-2.5 py-1 font-bold rounded-lg bg-blue-600 text-white shadow-sm">
                                     위반사실확인서
@@ -568,23 +585,23 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">상호 (사업장명)</label>
-                                <input type="text" id="target-biz-name" value="(주)화성정밀도장" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800">
+                                <input type="text" id="target-biz-name" value="" placeholder="(주)상호명 입력" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
                             </div>
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">대표자/행위자</label>
-                                <input type="text" id="target-rep-name" value="홍길동" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800">
+                                <input type="text" id="target-rep-name" value="" placeholder="대표자 성명" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
                             </div>
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">연락처</label>
-                                <input type="text" id="target-contact" value="031-123-4567" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800">
+                                <input type="text" id="target-contact" value="" placeholder="전화번호 (예: 010-0000-0000)" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
                             </div>
                             <div class="col-span-2 sm:col-span-2">
                                 <label class="block font-semibold text-slate-700 mb-1">소재지 (주소)</label>
-                                <input type="text" id="target-address" value="경기도 화성시 향남읍 발안공단로 123" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800">
+                                <input type="text" id="target-address" value="" placeholder="사업장 소재지 주소" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
                             </div>
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">단속관(특사경)</label>
-                                <input type="text" id="inspector-name" value="이국신 (화성소방서)" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800">
+                                <input type="text" id="inspector-name" value="" placeholder="소속 소방서 및 단속관 성명" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
                             </div>
                         </div>
 
@@ -781,7 +798,7 @@
 
                         <div class="space-y-2 text-xs">
                             <div class="flex gap-2">
-                                <input type="text" id="legal-query-input" value="위험물" placeholder="쟁점 키워드 입력 (예: 저장, 취급, 운반용기, 임시저장)" class="flex-1 rounded-lg border border-slate-300 py-1.5 px-2.5 font-medium text-slate-900 focus:ring-2 focus:ring-blue-500">
+                                <input type="text" id="legal-query-input" value="" placeholder="쟁점 키워드 입력 (예: 저장, 취급, 운반용기, 임시저장)" class="flex-1 rounded-lg border border-slate-300 py-1.5 px-2.5 font-medium text-slate-900 focus:ring-2 focus:ring-blue-500">
                                 <button onclick="searchLegalInterpretations()" class="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-1 transition-colors shadow-2xs">
                                     <i data-lucide="search" class="w-3.5 h-3.5"></i>
                                     <span>해석례 검색</span>
@@ -835,11 +852,11 @@
                                 <div class="flex-1 flex gap-2">
                                     <div class="relative w-48">
                                         <label class="block text-[10px] font-bold text-slate-500 mb-0.5">준공·인허가 기준일자</label>
-                                        <input type="date" id="history-asof-date" value="1998-05-12" class="w-full rounded-lg border border-slate-300 py-1.5 px-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-blue-500">
+                                        <input type="date" id="history-asof-date" value="" class="w-full rounded-lg border border-slate-300 py-1.5 px-2.5 font-bold text-slate-800 focus:ring-2 focus:ring-blue-500">
                                     </div>
                                     <div class="flex-1">
                                         <label class="block text-[10px] font-bold text-slate-500 mb-0.5">대상 법령명</label>
-                                        <input type="text" id="history-law-query" value="위험물안전관리법" placeholder="법령명 (예: 위험물안전관리법, 소방법)" class="w-full rounded-lg border border-slate-300 py-1.5 px-2.5 font-medium text-slate-900 focus:ring-2 focus:ring-blue-500">
+                                        <input type="text" id="history-law-query" value="" placeholder="법령명 (예: 위험물안전관리법, 소방법)" class="w-full rounded-lg border border-slate-300 py-1.5 px-2.5 font-medium text-slate-900 focus:ring-2 focus:ring-blue-500">
                                     </div>
                                 </div>
                                 <div class="flex items-end gap-2">
@@ -1853,7 +1870,7 @@
                         <div>
                             <label class="block font-bold text-slate-800 mb-1">MSDS상 인화점(℃) 입력</label>
                             <div class="flex gap-2">
-                                <input type="number" id="wizard-fp-input" value="12" step="0.5" oninput="inferByFlashpointUI()" placeholder="예: 12, 35, 80" class="flex-1 rounded-lg border border-slate-300 py-2 px-3 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500">
+                                <input type="number" id="wizard-fp-input" value="" step="0.5" oninput="inferByFlashpointUI()" placeholder="예: 12, 35, 80" class="flex-1 rounded-lg border border-slate-300 py-2 px-3 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500">
                                 <span class="flex items-center text-sm font-bold text-slate-600">℃</span>
                             </div>
                         </div>
@@ -1957,15 +1974,112 @@
 
         let items = [
             { 
-                name: "신나", 
-                containers: [
-                    { capacity: 200, unit: "L", count: 4, label: "200L 드럼" }
-                ] 
+                name: "", 
+                containers: [] 
             }
         ];
 
         let currentAssessment = null;
         let currentDocType = 'violation';
+
+        function resetCalculatorInputs(isSilent = false) {
+            items = [
+                { 
+                    name: "", 
+                    containers: [] 
+                }
+            ];
+            renderItemRows();
+            
+            const locEl = document.getElementById('location-type');
+            if (locEl) locEl.value = 'unauthorized_place';
+
+            const statusEl = document.getElementById('container-status');
+            if (statusEl) statusEl.value = 'compliant';
+
+            // 결과 영역 숨기고 플레이스홀더 복원
+            const resCard = document.getElementById('result-card');
+            if (resCard) resCard.classList.add('hidden');
+
+            const resPlaceholder = document.getElementById('result-placeholder');
+            if (resPlaceholder) resPlaceholder.classList.remove('hidden');
+
+            const safetyBanner = document.getElementById('safety-protocol-banner');
+            if (safetyBanner) safetyBanner.classList.add('hidden');
+
+            currentAssessment = null;
+            lucide.createIcons();
+
+            if (!isSilent) {
+                showSaveToast("계산기 입력 내역이 깨끗하게 초기화되었습니다.");
+            }
+        }
+
+        function resetDocumentInputs(isSilent = false) {
+            ['target-biz-name', 'target-rep-name', 'target-contact', 'target-address', 'inspector-name'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
+            // 서명 패드 초기화
+            if (typeof clearSignature === 'function') {
+                clearSignature('rep');
+                clearSignature('insp');
+            }
+
+            // 채증 사진 목록 초기화
+            evidencePhotos = [];
+            if (typeof renderEvidencePhotos === 'function') {
+                renderEvidencePhotos();
+            }
+
+            // 서류 미리보기 초기화
+            const previewEl = document.getElementById('document-preview');
+            if (previewEl) previewEl.value = '';
+
+            if (typeof updateDocumentPreview === 'function') {
+                updateDocumentPreview();
+            }
+
+            if (!isSilent) {
+                showSaveToast("스마트 서류 작성란이 깨끗하게 초기화되었습니다.");
+            }
+        }
+
+        function resetAllGlobalData() {
+            if (!confirm("계산기 입력 내용과 서류 작성란 등 모든 입력 정보를 한 번에 초기화하시겠습니까?")) {
+                return;
+            }
+
+            // 1. 계산기 초기화
+            resetCalculatorInputs(true);
+
+            // 2. 스마트 서류 초기화
+            resetDocumentInputs(true);
+
+            // 3. 미상물질 역추정 초기화
+            const fpInput = document.getElementById('wizard-fp-input');
+            if (fpInput) fpInput.value = '';
+            const fpSoluble = document.getElementById('wizard-water-soluble');
+            if (fpSoluble) fpSoluble.checked = false;
+            const fpResult = document.getElementById('wizard-fp-result');
+            if (fpResult) fpResult.innerHTML = '';
+            const surveyResult = document.getElementById('wizard-survey-result');
+            if (surveyResult) surveyResult.classList.add('hidden');
+
+            // 4. 공공데이터 & 법제처 & 연혁법령 검색창 초기화
+            const legalQuery = document.getElementById('legal-query-input');
+            if (legalQuery) legalQuery.value = '';
+            const asofDate = document.getElementById('history-asof-date');
+            if (asofDate) asofDate.value = '';
+            const lawQuery = document.getElementById('history-law-query');
+            if (lawQuery) lawQuery.value = '';
+            const chemName = document.getElementById('chem-name-input');
+            if (chemName) chemName.value = '';
+
+            lucide.createIcons();
+            showSaveToast("모든 정보가 한방에 깨끗하게 초기화되었습니다.");
+        }
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -3004,13 +3118,14 @@
         }
 
         async function updateDocumentPreview() {
+            const inspVal = (document.getElementById('inspector-name') ? document.getElementById('inspector-name').value : '') || '';
             const targetInfo = {
-                business_name: document.getElementById('target-biz-name').value,
-                representative_name: document.getElementById('target-rep-name').value,
-                address: document.getElementById('target-address').value,
-                contact: document.getElementById('target-contact').value,
-                inspector_name: document.getElementById('inspector-name').value,
-                inspector_org: "화성소방서 화재예방과"
+                business_name: (document.getElementById('target-biz-name') ? document.getElementById('target-biz-name').value : '') || '',
+                representative_name: (document.getElementById('target-rep-name') ? document.getElementById('target-rep-name').value : '') || '',
+                address: (document.getElementById('target-address') ? document.getElementById('target-address').value : '') || '',
+                contact: (document.getElementById('target-contact') ? document.getElementById('target-contact').value : '') || '',
+                inspector_name: inspVal,
+                inspector_org: inspVal.includes('(') ? (inspVal.split('(')[1].replace(')', '')) : ""
             };
 
             const payload = {
