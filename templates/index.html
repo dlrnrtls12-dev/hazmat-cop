@@ -4807,6 +4807,19 @@
                 }
             }
 
+            if (!supportedModelsList || supportedModelsList.length === 0) {
+                try {
+                    const mRes = await fetch('/api/agents/models');
+                    if (mRes.ok) {
+                        const mData = await mRes.json();
+                        agentModelsConfig = mData.config || {};
+                        supportedModelsList = mData.supported_models || [];
+                    }
+                } catch (e) {
+                    console.error('Failed to load agent models:', e);
+                }
+            }
+
             renderSubagentCards();
             renderAgentSelectorChips();
             updateAgentChatProfileHeader();
@@ -4840,8 +4853,26 @@
             const container = document.getElementById('subagents-card-grid');
             if (!container || !cachedSubagents || cachedSubagents.length === 0) return;
 
+            const models = (supportedModelsList && supportedModelsList.length > 0) ? supportedModelsList : [
+                { id: "gpt-6.1-sol", name: "GPT-6.1-sol (차세대)" },
+                { id: "gpt-4o", name: "GPT-4o (플래그십)" },
+                { id: "gpt-4o-mini", name: "GPT-4o-mini (고속)" },
+                { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+                { id: "gemini-flash-latest", name: "Gemini Flash" },
+                { id: "gemini-pro-latest", name: "Gemini Pro" },
+                { id: "offline-heuristic", name: "로컬 룰 엔진" }
+            ];
+
             container.innerHTML = cachedSubagents.map((agent, idx) => {
                 const colors = AGENT_COLOR_MAP[agent.color] || AGENT_COLOR_MAP['blue'];
+                const currentCfg = agentModelsConfig[agent.id] || { model_id: "gpt-4o-mini" };
+                const currentModelId = currentCfg.model_id || "gpt-4o-mini";
+
+                const modelOptionsHtml = models.map(m => {
+                    const sel = (m.id === currentModelId) ? 'selected' : '';
+                    return `<option value="${m.id}" ${sel}>🤖 ${m.name}</option>`;
+                }).join('');
+
                 return `
                     <div class="clean-card rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-purple-400 hover:shadow-md transition-all border-slate-200">
                         <div class="space-y-3">
@@ -4883,15 +4914,42 @@
                             </div>
                         </div>
 
+                        <!-- 1:1 상담 시작 버튼 & 옆의 언어모델 선택 드롭박스 -->
                         <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
                             <button type="button" onclick="startSubagentChat('${agent.id}')" class="flex-1 py-2 px-3 rounded-xl ${colors.btn} font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all">
                                 <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
                                 <span>1:1 상담 시작하기</span>
                             </button>
+                            <div class="w-36 sm:w-44 flex-shrink-0" title="이 에이전트와 대화할 언어모델 선택">
+                                <select onchange="changeCardAgentModel('${agent.id}', this.value)" class="w-full text-[11px] font-bold rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 py-2 px-2 text-slate-800 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 shadow-2xs cursor-pointer truncate transition-colors">
+                                    ${modelOptionsHtml}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        async function changeCardAgentModel(agentId, newModelId) {
+            if (!agentModelsConfig[agentId]) agentModelsConfig[agentId] = {};
+            agentModelsConfig[agentId].model_id = newModelId;
+
+            const agentObj = (cachedSubagents || []).find(a => a.id === agentId);
+            const modelObj = (supportedModelsList || []).find(m => m.id === newModelId);
+            const agentName = agentObj ? agentObj.name : agentId;
+            const modelName = modelObj ? modelObj.name : newModelId;
+
+            try {
+                await fetch('/api/agents/models', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config: agentModelsConfig })
+                });
+                showSaveToast(`[${agentName}] 대화 모델이 '${modelName}'(으)로 즉시 변경되었습니다.`);
+            } catch (e) {
+                console.error('Failed to auto-save model change:', e);
+            }
         }
 
         function renderAgentSelectorChips() {
@@ -4933,6 +4991,22 @@
             if (!headerEl || !agent) return;
 
             const colors = AGENT_COLOR_MAP[agent.color] || AGENT_COLOR_MAP['blue'];
+            const models = (supportedModelsList && supportedModelsList.length > 0) ? supportedModelsList : [
+                { id: "gpt-6.1-sol", name: "GPT-6.1-sol (차세대)" },
+                { id: "gpt-4o", name: "GPT-4o (플래그십)" },
+                { id: "gpt-4o-mini", name: "GPT-4o-mini (고속)" },
+                { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+                { id: "gemini-flash-latest", name: "Gemini Flash" },
+                { id: "gemini-pro-latest", name: "Gemini Pro" },
+                { id: "offline-heuristic", name: "로컬 룰 엔진" }
+            ];
+            const currentCfg = agentModelsConfig[agent.id] || { model_id: "gpt-4o-mini" };
+            const currentModelId = currentCfg.model_id || "gpt-4o-mini";
+            const modelOptionsHtml = models.map(m => {
+                const sel = (m.id === currentModelId) ? 'selected' : '';
+                return `<option value="${m.id}" ${sel}>🤖 ${m.name}</option>`;
+            }).join('');
+
             headerEl.innerHTML = `
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-xl ${colors.iconBg} flex items-center justify-center font-bold shadow-xs">
@@ -4949,9 +5023,14 @@
                         <p class="text-[11px] text-slate-500 mt-0.5">${agent.role_title}</p>
                     </div>
                 </div>
-                <button type="button" onclick="clearSubagentHistory('${agent.id}')" class="text-xs text-slate-400 hover:text-slate-700 px-2 py-1 rounded hover:bg-slate-200">
-                    대화 비우기
-                </button>
+                <div class="flex items-center gap-2">
+                    <select onchange="changeCardAgentModel('${agent.id}', this.value)" class="text-xs font-bold rounded-xl border border-slate-300 bg-white hover:bg-slate-50 py-1.5 px-2 text-slate-800 shadow-2xs cursor-pointer" title="현재 상담 언어모델 변경">
+                        ${modelOptionsHtml}
+                    </select>
+                    <button type="button" onclick="clearSubagentHistory('${agent.id}')" class="text-xs text-slate-400 hover:text-slate-700 px-2.5 py-1.5 rounded-xl hover:bg-slate-200 border border-slate-200 transition-colors">
+                        대화 비우기
+                    </button>
+                </div>
             `;
         }
 
