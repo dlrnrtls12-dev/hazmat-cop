@@ -1,48 +1,48 @@
 {
   "calc_agent": {
-    "model_id": "gpt-4o-mini",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.1,
     "max_tokens": 800,
     "note": "수량계산 & 위법판정관 (정밀 계산을 위해 낮은 온도 유지)"
   },
   "infer_agent": {
-    "model_id": "gpt-4o-mini",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.2,
     "max_tokens": 800,
     "note": "미상물질 & 화학감별관 (인화점 및 화학물질 역산)"
   },
   "procedure_agent": {
-    "model_id": "gpt-4o-mini",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.1,
     "max_tokens": 800,
     "note": "단속절차 & 포렌식수사관 (엄격한 형소법 적법절차 통제)"
   },
   "history_agent": {
-    "model_id": "gpt-4o",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.2,
     "max_tokens": 1000,
     "note": "연혁법령 & 부칙해석관 (구 소방법 심층 법리 분석)"
   },
   "public_agent": {
-    "model_id": "gpt-4o-mini",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.2,
     "max_tokens": 800,
     "note": "공공데이터 & 유권해석관 (경기도 사업장 및 법제처 해석 매칭)"
   },
   "tactics_agent": {
-    "model_id": "gpt-4o",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.3,
     "max_tokens": 1000,
     "note": "기획단속 & 변명차단관 (3대 서류 입증 및 날카로운 수사전략)"
   },
   "coordinator_agent": {
-    "model_id": "gpt-4o",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.2,
     "max_tokens": 1200,
     "note": "합동작전 총괄 지휘본부장 (6대 에이전트 의견 종합 명령서 작성)"
   },
   "main_chatbot": {
-    "model_id": "gpt-4o",
+    "model_id": "gpt-6.1-sol",
     "temperature": 0.2,
     "max_tokens": 1200,
     "note": "메인 법률상담 AI 비서 (삼단논법 기반 5단계 판정)"

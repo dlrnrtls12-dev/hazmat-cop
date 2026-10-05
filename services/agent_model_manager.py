@@ -20,6 +20,14 @@ CONFIG_PATH = os.path.join(CONFIG_DIR, "agent_model_config.json")
 # 지원 가능한 모델 레지스트리
 SUPPORTED_MODELS = [
     {
+        "id": "gpt-6.1-sol",
+        "provider": "openai",
+        "name": "GPT-6.1-sol",
+        "tag": "OpenAI / 차세대 최신 플래그십",
+        "badge": "bg-rose-500/20 text-rose-400 border-rose-500/30",
+        "description": "OpenAI 최신 차세대 추론 엔진, 압도적인 법률 분석 및 고난도 수사 지휘에 최적"
+    },
+    {
         "id": "gpt-4o-mini",
         "provider": "openai",
         "name": "GPT-4o-mini",
@@ -193,7 +201,10 @@ class AgentModelManager:
     @classmethod
     def apply_preset(cls, preset_id: str) -> Dict[str, Any]:
         current = cls.load_config()
-        if preset_id == "all-gpt-4o-mini":
+        if preset_id == "all-gpt-6-sol":
+            for k in current:
+                current[k]["model_id"] = "gpt-6.1-sol"
+        elif preset_id == "all-gpt-4o-mini":
             for k in current:
                 current[k]["model_id"] = "gpt-4o-mini"
         elif preset_id == "all-gpt-4o":
@@ -209,11 +220,11 @@ class AgentModelManager:
             current["calc_agent"]["model_id"] = "gpt-4o-mini"
             current["infer_agent"]["model_id"] = "gpt-4o-mini"
             current["procedure_agent"]["model_id"] = "gpt-4o-mini"
-            current["history_agent"]["model_id"] = "gpt-4o"
+            current["history_agent"]["model_id"] = "gpt-6.1-sol"
             current["public_agent"]["model_id"] = "gpt-4o-mini"
-            current["tactics_agent"]["model_id"] = "gpt-4o"
-            current["coordinator_agent"]["model_id"] = "gpt-4o"
-            current["main_chatbot"]["model_id"] = "gpt-4o"
+            current["tactics_agent"]["model_id"] = "gpt-6.1-sol"
+            current["coordinator_agent"]["model_id"] = "gpt-6.1-sol"
+            current["main_chatbot"]["model_id"] = "gpt-6.1-sol"
 
         cls.save_config(current)
         return current
@@ -273,12 +284,19 @@ class AgentModelManager:
 
         try:
             start_time = time.time()
-            res = client.chat.completions.create(
-                model=model_id,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
+            create_kwargs = {
+                "model": model_id,
+                "messages": messages,
+            }
+            # 최신 차세대 추론 모델(gpt-6, o1, o3, gpt-5 등) 파라미터 자동 호환
+            if any(p in model_id.lower() for p in ["gpt-6", "o1", "o3", "gpt-5"]):
+                create_kwargs["max_completion_tokens"] = max_tokens
+                # gpt-6.1-sol 및 o1은 temperature 기본값(1)만 지원하므로 명시적 전달 생략
+            else:
+                create_kwargs["max_tokens"] = max_tokens
+                create_kwargs["temperature"] = temperature
+
+            res = client.chat.completions.create(**create_kwargs)
             elapsed_ms = int((time.time() - start_time) * 1000)
             return {
                 "success": True,
@@ -319,11 +337,17 @@ class AgentModelManager:
 
         start = time.time()
         try:
-            res = client.chat.completions.create(
-                model=model_id,
-                messages=[{"role": "user", "content": "위험물안전관리법 특사경 지원 시스템 핑 테스트. '정상' 2글자만 출력하세요."}],
-                max_tokens=20
-            )
+            create_kwargs = {
+                "model": model_id,
+                "messages": [{"role": "user", "content": "위험물안전관리법 특사경 지원 시스템 핑 테스트. '정상' 2글자만 출력하세요."}],
+            }
+            if any(p in model_id.lower() for p in ["gpt-6", "o1", "o3", "gpt-5"]):
+                create_kwargs["max_completion_tokens"] = 30
+            else:
+                create_kwargs["max_tokens"] = 20
+                create_kwargs["temperature"] = 0.2
+
+            res = client.chat.completions.create(**create_kwargs)
             elapsed_ms = int((time.time() - start) * 1000)
             reply = res.choices[0].message.content.strip()
             return {
