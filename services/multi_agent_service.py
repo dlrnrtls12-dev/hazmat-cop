@@ -16,6 +16,7 @@ from core.hazmat_db import find_hazmat, HAZMAT_MASTER_DATA
 from services.enforcement_knowledge_service import EnforcementKnowledgeService
 from services.law_history_service import LawHistoryService
 from services.public_data_service import PublicDataService
+from services.agent_model_manager import AgentModelManager
 
 load_dotenv()
 
@@ -236,27 +237,26 @@ class MultiAgentService:
             messages.extend(history[-6:])
         messages.append({"role": "user", "content": message})
 
-        try:
-            res = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages,
-                temperature=0.2,
-                max_tokens=1000
-            )
+        llm_res = AgentModelManager.call_agent_llm(agent_id, messages)
+        if llm_res["success"]:
             return {
                 "agent_id": agent_id,
                 "agent_name": meta["name"],
                 "role_title": meta["role_title"],
-                "response": res.choices[0].message.content,
-                "mode": "openai_llm"
+                "response": llm_res["content"],
+                "model_used": llm_res["model"],
+                "elapsed_ms": llm_res.get("elapsed_ms", 0),
+                "mode": "agent_llm"
             }
-        except Exception as e:
+        else:
             fallback = cls._generate_offline_agent_reply(agent_id, message, rag_context)
+            note = f"(설정된 모델 '{llm_res.get('model', 'offline')}' 오프라인 룰 엔진 전환: {llm_res.get('error', '')})\n\n" if llm_res.get("mode") == "error" else ""
             return {
                 "agent_id": agent_id,
                 "agent_name": meta["name"],
                 "role_title": meta["role_title"],
-                "response": f"(API 통신 지연으로 오프라인 전문 엔진 전환)\n\n{fallback}",
+                "response": f"{note}{fallback}",
+                "model_used": llm_res.get("model", "offline-heuristic"),
                 "mode": "fallback_offline"
             }
 
@@ -319,23 +319,18 @@ class MultiAgentService:
 당신은 [{meta['name']}]입니다. 당신의 전문 도메인 관점에서만 3~4문장으로 핵심 쟁점, 계산 결과, 또는 실무 주의사항을 동료 에이전트들과 단속관에게 또렷하게 발언하십시오.
 """
 
-        speech = ""
-        if client:
-            try:
-                res = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": meta["system_prompt"]},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.3,
-                    max_tokens=300
-                )
-                speech = res.choices[0].message.content
-            except Exception:
-                speech = cls._offline_speech(agent_id, scenario)
+        messages = [
+            {"role": "system", "content": meta["system_prompt"]},
+            {"role": "user", "content": prompt}
+        ]
+
+        llm_res = AgentModelManager.call_agent_llm(agent_id, messages, override_max_tokens=300)
+        if llm_res["success"]:
+            speech = llm_res["content"]
+            model_used = llm_res["model"]
         else:
             speech = cls._offline_speech(agent_id, scenario)
+            model_used = "offline-heuristic"
 
         return {
             "agent_id": agent_id,
@@ -343,6 +338,7 @@ class MultiAgentService:
             "role_title": meta["role_title"],
             "icon": meta["icon"],
             "color": meta["color"],
+            "model_used": model_used,
             "speech": speech
         }
 
@@ -351,7 +347,7 @@ class MultiAgentService:
         """
         에이전트 합동 토론 결과를 종합하여 단속관이 현장에서 즉각 실행할 작전 명령서 생성
         """
-        all_speeches = "\n".join([f"[{log['agent_name']} ({log['role_title']})]\n{log['speech']}\n" for log in logs])
+        all_speeches = "\n".join([f"[{log['agent_name']} ({log['role_title']}) - 모델: {log.get('model_used', 'default')}]\n{log['speech']}\n" for log in logs])
         
         prompt = f"""
 사건 개요: "{scenario}"
@@ -365,27 +361,23 @@ class MultiAgentService:
 3. 🗣️ 피의자 변명 차단 및 고지 멘트
 4. 🚨 긴급 조치 사항 (시료 채취, 압수수색영장 청구 등)
 """
-        command_text = ""
-        if client:
-            try:
-                res = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": "당신은 대한민국 소방특별사법경찰 기획단속 총괄 지휘본부장입니다."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.2,
-                    max_tokens=800
-                )
-                command_text = res.choices[0].message.content
-            except Exception:
-                command_text = cls._offline_master_summary(scenario)
+        messages = [
+            {"role": "system", "content": "당신은 대한민국 소방특별사법경찰 기획단속 총괄 지휘본부장입니다."},
+            {"role": "user", "content": prompt}
+        ]
+
+        llm_res = AgentModelManager.call_agent_llm("coordinator_agent", messages, override_max_tokens=1000)
+        if llm_res["success"]:
+            command_text = llm_res["content"]
+            model_used = llm_res["model"]
         else:
             command_text = cls._offline_master_summary(scenario)
+            model_used = "offline-heuristic"
 
         return {
             "commander": "소방특별사법경찰 기획단속 총괄본부장",
             "decision_title": "6대 전문 에이전트 합동 분석 기반 현장 단속 작전 명령서",
+            "model_used": model_used,
             "command_text": command_text
         }
 

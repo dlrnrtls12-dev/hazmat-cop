@@ -165,6 +165,13 @@
                     <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">6인 협업</span>
                 </span>
             </button>
+            <button onclick="switchTab('models')" id="tab-btn-models" class="tab-btn px-4 py-3 text-slate-400 hover:text-white border-b-2 border-transparent flex items-center space-x-2 whitespace-nowrap transition-colors">
+                <i data-lucide="cpu" class="w-4 h-4 text-emerald-400"></i>
+                <span class="flex items-center gap-1.5">
+                    <span>7. AI 모델 설정</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">LLM 배정</span>
+                </span>
+            </button>
         </div>
     </header>
 
@@ -1191,6 +1198,10 @@
                             <i data-lucide="users-round" class="w-3.5 h-3.5 text-amber-400"></i>
                             <span class="text-amber-300">합동 작전 회의</span>
                         </button>
+                        <button type="button" onclick="switchTab('models')" class="px-3 py-1.5 rounded-lg font-semibold text-emerald-300 hover:text-white hover:bg-emerald-600/30 border border-emerald-500/30 transition-all flex items-center gap-1.5 ml-1">
+                            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                            <span>AI 모델 설정</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1317,6 +1328,131 @@
                     <div id="collab-final-box" class="hidden clean-card rounded-2xl p-5 bg-gradient-to-br from-slate-900 to-slate-950 text-white border-slate-800 shadow-lg space-y-3">
                         <!-- Populated dynamically -->
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 7: 멀티 에이전트 언어모델(LLM) 배정 및 튜닝 -->
+        <!-- ======================================================== -->
+        <section id="tab-models" class="tab-content hidden space-y-6">
+            <!-- 모델 설정 헤더 배너 -->
+            <div class="clean-card rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-950 to-emerald-950 text-white shadow-md border-slate-800">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-600/30 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shadow-inner flex-shrink-0">
+                            <i data-lucide="cpu" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h2 class="text-base sm:text-lg font-black tracking-tight text-white">에이전트별 언어모델(LLM) 배정 및 튜닝</h2>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-bold border border-emerald-400/40">OpenAI & Gemini & 로컬 룰 엔진</span>
+                            </div>
+                            <p class="text-xs text-slate-300 mt-1">
+                                6대 전문 서브에이전트, 합동회의 총괄 지휘본부장, 메인 AI 챗봇의 두뇌(모델)와 창의도(Temperature)를 개별 지정하여 최적의 수사 성능을 발휘하도록 구성합니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 실시간 API 키 상태 인디케이터 배너 -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-800/80 p-2 rounded-xl border border-slate-700/80">
+                        <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/90 border border-slate-700">
+                            <span class="w-2 h-2 rounded-full" id="api-status-openai-dot"></span>
+                            <span class="text-slate-300 font-bold">OpenAI:</span>
+                            <span id="api-status-openai-text" class="text-slate-400 font-mono text-[11px]">-</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/90 border border-slate-700">
+                            <span class="w-2 h-2 rounded-full" id="api-status-gemini-dot"></span>
+                            <span class="text-slate-300 font-bold">Gemini:</span>
+                            <span id="api-status-gemini-text" class="text-slate-400 font-mono text-[11px]">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 빠른 원클릭 프리셋 버튼 모음 -->
+            <div class="clean-card rounded-2xl p-4 bg-white border border-slate-200 shadow-2xs space-y-2.5">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
+                        <span>원클릭 퀵 프리셋 배정</span>
+                        <span class="text-[11px] text-slate-500 font-normal">(클릭 한 번으로 전체 에이전트 모델 일괄 변경)</span>
+                    </span>
+                    <button type="button" onclick="resetAgentModelsConfig()" class="text-xs text-slate-500 hover:text-slate-700 font-semibold flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>기본값 복원</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                    <button type="button" onclick="applyAgentPreset('hybrid-recommended')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600 group-hover:scale-110 transition-transform"></i>
+                            <span>🎯 하이브리드 추천</span>
+                        </span>
+                        <span class="text-[10px] text-purple-500 font-normal">업무별 맞춤 분배 (권장)</span>
+                    </button>
+                    <button type="button" onclick="applyAgentPreset('all-gpt-4o-mini')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="gauge" class="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform"></i>
+                            <span>⚡ 전체 GPT-4o-mini</span>
+                        </span>
+                        <span class="text-[10px] text-emerald-500 font-normal">초고속 응답 & 경제성</span>
+                    </button>
+                    <button type="button" onclick="applyAgentPreset('all-gpt-4o')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="brain" class="w-3.5 h-3.5 text-indigo-600 group-hover:scale-110 transition-transform"></i>
+                            <span>🧠 전체 GPT-4o</span>
+                        </span>
+                        <span class="text-[10px] text-indigo-500 font-normal">최고 성능 법률 심층 추론</span>
+                    </button>
+                    <button type="button" onclick="applyAgentPreset('all-gemini-flash')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="orbit" class="w-3.5 h-3.5 text-sky-600 group-hover:scale-110 transition-transform"></i>
+                            <span>🌐 전체 Gemini Flash</span>
+                        </span>
+                        <span class="text-[10px] text-sky-500 font-normal">Google 최신 차세대 고속</span>
+                    </button>
+                    <button type="button" onclick="applyAgentPreset('all-offline')" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 transition-all flex flex-col items-center justify-center gap-1 text-center shadow-2xs group">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="wifi-off" class="w-3.5 h-3.5 text-amber-600 group-hover:scale-110 transition-transform"></i>
+                            <span>🔌 전체 오프라인 룰</span>
+                        </span>
+                        <span class="text-[10px] text-amber-500 font-normal">API 미사용 / 로컬 규칙</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 에이전트별 모델 배정 카드 그리드 -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between pb-1 border-b border-slate-200">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
+                        <span>에이전트별 독립 모델 및 Temperature 상세 설정</span>
+                    </span>
+                    <span class="text-[11px] text-slate-500">에이전트마다 서로 다른 LLM을 지정할 수 있습니다</span>
+                </div>
+
+                <div id="agent-models-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Populated dynamically via renderAgentModelCards() -->
+                </div>
+            </div>
+
+            <!-- 하단 고정 액션 바 -->
+            <div class="clean-card rounded-2xl p-4 bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg border-slate-800">
+                <div class="flex items-center space-x-2 text-xs text-slate-300">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-400"></i>
+                    <span>설정을 저장하면 실시간으로 1:1 상담, 자율 합동 회의 및 메인 챗봇에 즉시 반영됩니다.</span>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button type="button" onclick="resetAgentModelsConfig()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-all text-xs border border-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>초기화</span>
+                    </button>
+                    <button type="button" onclick="saveAgentModelsConfig()" id="save-models-btn" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all text-xs shadow-md flex items-center gap-1.5">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>💾 설정 저장하기</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -1811,6 +1947,8 @@
                 loadGuidelines();
             } else if (tabId === 'multiagent') {
                 initMultiAgentTab();
+            } else if (tabId === 'models') {
+                initAgentModelsTab();
             }
             lucide.createIcons();
         }
@@ -5087,6 +5225,284 @@
                 statusBadge.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold border border-rose-200';
                 speechesList.innerHTML = `<div class="p-6 text-center text-rose-500 font-bold">합동 회의 실행 오류: ${err.message}</div>`;
             }
+        }
+
+        // =========================================================================
+        // TAB 7: 에이전트별 언어모델(LLM) 배정 및 튜닝 관리 컨트롤러
+        // =========================================================================
+        let agentModelsConfig = {};
+        let supportedModelsList = [];
+        const agentMetaList = [
+            { id: "calc_agent", name: "수량계산 & 위법판정관", role: "지정수량 배수 정밀 계산 및 2-트랙 처벌 판정", icon: "calculator", color: "blue" },
+            { id: "infer_agent", name: "미상물질 & 화학감별관", role: "무표시 미상 위험물 품명 역산 및 시료채취 판정", icon: "flask-conical", color: "amber" },
+            { id: "procedure_agent", name: "단속절차 & 포렌식수사관", role: "현장 단속 절차 통제, 채증 사진 각인 및 서류 작성", icon: "file-check-2", color: "emerald" },
+            { id: "history_agent", name: "연혁법령 & 부칙해석관", role: "사업장 준공일자 기준 구 소방법 추적 및 부칙 제2조 검토", icon: "history", color: "indigo" },
+            { id: "public_agent", name: "공공데이터 & 유권해석관", role: "경기도 사업장 DB 및 법제처 공식 법령해석 연동", icon: "database", color: "sky" },
+            { id: "tactics_agent", name: "기획단속 & 변명차단관", role: "핵심 3대 서류 점검, 피의자 변명 차단 및 소방청 지침", icon: "shield-alert", color: "rose" },
+            { id: "coordinator_agent", name: "합동회의 총괄 지휘본부장", role: "6대 서브에이전트 검토의견 종합 단속 작전 명령 수립", icon: "crown", color: "purple" },
+            { id: "main_chatbot", name: "메인 법률상담 AI 비서", role: "소방특사경 현장 지원 5단계 법률 삼단논법 종합 상담", icon: "bot", color: "emerald" }
+        ];
+
+        async function initAgentModelsTab() {
+            try {
+                const res = await fetch('/api/agents/models');
+                const data = await res.json();
+                agentModelsConfig = data.config || {};
+                supportedModelsList = data.supported_models || [];
+
+                // API Status Indicator
+                const apiStatus = data.api_status || {};
+                const openaiEl = document.getElementById('api-status-openai-text');
+                const openaiDot = document.getElementById('api-status-openai-dot');
+                if (openaiEl && openaiDot) {
+                    if (apiStatus.openai && apiStatus.openai.configured) {
+                        openaiEl.textContent = `연동됨 (${apiStatus.openai.masked})`;
+                        openaiDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                    } else {
+                        openaiEl.textContent = "미설정";
+                        openaiDot.className = "w-2 h-2 rounded-full bg-slate-500";
+                    }
+                }
+
+                const geminiEl = document.getElementById('api-status-gemini-text');
+                const geminiDot = document.getElementById('api-status-gemini-dot');
+                if (geminiEl && geminiDot) {
+                    if (apiStatus.gemini && apiStatus.gemini.configured) {
+                        geminiEl.textContent = `연동됨 (${apiStatus.gemini.masked})`;
+                        geminiDot.className = "w-2 h-2 rounded-full bg-sky-400";
+                    } else {
+                        geminiEl.textContent = "미설정";
+                        geminiDot.className = "w-2 h-2 rounded-full bg-slate-500";
+                    }
+                }
+
+                renderAgentModelCards();
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Failed to load agent models config:", err);
+            }
+        }
+
+        function renderAgentModelCards() {
+            const grid = document.getElementById('agent-models-grid');
+            if (!grid) return;
+
+            grid.innerHTML = agentMetaList.map(agent => {
+                const cfg = agentModelsConfig[agent.id] || { model_id: "gpt-4o-mini", temperature: 0.2 };
+                const currentModelId = cfg.model_id || "gpt-4o-mini";
+                const currentTemp = (cfg.temperature !== undefined) ? cfg.temperature : 0.2;
+
+                const modelOptionsHtml = supportedModelsList.map(m => {
+                    const isSelected = m.id === currentModelId ? 'selected' : '';
+                    return `<option value="${m.id}" ${isSelected}>${m.name} (${m.tag})</option>`;
+                }).join('');
+
+                const currentModelObj = supportedModelsList.find(m => m.id === currentModelId) || {
+                    provider: 'openai',
+                    badge: 'bg-slate-500/20 text-slate-700 border-slate-500/30',
+                    tag: '기본 모델'
+                };
+
+                return `
+                    <div class="clean-card rounded-2xl p-4 bg-white border border-slate-200 shadow-2xs hover:shadow-sm transition-all space-y-3.5 flex flex-col justify-between" id="model-card-${agent.id}">
+                        <!-- Card Header -->
+                        <div class="space-y-2">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center space-x-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-${agent.color}-100 border border-${agent.color}-200 text-${agent.color}-700 flex items-center justify-center flex-shrink-0">
+                                        <i data-lucide="${agent.icon}" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 leading-tight">${agent.name}</h4>
+                                        <span class="text-[10px] text-slate-500 line-clamp-1">${agent.role}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Provider Badge -->
+                            <div id="badge-wrapper-${agent.id}" class="pt-0.5">
+                                <span class="text-[10px] px-2 py-0.5 rounded-full border font-bold ${currentModelObj.badge}">
+                                    ${currentModelObj.tag}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="space-y-3 pt-2 border-t border-slate-100">
+                            <!-- Model Select -->
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1">언어모델(LLM) 선택</label>
+                                <select onchange="handleAgentModelChange('${agent.id}', this.value)" class="w-full text-xs font-semibold rounded-xl border border-slate-300 bg-slate-50 py-2 px-2.5 text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-2xs transition-colors">
+                                    ${modelOptionsHtml}
+                                </select>
+                            </div>
+
+                            <!-- Temperature Slider -->
+                            <div>
+                                <div class="flex items-center justify-between text-[11px] mb-1">
+                                    <span class="font-bold text-slate-700">창의도 (Temperature)</span>
+                                    <span id="temp-val-${agent.id}" class="font-mono font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">${Number(currentTemp).toFixed(2)}</span>
+                                </div>
+                                <input type="range" min="0" max="1" step="0.05" value="${currentTemp}" oninput="handleAgentTempChange('${agent.id}', this.value)" class="w-full accent-emerald-600 cursor-pointer h-1.5 bg-slate-200 rounded-lg">
+                                <div class="flex justify-between text-[9px] text-slate-400 mt-0.5">
+                                    <span>0.0 (엄격·정밀)</span>
+                                    <span>0.5 (균형)</span>
+                                    <span>1.0 (창의적)</span>
+                                </div>
+                            </div>
+
+                            <!-- Test & Status Area -->
+                            <div class="pt-1 flex items-center justify-between gap-2">
+                                <button type="button" onclick="testAgentModel('${agent.id}')" id="test-btn-${agent.id}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-all flex items-center gap-1 border border-slate-200 shadow-2xs">
+                                    <i data-lucide="play" class="w-3 h-3 text-emerald-600"></i>
+                                    <span>연결 테스트</span>
+                                </button>
+                                <div id="test-result-${agent.id}" class="text-[10px] text-slate-400 font-mono text-right truncate">
+                                    대기 중
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleAgentModelChange(agentId, newModelId) {
+            if (!agentModelsConfig[agentId]) agentModelsConfig[agentId] = {};
+            agentModelsConfig[agentId].model_id = newModelId;
+
+            const modelObj = supportedModelsList.find(m => m.id === newModelId) || {
+                badge: 'bg-slate-500/20 text-slate-700 border-slate-500/30',
+                tag: newModelId
+            };
+            const badgeWrapper = document.getElementById(`badge-wrapper-${agentId}`);
+            if (badgeWrapper) {
+                badgeWrapper.innerHTML = `
+                    <span class="text-[10px] px-2 py-0.5 rounded-full border font-bold ${modelObj.badge}">
+                        ${modelObj.tag}
+                    </span>
+                `;
+            }
+        }
+
+        function handleAgentTempChange(agentId, val) {
+            const num = parseFloat(val);
+            if (!agentModelsConfig[agentId]) agentModelsConfig[agentId] = {};
+            agentModelsConfig[agentId].temperature = num;
+            const label = document.getElementById(`temp-val-${agentId}`);
+            if (label) label.textContent = num.toFixed(2);
+        }
+
+        async function testAgentModel(agentId) {
+            const cfg = agentModelsConfig[agentId] || { model_id: 'gpt-4o-mini' };
+            const modelId = cfg.model_id || 'gpt-4o-mini';
+            const btn = document.getElementById(`test-btn-${agentId}`);
+            const resultEl = document.getElementById(`test-result-${agentId}`);
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            resultEl.innerHTML = `<span class="text-amber-500 animate-pulse font-bold">호출 중...</span>`;
+
+            try {
+                const res = await fetch('/api/agents/models/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_id: modelId })
+                });
+                const data = await res.json();
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+
+                if (data.success) {
+                    resultEl.innerHTML = `<span class="text-emerald-600 font-bold">🟢 정상 (${data.elapsed_ms}ms)</span>`;
+                } else {
+                    const shortErr = (data.message || '오류').slice(0, 15);
+                    resultEl.innerHTML = `<span class="text-rose-600 font-bold" title="${data.message}">🔴 ${shortErr}..</span>`;
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                resultEl.innerHTML = `<span class="text-rose-600 font-bold">통신 실패</span>`;
+            }
+        }
+
+        async function applyAgentPreset(presetId) {
+            try {
+                const res = await fetch('/api/agents/models/preset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preset_id: presetId })
+                });
+                const data = await res.json();
+                if (data.success && data.config) {
+                    agentModelsConfig = data.config;
+                    renderAgentModelCards();
+                    lucide.createIcons();
+                    showSaveToast("프리셋이 적용되었습니다! [설정 저장]을 누르면 영구 적용됩니다.");
+                }
+            } catch (err) {
+                alert(`프리셋 적용 중 오류: ${err.message}`);
+            }
+        }
+
+        async function saveAgentModelsConfig() {
+            const btn = document.getElementById('save-models-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>저장 중...</span>`;
+            lucide.createIcons();
+
+            try {
+                const res = await fetch('/api/agents/models', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config: agentModelsConfig })
+                });
+                const data = await res.json();
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>💾 설정 저장 완료</span>`;
+                lucide.createIcons();
+
+                setTimeout(() => {
+                    btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>💾 설정 저장하기</span>`;
+                    lucide.createIcons();
+                }, 2000);
+
+                showSaveToast("에이전트별 언어모델 설정이 안전하게 저장되었습니다.");
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>💾 설정 저장하기</span>`;
+                lucide.createIcons();
+                alert(`설정 저장 중 오류: ${err.message}`);
+            }
+        }
+
+        async function resetAgentModelsConfig() {
+            if (!confirm("모든 에이전트의 모델 및 파라미터를 초기 기본값으로 복원하시겠습니까?")) return;
+            try {
+                const res = await fetch('/api/agents/models/reset', { method: 'POST' });
+                const data = await res.json();
+                if (data.success && data.config) {
+                    agentModelsConfig = data.config;
+                    renderAgentModelCards();
+                    lucide.createIcons();
+                    showSaveToast("기본값으로 복원되었습니다.");
+                }
+            } catch (err) {
+                alert(`초기화 중 오류: ${err.message}`);
+            }
+        }
+
+        function showSaveToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-6 right-6 z-[200] bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2 text-xs font-bold animate-bounce";
+            toast.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => {
+                toast.classList.remove('animate-bounce');
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
         }
 
         window.addEventListener('DOMContentLoaded', () => {

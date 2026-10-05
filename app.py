@@ -495,6 +495,64 @@ async def agent_collaborate_endpoint(req: AgentCollabRequest):
     result = MultiAgentService.run_multi_agent_collaboration(req.scenario)
     return result
 
+# =========================================================================
+# 에이전트별 언어모델(LLM) 설정 및 연결 테스트 API
+# =========================================================================
+from services.agent_model_manager import AgentModelManager
+
+class AgentModelUpdateRequest(BaseModel):
+    config: Dict[str, Any]
+
+class PresetApplyRequest(BaseModel):
+    preset_id: str
+
+class ModelTestRequest(BaseModel):
+    model_id: str
+
+@app.get("/api/agents/models")
+async def get_agent_models_endpoint():
+    """
+    현재 에이전트별 모델 배정 설정, 지원 모델 목록, API 키 등록 상태 반환
+    """
+    return {
+        "config": AgentModelManager.load_config(),
+        "supported_models": AgentModelManager.get_supported_models(),
+        "api_status": AgentModelManager.get_api_key_status()
+    }
+
+@app.post("/api/agents/models")
+async def update_agent_models_endpoint(req: AgentModelUpdateRequest):
+    """
+    에이전트별 언어모델 및 Temperature 설정 저장
+    """
+    success = AgentModelManager.save_config(req.config)
+    return {"success": success, "config": AgentModelManager.load_config()}
+
+@app.post("/api/agents/models/reset")
+async def reset_agent_models_endpoint():
+    """
+    에이전트별 모델 설정을 기본 권장값으로 초기화
+    """
+    defaults = AgentModelManager.reset_to_defaults()
+    return {"success": True, "config": defaults}
+
+@app.post("/api/agents/models/preset")
+async def apply_preset_endpoint(req: PresetApplyRequest):
+    """
+    원클릭 프리셋(전체 GPT-4o-mini, 전체 GPT-4o, 하이브리드, 오프라인 등) 일괄 적용
+    """
+    updated = AgentModelManager.apply_preset(req.preset_id)
+    return {"success": True, "config": updated}
+
+@app.post("/api/agents/models/test")
+async def test_model_endpoint(req: ModelTestRequest):
+    """
+    선택한 모델의 통신 연결 상태 및 지연시간(ms) 실시간 테스트
+    """
+    test_res = AgentModelManager.test_model_connection(req.model_id)
+    return test_res
+
+
 def get_local_ip() -> str:
     """
     동일 Wi-Fi / 사내 네트워크 상의 모바일 기기 접속을 위한 로컬 IPv4 주소 자동 감지

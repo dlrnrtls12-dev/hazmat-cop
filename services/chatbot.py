@@ -146,12 +146,11 @@ class HazmatChatbot:
         messages.append({"role": "user", "content": user_message})
 
         try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages,
-                temperature=0.2,
-                max_tokens=1200
-            )
-            return response.choices[0].message.content
+            from services.agent_model_manager import AgentModelManager
+            llm_res = AgentModelManager.call_agent_llm("main_chatbot", messages, override_max_tokens=1200)
+            if llm_res["success"]:
+                return llm_res["content"]
+            else:
+                return f"⚠️ AI 챗봇 호출 오류 ({llm_res.get('model', 'offline')}): {llm_res.get('error', '모델 설정을 확인해주세요.')}"
         except Exception as e:
             return f"⚠️ AI 챗봇 호출 중 오류가 발생했습니다: {str(e)}"
