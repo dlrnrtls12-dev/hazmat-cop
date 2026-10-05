@@ -3,6 +3,7 @@ app.py
 위험물 기획단속 스마트 현장도우미 웹 애플리케이션 (FastAPI)
 """
 import os
+import socket
 from typing import List, Dict, Optional, Any
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -371,9 +372,65 @@ async def chat_endpoint(req: ChatRequest):
     answer = chatbot.ask(req.message, req.history)
     return {"response": answer}
 
+def get_local_ip() -> str:
+    """
+    동일 Wi-Fi / 사내 네트워크 상의 모바일 기기 접속을 위한 로컬 IPv4 주소 자동 감지
+    """
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
+
+@app.get("/api/system/network-info")
+async def get_network_info():
+    """
+    모바일 기기 연결 및 QR 생성을 위한 현재 서버 IP 및 포트 정보 반환
+    """
+    ip = get_local_ip()
+    port = int(os.environ.get("PORT", 8000))
+    return {
+        "local_ip": ip,
+        "port": port,
+        "local_url": f"http://localhost:{port}",
+        "mobile_url": f"http://{ip}:{port}"
+    }
+
+@app.get("/manifest.json")
+async def get_manifest():
+    """
+    모바일 홈 화면 추가 및 PWA (Progressive Web App) 매니페스트 서빙
+    """
+    return JSONResponse(content={
+        "name": "Hazmat Cop - 소방특사경 위험물 단속도우미",
+        "short_name": "Hazmat Cop",
+        "description": "소방특별사법경찰 위험물 기획단속 스마트 현장도우미",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0f172a",
+        "theme_color": "#0f172a",
+        "orientation": "portrait-primary",
+        "icons": [
+            {
+                "src": "/static/icons/icon.svg",
+                "sizes": "any",
+                "type": "image/svg+xml",
+                "purpose": "any maskable"
+            }
+        ]
+    })
+
 if __name__ == "__main__":
-    print("=" * 60)
-    print("  [Hazmat Cop] 위험물 기획단속 도우미 서버 가동 중...")
-    print("  접속 주소: http://127.0.0.1:8000")
-    print("=" * 60)
-    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=False)
+    port = int(os.environ.get("PORT", 8000))
+    local_ip = get_local_ip()
+    print("=" * 65)
+    print("  [Hazmat Cop] 위험물 기획단속 스마트 현장도우미 서버 가동 중...")
+    print(f"  - PC 로컬 접속:     http://localhost:{port}")
+    print(f"  - 모바일 기기 접속: http://{local_ip}:{port}")
+    print("    (스마트폰/태블릿에서 동일 Wi-Fi에 연결 후 위 주소로 접속하세요)")
+    print("=" * 65)
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)

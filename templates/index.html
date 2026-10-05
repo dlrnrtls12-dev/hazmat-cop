@@ -2,14 +2,28 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>소방특별사법경찰 위험물 기획단속 스마트 현장도우미 | HAZMAT ENFORCER</title>
+    
+    <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+    <link rel="apple-touch-icon" href="/static/icons/icon.svg">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Hazmat Cop">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- html2pdf.js for Client-side PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- QRCode.js for Mobile Cross-Device Connection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -74,42 +88,49 @@
 
     <!-- Top Navigation Bar (Midnight Navy Style) -->
     <header class="sticky top-0 z-50 bg-slate-900 border-b border-slate-800 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm ring-1 ring-white/20">
-                    <i data-lucide="shield" class="w-6 h-6"></i>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm ring-1 ring-white/20 flex-shrink-0">
+                    <i data-lucide="shield" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </div>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-lg font-black tracking-tight text-white">HAZMAT ENFORCER</span>
-                        <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-semibold border border-blue-500/30">소방특사경 실무</span>
+                <div class="min-w-0">
+                    <div class="flex items-center space-x-1.5 sm:space-x-2">
+                        <span class="text-base sm:text-lg font-black tracking-tight text-white truncate">HAZMAT ENFORCER</span>
+                        <span class="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-semibold border border-blue-500/30 whitespace-nowrap">소방특사경</span>
                     </div>
-                    <p class="text-xs text-slate-400">위험물안전관리법 & 경기도 조례 통합 기획단속 지원 시스템</p>
+                    <p class="hidden sm:block text-xs text-slate-400 truncate">위험물안전관리법 & 경기도 조례 통합 기획단속 지원 시스템</p>
                 </div>
             </div>
             
-            <!-- Right Side: Quick Search Button & Status Badges -->
-            <div class="flex items-center space-x-2.5">
-                <button type="button" onclick="openHazmatSearchModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-blue-200 text-xs font-bold transition-all shadow-xs group" title="국가위험물·화학물질 통합 검색 (Ctrl+K)">
+            <!-- Right Side: Quick Search, Mobile Connect & Status Badges -->
+            <div class="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
+                <!-- Mobile Connect QR Button -->
+                <button type="button" onclick="openMobileConnectModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all shadow-xs" title="스마트폰/태블릿 기기 연결 QR 코드">
+                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span class="hidden md:inline">모바일 연결</span>
+                </button>
+
+                <button type="button" onclick="openHazmatSearchModal()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-blue-200 text-xs font-bold transition-all shadow-xs group" title="국가위험물·화학물질 통합 검색 (Ctrl+K)">
                     <i data-lucide="search" class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform"></i>
-                    <span>물질정보 검색</span>
-                    <kbd class="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-blue-300 font-mono border border-slate-700">Ctrl+K</kbd>
+                    <span class="hidden sm:inline">물질정보 검색</span>
+                    <span class="sm:hidden">검색</span>
+                    <kbd class="hidden lg:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-blue-300 font-mono border border-slate-700">Ctrl+K</kbd>
                 </button>
 
                 <!-- Realtime Network Status (3단계 오프라인 퍼스트) -->
-                <div id="network-status-badge" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30" title="실시간 네트워크 통신 상태">
+                <div id="network-status-badge" class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30" title="실시간 네트워크 통신 상태">
                     <span id="network-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span id="network-text">온라인</span>
+                    <span id="network-text" class="hidden sm:inline">온라인</span>
                 </div>
 
-                <div class="hidden lg:flex items-center space-x-2.5 text-xs">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700">
+                <div class="hidden xl:flex items-center space-x-2 text-xs">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700">
                         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        소방청·법제처 연동
+                        소방청·법제처
                     </span>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 font-semibold">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 font-semibold">
                         <i data-lucide="scale" class="w-3.5 h-3.5"></i>
-                        경기도 조례 (0.2배)
+                        조례 0.2배
                     </span>
                 </div>
             </div>
@@ -1132,6 +1153,66 @@
         </div>
     </div>
 
+    <!-- Mobile Cross-Device Connection Modal (어느 기기에서든 모바일/PC 즉시 접속) -->
+    <div id="mobile-connect-modal" class="hidden fixed inset-0 z-[150] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+                        <i data-lucide="smartphone" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold">모바일 기기 연결 (Cross-Device)</h3>
+                        <p class="text-[11px] text-slate-400">스마트폰 카메라로 스캔하여 즉시 현장 단속 시작</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeMobileConnectModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 text-center space-y-4">
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center space-y-2">
+                    <div id="mobile-qrcode-container" class="bg-white p-3 rounded-xl shadow-xs border border-slate-200 flex items-center justify-center min-h-[160px] min-w-[160px]">
+                        <!-- QR Code dynamically generated here -->
+                        <span class="text-xs text-slate-400">QR 코드 생성 중...</span>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-600">📱 아이폰 / 갤럭시 기본 카메라로 스캔하세요</span>
+                </div>
+
+                <div class="space-y-1.5 text-left">
+                    <label class="block text-xs font-bold text-slate-700">모바일 직접 접속 주소 (동일 Wi-Fi)</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="mobile-connect-url-input" readonly value="http://192.168.0.9:8000" class="flex-1 rounded-lg border border-slate-300 bg-slate-50 py-1.5 px-3 font-mono text-xs font-bold text-blue-700 select-all">
+                        <button type="button" onclick="copyMobileUrl()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1 transition-colors flex-shrink-0">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            <span>복사</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-left text-xs space-y-1">
+                    <span class="font-bold text-blue-900 block flex items-center gap-1">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-600"></i>
+                        모바일 앱(PWA) 홈 화면 추가 안내
+                    </span>
+                    <p class="text-slate-600 text-[11px] leading-relaxed">
+                        모바일 브라우저(사파리/크롬) 메뉴에서 <strong>[홈 화면에 추가]</strong>를 누르시면 상단 주소창이 사라지고 독립 실행 앱으로 작동합니다. (오프라인 모드 자동 지원)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+                <button type="button" onclick="closeMobileConnectModal()" class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition-colors text-xs">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Unlabeled Hazmat Wizard Modal (4단계: 미상 위험물 감별 & 시료채취 마법사) -->
     <div id="unlabeled-hazmat-modal" class="hidden fixed inset-0 z-[130] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
@@ -1930,10 +2011,34 @@
             canvas.dataset.initialized = 'true';
 
             const ctx = canvas.getContext('2d');
-            ctx.strokeStyle = "#0f172a";
-            ctx.lineWidth = 2.5;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
+            
+            // High-DPI / Retina & Responsive auto-scaling
+            function adjustResolution() {
+                const rect = canvas.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    const oldData = canvas.toDataURL();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+                    ctx.strokeStyle = "#0f172a";
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = "round";
+                    ctx.lineJoin = "round";
+                    if (oldData && oldData.length > 500) {
+                        const img = new Image();
+                        img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height);
+                        img.src = oldData;
+                    }
+                } else {
+                    ctx.strokeStyle = "#0f172a";
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = "round";
+                    ctx.lineJoin = "round";
+                }
+            }
+            adjustResolution();
+            window.addEventListener('resize', adjustResolution);
 
             let drawing = false;
 
@@ -1942,8 +2047,8 @@
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 return {
-                    x: (clientX - rect.left) * (canvas.width / rect.width),
-                    y: (clientY - rect.top) * (canvas.height / rect.height)
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
                 };
             }
 
@@ -1978,6 +2083,58 @@
             canvas.addEventListener('touchstart', startDraw, { passive: false });
             canvas.addEventListener('touchmove', draw, { passive: false });
             window.addEventListener('touchend', endDraw);
+        }
+
+        // =============================================================
+        // 모바일 기기 연결 (Cross-Device Mobile Pairing & PWA)
+        // =============================================================
+        let qrcodeInstance = null;
+
+        async function openMobileConnectModal() {
+            const modal = document.getElementById('mobile-connect-modal');
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/system/network-info');
+                const data = await res.json();
+                const mobileUrl = data.mobile_url || window.location.origin;
+
+                document.getElementById('mobile-connect-url-input').value = mobileUrl;
+                renderQRCode(mobileUrl);
+            } catch (err) {
+                const fallbackUrl = window.location.origin;
+                document.getElementById('mobile-connect-url-input').value = fallbackUrl;
+                renderQRCode(fallbackUrl);
+            }
+            lucide.createIcons();
+        }
+
+        function closeMobileConnectModal() {
+            document.getElementById('mobile-connect-modal').classList.add('hidden');
+        }
+
+        function renderQRCode(url) {
+            const container = document.getElementById('mobile-qrcode-container');
+            container.innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                qrcodeInstance = new QRCode(container, {
+                    text: url,
+                    width: 160,
+                    height: 160,
+                    colorDark: "#0f172a",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } else {
+                container.innerHTML = `<span class="text-xs text-slate-500 font-bold">QR 코드 로드 대기 중...</span>`;
+            }
+        }
+
+        function copyMobileUrl() {
+            const input = document.getElementById('mobile-connect-url-input');
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            alert("모바일 접속 주소가 복사되었습니다!\n스마트폰 브라우저에 붙여넣으세요:\n" + input.value);
         }
 
         function clearSignature(type) {
@@ -3897,6 +4054,15 @@
             loadCatalogStats();
             initSignaturePads();
             updateNetworkStatus();
+
+            // PWA Service Worker Registration for Offline Field Support
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/static/sw.js').then((reg) => {
+                    console.log('[PWA] Service Worker registered for offline use:', reg.scope);
+                }).catch((err) => {
+                    console.log('[PWA] Service Worker registration failed:', err);
+                });
+            }
         });
     </script>
 </body>

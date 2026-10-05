@@ -82,19 +82,42 @@ copy .env.example .env
 ### 4. 서버 실행
 ```bash
 python app.py
-# 또는
-uvicorn app:app --host 127.0.0.1 --port 8000
+# 또는 Windows에서 run_app.bat 더블 클릭
 ```
-웹 브라우저에서 `http://127.0.0.1:8000` 으로 접속합니다. (Windows에서는 `run_app.bat` 더블 클릭으로도 실행 가능)
+- **PC 브라우저 접속**: `http://localhost:8000`
+- **모바일(스마트폰/태블릿) 접속**: PC 웹 화면 우측 상단의 **[📱 모바일 연결]** 버튼을 누르고 화면에 나타난 QR 코드를 스마트폰 기본 카메라로 스캔하거나, 표시된 로컬 IP(`http://192.168.x.x:8000`)로 접속합니다. (동일 Wi-Fi 환경)
+
+### 5. 외부(LTE/5G) 현장 단속용 원격 접속
+현장 출동 시 외부 LTE/5G 환경에서 PC에 구동된 서버로 접속하려면:
+```bash
+run_remote.bat
+# 또는 npx localtunnel --port 8000
+```
+생성되는 공용 HTTPS 주소를 통해 스마트폰이나 태블릿에서 즉시 접속할 수 있습니다.
+
+### 6. 모바일 홈 화면 추가 (PWA 앱 모드)
+스마트폰 브라우저(사파리/크롬) 메뉴에서 **[홈 화면에 추가]**를 누르면 상단 주소창이 제거되고 네이티브 앱처럼 전체 화면(Standalone App)으로 구동되며, 통신 음영 지역에서도 오프라인 모드가 자동 지원됩니다.
+
+---
+
+## ☁️ 클라우드 배포 (Cloud Deployment)
+
+- **Docker 배포**:
+  ```bash
+  docker build -t hazmat-cop .
+  docker run -p 8000:8000 hazmat-cop
+  ```
+- **Render / Railway 원클릭 배포**: 본 GitHub 저장소를 연결하면 `render.yaml` 및 `Procfile`을 통해 24시간 언제 어디서나 접속 가능한 퍼블릭 웹 서비스로 자동 배포됩니다.
 
 ---
 
 ## 🛠️ 기술 스택 (Tech Stack)
 
 - **Backend**: Python 3.10+, FastAPI, Uvicorn, Pydantic, Jinja2
-- **Frontend**: Vanilla JavaScript (ES6+), Tailwind CSS (CDN), Lucide Icons, html2pdf.js
+- **Frontend**: Vanilla JavaScript (ES6+), Tailwind CSS (CDN), Lucide Icons, html2pdf.js, qrcode.js
+- **Mobile/PWA**: Service Worker, Web App Manifest, High-DPI Canvas Scaling
 - **Data & APIs**: 법제처 국가법령정보 API, 소방청 국가위험물정보 API, 경기도 데이터드림 API
-- **Deployment**: 로컬 독립 구동 및 클라우드 배포 호환
+- **Deployment**: Docker, Render, Railway, Local Tunnel
 
 ---
 
