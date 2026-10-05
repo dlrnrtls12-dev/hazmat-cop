@@ -275,61 +275,100 @@
                     </div>
 
                     <!-- 결과 카드 -->
-                    <div id="result-card" class="hidden clean-card rounded-xl p-5 space-y-4">
+                    <div id="result-card" class="hidden clean-card rounded-2xl p-5 space-y-4 border border-slate-200 shadow-sm bg-white">
                         
-                        <!-- Header with Multiple and Disposition Badge -->
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                            <div>
-                                <span class="text-xs font-semibold text-slate-500">총 지정수량 배수</span>
-                                <div class="flex items-baseline space-x-1.5 mt-0.5">
-                                    <span id="res-total-multiple" class="text-3xl font-black text-slate-900 tracking-tight">0.00</span>
-                                    <span class="text-xs font-bold text-slate-600">배</span>
+                        <!-- 1. 핵심 판정 3대 KPI 대시보드 (Hero Summary) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-sm border border-slate-800">
+                            <!-- KPI 1: 총 지정수량 배수 -->
+                            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-bold text-slate-400">총 지정수량 배수</span>
+                                    <i data-lucide="scale" class="w-3.5 h-3.5 text-rose-400"></i>
                                 </div>
+                                <div class="flex items-baseline gap-1 my-1">
+                                    <span id="res-total-multiple" class="text-3xl font-black text-rose-400 tracking-tight">0.00</span>
+                                    <span class="text-xs font-bold text-slate-300">배</span>
+                                </div>
+                                <span id="res-multiple-desc" class="text-[10px] text-slate-400 truncate">지정수량 대비 배수</span>
                             </div>
-                            <div id="res-badge-status" class="px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
-                                판정 대기
+
+                            <!-- KPI 2: 수사 및 처분 구분 -->
+                            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-bold text-slate-400">수사 / 처분 구분</span>
+                                    <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i>
+                                </div>
+                                <div class="my-1">
+                                    <div id="res-badge-status" class="px-2.5 py-1 rounded-lg text-xs font-black inline-flex items-center gap-1 shadow-2xs">
+                                        판정 대기
+                                    </div>
+                                </div>
+                                <span id="res-badge-desc" class="text-[10px] text-slate-400 truncate">소방 특사경 직무 범위</span>
+                            </div>
+
+                            <!-- KPI 3: 최고 처벌 수위 -->
+                            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-bold text-slate-400">법정 최고형량</span>
+                                    <i data-lucide="gavel" class="w-3.5 h-3.5 text-indigo-400"></i>
+                                </div>
+                                <div class="my-1">
+                                    <span id="res-hero-penalty" class="text-xs font-black text-amber-300 block truncate" title="">
+                                        -
+                                    </span>
+                                </div>
+                                <span id="res-hero-clause" class="text-[10px] text-slate-400 truncate">-</span>
                             </div>
                         </div>
 
-                        <!-- 5단계: 단속관 안전 및 방폭 프로토콜 배너 (총지정수량 배수 칸 아래로 이동) -->
-                        <div id="safety-protocol-banner" class="hidden rounded-xl p-4 border-2 border-rose-300 bg-rose-50/80 space-y-2.5 shadow-sm">
+                        <!-- 2. 단속관 안전 및 방폭 스마트 알림 바 (기본 슬림 컴팩트, 필요 시 원클릭 펼침) -->
+                        <div id="safety-protocol-banner" class="hidden rounded-xl border transition-all text-xs">
                             <!-- Populated dynamically via displaySafetyProtocol -->
                         </div>
 
-                        <!-- Item Breakdown -->
-                        <div>
-                            <span class="text-xs font-bold text-slate-800 block mb-2">품목별 수량 및 배수 상세</span>
-                            <div id="res-item-breakdown" class="space-y-1.5 text-xs">
-                                <!-- Dynamic Breakdown items -->
+                        <!-- 3. 적용 법조 및 처벌 수위 (핵심 정리 카드) -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-600"></i>
+                                    적용 법조 및 위반 혐의
+                                </span>
+                                <span class="text-[10px] text-slate-400">형사소송법상 혐의 특정</span>
                             </div>
-                        </div>
-
-                        <!-- Violations Box -->
-                        <div class="space-y-2">
-                            <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i>
-                                적용 법조 및 처벌 수위
-                            </span>
                             <div id="res-violations-list" class="space-y-2">
                                 <!-- Dynamic Violation cards -->
                             </div>
                         </div>
 
-                        <!-- Action Guide -->
-                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-                            <span class="font-bold text-slate-800 flex items-center gap-1.5">
-                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-blue-600"></i>
-                                현장 단속관 조치 지침
+                        <!-- 4. 품목별 수량 및 배수 상세 (모던 미니멀 리스트) -->
+                        <div class="space-y-1.5 pt-1 border-t border-slate-100">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i>
+                                    품목별 수량 및 배수 산출
+                                </span>
+                                <span class="text-[10px] text-slate-400">용기 규격 환산 포함</span>
+                            </div>
+                            <div id="res-item-breakdown" class="space-y-1.5 text-xs">
+                                <!-- Dynamic Breakdown items -->
+                            </div>
+                        </div>
+
+                        <!-- 5. 현장 단속관 핵심 행동 지침 (간결한 카드 형태) -->
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
+                            <span class="font-bold text-slate-800 flex items-center gap-1.5 text-[11px]">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                현장 단속 핵심 행동 지침
                             </span>
-                            <ul id="res-action-guide" class="text-slate-700 space-y-1 pl-4 list-disc">
+                            <ul id="res-action-guide" class="text-slate-600 text-[11px] space-y-1 pl-3.5 list-disc leading-relaxed">
                                 <!-- Actions -->
                             </ul>
                         </div>
 
-                        <!-- Forward to Documents -->
-                        <button onclick="switchTab('procedure')" class="w-full py-2.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors">
-                            <i data-lucide="file-text" class="w-4 h-4"></i>
-                            이 결과로 [위반사실확인서] 바로 작성하기
+                        <!-- 6. 위반사실확인서 바로 작성 버튼 -->
+                        <button onclick="switchTab('procedure')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950 hover:from-slate-800 hover:to-indigo-900 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all">
+                            <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span>이 결과로 [위반사실확인서] 즉시 작성하기</span>
                         </button>
 
                     </div>
@@ -2348,95 +2387,171 @@
             const card = document.getElementById('result-card');
             card.classList.remove('hidden');
 
-            // 5단계: 단속관 안전 및 방폭 프로토콜 배너 렌더링
+            // 5단계: 단속관 안전 및 방폭 프로토콜 배너 렌더링 (스마트 컴팩트 바)
             if (data.safety_protocol) {
                 displaySafetyProtocol(data.safety_protocol);
-            }
-
-            document.getElementById('res-total-multiple').textContent = data.total_multiple;
-
-            const badge = document.getElementById('res-badge-status');
-            if (data.primary_disposition.includes('형사입건')) {
-                badge.className = "px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm bg-rose-100 text-rose-800 border border-rose-200";
-            } else if (data.primary_disposition.includes('과태료')) {
-                badge.className = "px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm bg-amber-100 text-amber-800 border border-amber-200";
-            } else if (data.primary_disposition.includes('시정명령')) {
-                badge.className = "px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm bg-blue-100 text-blue-900 border border-blue-200";
             } else {
-                badge.className = "px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm bg-emerald-100 text-emerald-800 border border-emerald-200";
+                const banner = document.getElementById('safety-protocol-banner');
+                if (banner) banner.classList.add('hidden');
             }
-            badge.textContent = data.primary_disposition;
 
+            // 1. KPI 1: 총 지정수량 배수
+            const multipleVal = parseFloat(data.total_multiple) || 0;
+            document.getElementById('res-total-multiple').textContent = data.total_multiple;
+            const multipleDesc = document.getElementById('res-multiple-desc');
+            if (multipleDesc) {
+                if (multipleVal >= 1.0) {
+                    multipleDesc.innerHTML = `<span class="text-rose-400 font-bold">⚠️ 지정수량 1배 초과 (허가필수)</span>`;
+                } else if (multipleVal >= 0.2) {
+                    multipleDesc.innerHTML = `<span class="text-amber-400 font-bold">⚠️ 소량위험물 조례 단속대상</span>`;
+                } else {
+                    multipleDesc.innerHTML = `<span class="text-emerald-400 font-bold">✓ 단속 규제수량 미만</span>`;
+                }
+            }
+
+            // 2. KPI 2: 수사 및 처분 구분
+            const badge = document.getElementById('res-badge-status');
+            const badgeDesc = document.getElementById('res-badge-desc');
+            const disp = data.primary_disposition || '';
+
+            if (disp.includes('형사입건')) {
+                badge.className = "px-2.5 py-1 rounded-lg text-xs font-black inline-flex items-center gap-1 shadow-2xs bg-rose-500 text-white";
+                badge.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> <span>형사입건 (특사경)</span>`;
+                if (badgeDesc) badgeDesc.textContent = "피의자 신문 및 검찰 송치 대상";
+            } else if (disp.includes('과태료')) {
+                badge.className = "px-2.5 py-1 rounded-lg text-xs font-black inline-flex items-center gap-1 shadow-2xs bg-amber-500 text-white";
+                badge.innerHTML = `<i data-lucide="file-warning" class="w-3.5 h-3.5"></i> <span>과태료 처분 대상</span>`;
+                if (badgeDesc) badgeDesc.textContent = "관할 소방서 과태료 부과 처분";
+            } else if (disp.includes('시정명령')) {
+                badge.className = "px-2.5 py-1 rounded-lg text-xs font-black inline-flex items-center gap-1 shadow-2xs bg-blue-600 text-white";
+                badge.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5"></i> <span>행정 시정명령</span>`;
+                if (badgeDesc) badgeDesc.textContent = "현장 시정 및 조치명령 발부";
+            } else {
+                badge.className = "px-2.5 py-1 rounded-lg text-xs font-black inline-flex items-center gap-1 shadow-2xs bg-emerald-600 text-white";
+                badge.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> <span>적법 (규제 미만)</span>`;
+                if (badgeDesc) badgeDesc.textContent = "허가 및 신고 대상 제외";
+            }
+
+            // 3. KPI 3: 최고 처벌 수위 & 근거 조항
+            const heroPenalty = document.getElementById('res-hero-penalty');
+            const heroClause = document.getElementById('res-hero-clause');
+            const crimViol = (data.violations || []).find(v => v.severity === 'CRIMINAL');
+            const firstViol = (data.violations || [])[0];
+
+            if (crimViol) {
+                if (heroPenalty) {
+                    heroPenalty.textContent = crimViol.penalty_or_sanction || "3년 이하 징역 / 3천만원 벌금";
+                    heroPenalty.title = crimViol.penalty_or_sanction || "";
+                    heroPenalty.className = "text-xs font-black text-rose-300 block truncate";
+                }
+                if (heroClause) {
+                    heroClause.textContent = `[${crimViol.law_type || '위험물법'}] ${crimViol.clause || '제5조제1항'}`;
+                }
+            } else if (firstViol) {
+                if (heroPenalty) {
+                    heroPenalty.textContent = firstViol.penalty_or_sanction || "200만원 이하 과태료";
+                    heroPenalty.title = firstViol.penalty_or_sanction || "";
+                    heroPenalty.className = "text-xs font-black text-amber-300 block truncate";
+                }
+                if (heroClause) {
+                    heroClause.textContent = `[${firstViol.law_type || '조례'}] ${firstViol.clause || '제4조'}`;
+                }
+            } else {
+                if (heroPenalty) {
+                    heroPenalty.textContent = "처벌 대상 없음 (적법)";
+                    heroPenalty.className = "text-xs font-black text-emerald-300 block truncate";
+                }
+                if (heroClause) heroClause.textContent = "허가 제외 대상";
+            }
+
+            // 4. 품목별 수량 및 배수 상세 (모던 카드 리스트)
             const breakdown = document.getElementById('res-item-breakdown');
             breakdown.innerHTML = '';
             data.item_results.forEach(it => {
                 const itemDiv = document.createElement('div');
-                itemDiv.className = "flex justify-between items-center py-1.5 border-b border-slate-100";
-                const cText = it.container_desc ? `<span class="text-[11px] text-slate-500 block">${it.container_desc}</span>` : '';
+                itemDiv.className = "p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200/80 flex items-center justify-between transition-colors";
+                const cBadge = it.container_desc ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100/80 text-blue-700 border border-blue-200/60">${it.container_desc}</span>` : '';
                 itemDiv.innerHTML = `
-                    <div>
-                        <span class="font-bold text-slate-900">${it.name}</span>
-                        ${cText}
-                        <span class="text-[10px] text-slate-400">총 ${it.quantity}${it.unit} / 법정지정 ${it.designated_qty}${it.unit}</span>
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-black text-slate-900 text-xs">${it.name}</span>
+                            ${cBadge}
+                        </div>
+                        <div class="text-[11px] text-slate-500">
+                            적발량 <span class="font-bold text-slate-800">${it.quantity}${it.unit}</span> <span class="text-slate-400">/ 법정지정 ${it.designated_qty}${it.unit}</span>
+                        </div>
                     </div>
                     <div class="text-right">
-                        <span class="font-extrabold text-slate-900 text-sm">${it.multiple}배</span>
-                        <span class="text-[10px] block ${it.is_gg_small_qty ? 'text-amber-700 font-semibold' : 'text-slate-400'}">
-                            ${it.is_gg_small_qty ? '조례 0.2배 대상' : '0.2배 미만'}
+                        <div class="font-black text-slate-900 text-sm tracking-tight">${it.multiple}배</div>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${it.is_gg_small_qty ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-200 text-slate-600'}">
+                            ${it.is_gg_small_qty ? '조례 0.2배 대상' : '지정수량 산입'}
                         </span>
                     </div>
                 `;
                 breakdown.appendChild(itemDiv);
             });
 
+            // 5. 적용 법조 및 처벌 수위
             const vList = document.getElementById('res-violations-list');
             vList.innerHTML = '';
             if (data.violations.length === 0) {
-                vList.innerHTML = `<div class="text-xs text-emerald-700 p-2.5 rounded-lg bg-emerald-50 font-bold">위반 사항이 없습니다. (적법 허가 범위 내)</div>`;
+                vList.innerHTML = `
+                    <div class="text-xs text-emerald-700 p-3 rounded-xl bg-emerald-50 border border-emerald-200 font-bold flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                        <span>위반 사항이 없습니다. (적법 허가 범위 내 저장·취급)</span>
+                    </div>
+                `;
             } else {
                 data.violations.forEach(v => {
                     const isCrim = v.severity === 'CRIMINAL';
                     const vCard = document.createElement('div');
-                    vCard.className = `p-3 rounded-lg border text-xs ${isCrim ? 'bg-rose-50/70 border-rose-200' : 'bg-slate-50 border-slate-200'}`;
+                    vCard.className = `p-3 rounded-xl border text-xs space-y-1.5 ${isCrim ? 'bg-rose-50/60 border-rose-200 shadow-2xs' : 'bg-amber-50/60 border-amber-200 shadow-2xs'}`;
                     vCard.innerHTML = `
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="font-bold ${isCrim ? 'text-rose-900' : 'text-slate-900'}">[${v.law_type}] ${v.clause}</span>
-                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${isCrim ? 'bg-rose-200 text-rose-900' : 'bg-slate-200 text-slate-800'}">${v.severity}</span>
+                        <div class="flex items-center justify-between">
+                            <span class="font-black text-xs ${isCrim ? 'text-rose-900' : 'text-amber-900'} flex items-center gap-1.5">
+                                <i data-lucide="scale" class="w-3.5 h-3.5 ${isCrim ? 'text-rose-600' : 'text-amber-600'}"></i>
+                                [${v.law_type}] ${v.clause}
+                            </span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isCrim ? 'bg-rose-200 text-rose-900' : 'bg-amber-200 text-amber-900'}">${v.severity}</span>
                         </div>
-                        <p class="font-semibold text-slate-800">${v.title}</p>
-                        <p class="mt-1 text-[11px] ${isCrim ? 'text-rose-700' : 'text-slate-600'} font-medium">처벌: ${v.penalty_or_sanction}</p>
+                        <div class="text-xs font-bold text-slate-900 pl-3 border-l-2 ${isCrim ? 'border-rose-400' : 'border-amber-400'}">
+                            ${v.title}
+                        </div>
+                        <div class="text-[11px] font-bold ${isCrim ? 'text-rose-800 bg-white/80 border-rose-200' : 'text-amber-800 bg-white/80 border-amber-200'} p-1.5 rounded-lg border flex items-center justify-between">
+                            <span>⚖️ 법정형량:</span>
+                            <span class="font-black text-rose-700">${v.penalty_or_sanction}</span>
+                        </div>
                     `;
                     vList.appendChild(vCard);
                 });
             }
 
+            // 6. 행동 지침
             const actionList = document.getElementById('res-action-guide');
             actionList.innerHTML = '';
             data.action_guide.forEach(act => {
                 const li = document.createElement('li');
-                li.textContent = act;
+                li.innerHTML = `<span class="font-medium text-slate-700">${act}</span>`;
                 actionList.appendChild(li);
             });
             lucide.createIcons();
         }
 
-        // 5단계: 단속관 안전 및 방폭 프로토콜 배너 렌더링
+        // 5단계: 단속관 안전 및 방폭 프로토콜 스마트 컴팩트 배너
         function displaySafetyProtocol(sp) {
             const banner = document.getElementById('safety-protocol-banner');
             if (!sp || !banner) return;
 
-            banner.classList.remove('hidden', 'border-rose-300', 'bg-rose-50/80', 'border-amber-300', 'bg-amber-50/80', 'border-blue-300', 'bg-blue-50/80');
+            banner.classList.remove('hidden');
 
-            if (sp.hazard_level === 'CRITICAL') {
-                banner.classList.add('border-rose-300', 'bg-rose-50/80');
-            } else if (sp.hazard_level === 'WARNING') {
-                banner.classList.add('border-amber-300', 'bg-amber-50/80');
-            } else {
-                banner.classList.add('border-blue-300', 'bg-blue-50/80');
-            }
+            const isCrit = sp.hazard_level === 'CRITICAL';
+            const borderCls = isCrit ? 'border-rose-300 bg-rose-50/70' : 'border-amber-300 bg-amber-50/70';
+            const textCls = isCrit ? 'text-rose-900' : 'text-amber-900';
+            const iconCls = isCrit ? 'text-rose-600' : 'text-amber-600';
+            const dotCls = isCrit ? 'bg-rose-500' : 'bg-amber-500';
 
             const ppeChips = sp.required_ppe.map(p => `
-                <span class="px-2 py-0.5 rounded-full bg-white text-slate-800 font-bold border border-slate-300 shadow-2xs text-[10px] flex items-center gap-1">
+                <span class="px-2 py-0.5 rounded-lg bg-white text-slate-800 font-bold border border-slate-200 shadow-2xs text-[10px] flex items-center gap-1">
                     <i data-lucide="shield" class="w-3 h-3 text-blue-600"></i> ${p}
                 </span>
             `).join('');
@@ -2448,33 +2563,63 @@
                 </li>
             `).join('');
 
+            banner.className = `rounded-xl border p-2.5 transition-all ${borderCls}`;
             banner.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-black ${sp.hazard_level === 'CRITICAL' ? 'text-rose-900' : 'text-amber-900'} flex items-center gap-1.5">
-                        <i data-lucide="alert-octagon" class="w-4 h-4 ${sp.hazard_level === 'CRITICAL' ? 'text-rose-600' : 'text-amber-600'}"></i>
-                        ${sp.warning_title}
-                    </span>
-                    <span class="text-[10px] px-2 py-0.5 rounded font-black ${sp.hazard_level === 'CRITICAL' ? 'bg-rose-200 text-rose-900' : 'bg-amber-200 text-amber-900'}">
-                        ${sp.hazard_level}
-                    </span>
-                </div>
-                <p class="text-xs font-semibold text-slate-800 leading-snug">
-                    ${sp.warning_desc}
-                </p>
-                <div class="space-y-1.5 pt-1 border-t border-slate-200/60">
-                    <span class="text-[11px] font-bold text-slate-700 block">🦺 필수 착용 개인보호장구(PPE):</span>
-                    <div class="flex flex-wrap gap-1.5">
-                        ${ppeChips}
+                <!-- 1줄 스마트 요약 바 (항상 노출, 공간 최소화) -->
+                <div class="flex items-center justify-between cursor-pointer" onclick="toggleSafetyDetails()">
+                    <div class="flex items-center gap-2 text-xs font-bold ${textCls} truncate">
+                        <span class="w-2 h-2 rounded-full ${dotCls} animate-ping flex-shrink-0"></span>
+                        <i data-lucide="alert-octagon" class="w-4 h-4 ${iconCls} flex-shrink-0"></i>
+                        <span class="truncate">🚨 ${sp.warning_title}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-slate-800 border border-slate-200 shadow-2xs hidden sm:inline-block">
+                            🦺 필수보호구 ${sp.required_ppe.length}종
+                        </span>
+                        <button type="button" class="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-white/90 hover:bg-white text-slate-700 border border-slate-300 flex items-center gap-0.5 shadow-2xs transition-colors">
+                            <span id="safety-toggle-text">안전수칙 보기</span>
+                            <i data-lucide="chevron-down" id="safety-toggle-icon" class="w-3.5 h-3.5 transition-transform"></i>
+                        </button>
                     </div>
                 </div>
-                ${sp.field_cautions && sp.field_cautions.length > 0 ? `
-                <div class="pt-1">
-                    <span class="text-[11px] font-bold text-slate-700 block mb-1">⚠️ 현장 안전 및 방폭 조치 수칙:</span>
-                    <ul class="space-y-1 pl-1">
-                        ${cautionList}
-                    </ul>
-                </div>` : ''}
+
+                <!-- 접이식 상세 내용 (기본 축소, 클릭 시 펼침) -->
+                <div id="safety-details-content" class="hidden mt-2 pt-2.5 border-t border-slate-200/70 space-y-2.5 text-xs">
+                    <p class="text-xs text-slate-800 leading-relaxed font-semibold bg-white/60 p-2 rounded-lg border border-slate-200/50">
+                        ${sp.warning_desc}
+                    </p>
+                    <div class="space-y-1">
+                        <span class="text-[11px] font-bold text-slate-700 block">🦺 필수 착용 개인보호장구(PPE):</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${ppeChips}
+                        </div>
+                    </div>
+                    ${sp.field_cautions && sp.field_cautions.length > 0 ? `
+                    <div class="space-y-1 pt-1 border-t border-slate-200/50">
+                        <span class="text-[11px] font-bold text-slate-700 block">⚠️ 현장 안전 및 방폭 조치 수칙:</span>
+                        <ul class="space-y-1 pl-1">
+                            ${cautionList}
+                        </ul>
+                    </div>` : ''}
+                </div>
             `;
+            lucide.createIcons();
+        }
+
+        function toggleSafetyDetails() {
+            const el = document.getElementById('safety-details-content');
+            const txt = document.getElementById('safety-toggle-text');
+            const icon = document.getElementById('safety-toggle-icon');
+            if (!el) return;
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                if (txt) txt.textContent = '안전수칙 접기';
+                if (icon) icon.classList.add('rotate-180');
+            } else {
+                el.classList.add('hidden');
+                if (txt) txt.textContent = '안전수칙 보기';
+                if (icon) icon.classList.remove('rotate-180');
+            }
             lucide.createIcons();
         }
 
