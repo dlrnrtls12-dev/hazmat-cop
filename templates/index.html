@@ -2024,7 +2024,38 @@
                     </div>
                 `;
 
-                // 2. Nested Container Rows (중첩된 용기 줄들)
+                // 2. Preset Bar: clicking adds or increments that specific container row!
+                const presetButtonsHtml = PRESET_SPECS.map(p => {
+                    const matched = item.containers.find(c => c.capacity === p.capacity && c.unit === p.unit);
+                    const isSelected = !!matched;
+                    const countBadge = isSelected ? `<span class="ml-1.5 px-1.5 py-0.2 rounded-full bg-white/20 text-white font-black">${matched.count}개</span>` : '';
+                    const btnClass = isSelected
+                        ? 'bg-blue-600 text-white font-bold border border-blue-600 shadow-sm'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium';
+
+                    return `
+                        <button type="button" onclick="applyPreset(${itemIdx}, ${p.capacity}, '${p.unit}', '${p.label}')" class="px-2.5 py-1 rounded-md text-xs whitespace-nowrap transition-all flex items-center ${btnClass}">
+                            <span>${p.label}</span>
+                            ${countBadge}
+                        </button>
+                    `;
+                }).join('');
+
+                const presetBarHtml = `
+                    <div class="flex items-center gap-1.5 text-xs overflow-x-auto pb-0.5 no-scrollbar bg-slate-50/70 p-2 rounded-lg border border-slate-200/60">
+                        <span class="text-[11px] font-bold text-slate-600 flex-shrink-0 mr-1 flex items-center gap-1">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-blue-600"></i>
+                            규격 추가:
+                        </span>
+                        ${presetButtonsHtml}
+                        <button type="button" onclick="addCustomContainer(${itemIdx})" class="px-2 py-1 rounded-md text-xs whitespace-nowrap bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 font-medium ml-auto flex items-center gap-1" title="비표준 규격 직접 추가">
+                            <i data-lucide="plus" class="w-3 h-3"></i>
+                            <span>직접추가</span>
+                        </button>
+                    </div>
+                `;
+
+                // 3. Nested Container Rows (중첩된 용기 줄들)
                 const containerRowsHtml = item.containers.map((c, cIdx) => {
                     const cTotal = computeContainerTotal(c);
                     const cUnitDisp = (c.unit === 'kg') ? 'kg' : 'L';
@@ -2103,13 +2134,11 @@
 
                 card.innerHTML = `
                     ${headerHtml}
+                    ${presetBarHtml}
                     <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-[11px] font-semibold text-slate-700 px-1">
+                        <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 px-1">
                             <span>용기 규격별 보관 내역</span>
-                            <button type="button" onclick="addCustomContainer(${itemIdx})" class="px-2 py-0.5 rounded text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 border border-blue-200 transition-colors flex items-center gap-1" title="새로운 용기 규격 행 추가">
-                                <i data-lucide="plus" class="w-3 h-3"></i>
-                                <span>용기 추가</span>
-                            </button>
+                            <span class="text-[10px] text-slate-400">(상단 규격 프리셋 클릭시 자동 누적/중첩)</span>
                         </div>
                         ${containerRowsHtml}
                     </div>
