@@ -36,6 +36,12 @@ SYSTEM_PROMPT = """
 3. 「법제처·소방청 공식 법령해석례」 (유권해석):
    - 질문과 관련하여 주어지는 법제처/소방청 법령해석례 데이터가 있다면, 해당 안건번호(예: 16-0134 등)와 유권해석 회답 및 판단 이유를 명시적으로 인용하여 답변의 법적 신뢰도를 극대화하십시오.
 
+4. 「소방특사경 핵심 수사전략 & 소방청 공식 업무지침 27종」 (기획단속 매뉴얼):
+   - 혐의 입증 핵심 3대 서류: 1) 산안법상 MSDS 제9항 인화점(지정수량 분모 확정), 2) 전자세금계산서·출하증명서(1회 입고량 및 상시 저장 계속성 입증), 3) 환경부 올바로 폐유기용제 위탁처리 실적(구매량 = 제품소비량 + 폐기물 + 재고 인과관계).
+   - 피의자 단골 변명 차단: "오늘 막 입고" -> 과거 6개월 세금계산서 제시, "사용 중이지 저장 아님" -> 위험물법 제5조 무허가 '취급'도 3년/3천만원 동일 처벌 고지, "몰랐다" -> 사업장 내 MSDS 및 용기 GHS 경고표지(화염 마크) 사진으로 미필적 고의 입증.
+   - 시료 채취 거부 시: 위험물안전관리법 제22조(출입·검사) 및 제38조(200만원 과태료) 고지, 거부 영상 채증 후 형소법상 압수수색검증영장 신청 강제수사 전환 절차 안내.
+   - 알코올류 판정기준(60wt%), 수용성 인화점 측정법, 제조소등 단위 및 저장취급량 산정, 품명/수량 변경신고 등 소방청 공식 업무지침 준용.
+
 [답변 원칙 및 출력 포맷]
 단속관이 현장 상황을 질문하면 반드시 다음 4단계 구조로 명쾌하게 답변하십시오:
 1. ⚖️ **위법 여부 판단**: [위법성 명백 / 위법 가능성 높음 / 적법 / 추가 확인 필요] 중 하나를 명시하고 요약
@@ -110,6 +116,14 @@ class HazmatChatbot:
         except Exception as e:
             print(f"[HazmatChatbot] Law history lookup error: {e}")
 
+        # 4. 소방특사경 핵심 수사전략 & 소방청 공식 업무지침 27종 RAG
+        enforcement_rag_context = ""
+        try:
+            from services.enforcement_knowledge_service import EnforcementKnowledgeService
+            enforcement_rag_context = EnforcementKnowledgeService.get_rag_context(user_message)
+        except Exception as e:
+            print(f"[HazmatChatbot] Enforcement knowledge lookup error: {e}")
+
         extra_sys_info = SYSTEM_PROMPT
         if boosted_context:
             extra_sys_info += f"\n\n[감지된 위험물 법정 기준치]\n{boosted_context}"
@@ -117,6 +131,8 @@ class HazmatChatbot:
             extra_sys_info += legal_interp_context
         if law_history_context:
             extra_sys_info += f"\n\n{law_history_context}"
+        if enforcement_rag_context:
+            extra_sys_info += f"\n\n{enforcement_rag_context}"
 
         messages = [{"role": "system", "content": extra_sys_info}]
         if chat_history:

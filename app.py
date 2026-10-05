@@ -97,6 +97,37 @@ async def get_admin_rules(q: Optional[str] = "위험물"):
     return results
 
 # =========================================================================
+# 소방특사경 수사기법 및 소방청 공식 업무지침 27종 & 질의회신 지식고 API
+# =========================================================================
+from services.enforcement_knowledge_service import EnforcementKnowledgeService
+
+@app.get("/api/knowledge/tactics")
+async def get_enforcement_tactics_endpoint():
+    """
+    소방특사경 핵심 수사전략(3대 서류 점검, 피의자 변명 차단, 2-트랙 처벌 법리) API
+    """
+    tactics = EnforcementKnowledgeService.get_investigation_tactics()
+    return tactics
+
+@app.get("/api/knowledge/guidelines")
+async def get_guidelines_endpoint(q: Optional[str] = "", category: Optional[str] = "all", limit: Optional[int] = 50):
+    """
+    바탕화면 학습 지식 베이스(소방청 업무지침 27종, 실무해설서, 질의회신집 48개 문서) 검색 API
+    """
+    results = EnforcementKnowledgeService.search_knowledge(query=q or "", category=category or "all", limit=limit or 50)
+    return results
+
+@app.get("/api/knowledge/document/{doc_id}")
+async def get_knowledge_document_endpoint(doc_id: str):
+    """
+    학습 문서 원문 전문 조회 API
+    """
+    doc = EnforcementKnowledgeService.get_document_content(doc_id)
+    if not doc:
+        return JSONResponse(status_code=404, content={"message": "해당 문서를 찾을 수 없습니다."})
+    return doc
+
+# =========================================================================
 # 법제처 국가법령정보 연혁(eflaw) 및 부칙 경과조치 API
 # =========================================================================
 from services.law_history_service import LawHistoryService
