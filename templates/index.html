@@ -161,7 +161,7 @@
             </button>
             <button onclick="switchTab('catalog')" id="tab-btn-catalog" class="tab-btn px-4 py-3 text-slate-400 hover:text-white border-b-2 border-transparent flex items-center space-x-2 whitespace-nowrap transition-colors">
                 <i data-lucide="book-open" class="w-4 h-4"></i>
-                <span>4. 품명 & 안전수칙 백과</span>
+                <span>4. 품명 백과 & 소방청 지식고</span>
             </button>
             <button onclick="switchTab('chat')" id="tab-btn-chat" class="tab-btn px-4 py-3 text-slate-400 hover:text-white border-b-2 border-transparent flex items-center space-x-2 whitespace-nowrap transition-colors">
                 <i data-lucide="bot" class="w-4 h-4"></i>
@@ -900,62 +900,6 @@
                     </div>
                 </div>
 
-                <!-- 4. 소방청 공식 위험물 업무지침 27종 & 기획단속·질의회신 지식고 (12 cols) -->
-                <div class="lg:col-span-12 space-y-4">
-                    <div class="clean-card rounded-xl p-5 space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                            <div>
-                                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <i data-lucide="book-marked" class="w-4 h-4 text-blue-600"></i>
-                                    소방청 공식 위험물 업무지침 27종 & 질의회신·실무해설서 지식고
-                                </h3>
-                                <p class="text-[11px] text-slate-500 mt-0.5">
-                                    바탕화면 학습 데이터 기반: 소방청 업무지침 1~27호 전편, 동두천 수사전략 보고서, 실무해설서 1~4권, 소방시설 질의회신집 실시간 검색
-                                </p>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[11px] text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full font-bold border border-blue-200">
-                                    48개 공식문서 (32만자 학습)
-                                </span>
-                                <span class="text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold border border-emerald-200">
-                                    소방청 지침 27종 완비
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Search & Category Filters -->
-                        <div class="space-y-2.5 text-xs">
-                            <div class="flex flex-col sm:flex-row gap-2">
-                                <div class="relative flex-1">
-                                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                                    <input type="text" id="guideline-query-input" oninput="debounceSearchGuidelines(this.value)" placeholder="지침명 또는 본문 키워드 검색 (예: 알코올, 수용성, 단위, 저장취급량, 변경신고, 주유, 시료, 폐신나, 세금계산서...)" class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 font-medium text-slate-900 focus:ring-2 focus:ring-blue-500">
-                                </div>
-                                <button type="button" onclick="searchGuidelinesUI()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs">
-                                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                                    <span>지식 검색</span>
-                                </button>
-                            </div>
-
-                            <!-- Category Filter Buttons -->
-                            <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] no-scrollbar">
-                                <span class="text-slate-400 font-semibold flex-shrink-0">분류 필터:</span>
-                                <button type="button" onclick="filterGuidelinesCategory('all')" id="g-cat-all" class="g-cat-btn px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold shadow-2xs">전체 (48건)</button>
-                                <button type="button" onclick="filterGuidelinesCategory('소방청 업무지침')" id="g-cat-guideline" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200">소방청 업무지침 (27종)</button>
-                                <button type="button" onclick="filterGuidelinesCategory('기획단속 수사전략')" id="g-cat-tactics" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200">기획단속 수사전략</button>
-                                <button type="button" onclick="filterGuidelinesCategory('위험물 실무해설서')" id="g-cat-manual" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200">위험물 실무해설서</button>
-                                <button type="button" onclick="filterGuidelinesCategory('질의회신집')" id="g-cat-qna" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200">소방시설 질의회신집</button>
-                            </div>
-                        </div>
-
-                        <!-- Guidelines Results Grid -->
-                        <div id="guidelines-results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[460px] overflow-y-auto p-1 text-xs">
-                            <div class="col-span-full text-center py-8 text-slate-400">
-                                지식 베이스 문서를 불러오는 중입니다...
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </section>
 
@@ -1142,6 +1086,60 @@
                 <!-- 3. 간단하고 직관적인 카드 그리드 (클릭 시 상세 모달 오픈) -->
                 <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
                     <!-- Populated dynamically via renderCatalogGrid -->
+                </div>
+            </div>
+
+            <!-- 소방청 공식 위험물 업무지침 27종 & 기획단속·질의회신 지식고 -->
+            <div class="clean-card rounded-xl p-5 sm:p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="book-marked" class="w-4 h-4 text-blue-600"></i>
+                            소방청 공식 위험물 업무지침 27종 & 질의회신·실무해설서 지식고
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            바탕화면 학습 데이터 기반: 소방청 업무지침 1~27호 전편, 동두천 수사전략 보고서, 실무해설서 1~4권, 소방시설 질의회신집 실시간 검색
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-[11px] text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full font-bold border border-blue-200 whitespace-nowrap">
+                            48개 공식문서 (32만자 학습)
+                        </span>
+                        <span class="text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold border border-emerald-200 whitespace-nowrap">
+                            소방청 지침 27종 완비
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Search & Category Filters -->
+                <div class="space-y-2.5 text-xs">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="guideline-query-input" oninput="debounceSearchGuidelines(this.value)" placeholder="지침명 또는 본문 키워드 검색 (예: 알코올, 수용성, 단위, 저장취급량, 변경신고, 주유, 시료, 폐신나, 세금계산서...)" class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 font-medium text-slate-900 focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <button type="button" onclick="searchGuidelinesUI()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs whitespace-nowrap">
+                            <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                            <span>지식 검색</span>
+                        </button>
+                    </div>
+
+                    <!-- Category Filter Buttons -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] no-scrollbar">
+                        <span class="text-slate-400 font-semibold flex-shrink-0">분류 필터:</span>
+                        <button type="button" onclick="filterGuidelinesCategory('all')" id="g-cat-all" class="g-cat-btn px-2.5 py-1 rounded-lg bg-blue-600 text-white font-bold shadow-2xs whitespace-nowrap">전체 (48건)</button>
+                        <button type="button" onclick="filterGuidelinesCategory('소방청 업무지침')" id="g-cat-guideline" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200 whitespace-nowrap">소방청 업무지침 (27종)</button>
+                        <button type="button" onclick="filterGuidelinesCategory('기획단속 수사전략')" id="g-cat-tactics" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200 whitespace-nowrap">기획단속 수사전략</button>
+                        <button type="button" onclick="filterGuidelinesCategory('위험물 실무해설서')" id="g-cat-manual" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200 whitespace-nowrap">위험물 실무해설서</button>
+                        <button type="button" onclick="filterGuidelinesCategory('질의회신집')" id="g-cat-qna" class="g-cat-btn px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium border border-slate-200 whitespace-nowrap">소방시설 질의회신집</button>
+                    </div>
+                </div>
+
+                <!-- Guidelines Results Grid -->
+                <div id="guidelines-results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto p-1 text-xs">
+                    <div class="col-span-full text-center py-8 text-slate-400">
+                        지식 베이스 문서를 불러오는 중입니다...
+                    </div>
                 </div>
             </div>
         </section>
@@ -2274,11 +2272,11 @@
             } else if (tabId === 'catalog') {
                 loadCatalogStats();
                 loadCatalog(currentCatClass || 'all');
+                loadGuidelines();
             } else if (tabId === 'screening') {
                 searchChemicalBiz();
                 searchLegalInterpretations();
                 lookupLawHistoryAsOf(false);
-                loadGuidelines();
             } else if (tabId === 'multiagent') {
                 initMultiAgentTab();
             } else if (tabId === 'models') {
