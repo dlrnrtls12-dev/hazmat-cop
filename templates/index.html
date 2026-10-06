@@ -1173,11 +1173,11 @@
                             <i data-lucide="bot" class="w-3.5 h-3.5 text-blue-600 flex-shrink-0"></i>
                             <label for="chat-model-select" class="text-[11px] font-bold text-slate-600 whitespace-nowrap">대화 모델:</label>
                             <select id="chat-model-select" onchange="onChatbotModelChange(this.value)" class="text-xs font-bold text-slate-800 bg-transparent focus:outline-none cursor-pointer pr-1">
-                                <option value="gpt-4o-mini">⚡ GPT-4o-mini (초고속·토큰절약 [권장])</option>
-                                <option value="gpt-6.1-sol">🔥 GPT-6.1-sol (차세대 플래그십)</option>
-                                <option value="gpt-4o">🧠 GPT-4o (최고 성능 심층 추론)</option>
-                                <option value="gemini-3.8-flash">🌐 Gemini 3.8 Flash (Google 최신)</option>
+                                <option value="gpt-4o-mini">⚡ GPT-4o-mini (내 플랜 한도 절약 [기본 권장])</option>
+                                <option value="gpt-6.1-sol">🔥 GPT-6.1-sol (내 플랜 고난도 법률 심층 추론)</option>
+                                <option value="gpt-4o">🧠 GPT-4o (내 플랜 최고성능 플래그십)</option>
                                 <option value="offline-heuristic">🔌 로컬 룰 엔진 (오프라인 무과금)</option>
+                                <option value="gemini-3.8-flash">🌐 Gemini 3.8 Flash (구글 별도충전 필요 / 비권장)</option>
                             </select>
                         </div>
 
@@ -5113,11 +5113,11 @@
             const badgeEl = document.getElementById('chat-active-model-badge');
             if (nameEl && badgeEl) {
                 const modelMap = {
-                    'gpt-4o-mini': { name: 'GPT-4o-mini (토큰절약)', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-                    'gpt-6.1-sol': { name: 'GPT-6.1-sol (차세대 플래그십)', badge: 'bg-rose-100 text-rose-800 border-rose-300' },
-                    'gpt-4o': { name: 'GPT-4o (최고성능)', badge: 'bg-purple-100 text-purple-800 border-purple-300' },
-                    'gemini-3.8-flash': { name: 'Gemini 3.8 Flash (Google)', badge: 'bg-sky-100 text-sky-800 border-sky-300' },
-                    'offline-heuristic': { name: '로컬 룰 엔진 (오프라인)', badge: 'bg-amber-100 text-amber-800 border-amber-300' }
+                    'gpt-4o-mini': { name: 'GPT-4o-mini (내 플랜 알뜰형)', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+                    'gpt-6.1-sol': { name: 'GPT-6.1-sol (내 플랜 심층추론)', badge: 'bg-rose-100 text-rose-800 border-rose-300' },
+                    'gpt-4o': { name: 'GPT-4o (내 플랜 최고성능)', badge: 'bg-purple-100 text-purple-800 border-purple-300' },
+                    'offline-heuristic': { name: '로컬 룰 엔진 (오프라인)', badge: 'bg-amber-100 text-amber-800 border-amber-300' },
+                    'gemini-3.8-flash': { name: 'Gemini 3.8 Flash (구글 별도결제)', badge: 'bg-slate-100 text-slate-800 border-slate-300' }
                 };
                 const info = modelMap[modelId] || { name: modelId, badge: 'bg-slate-100 text-slate-800 border-slate-300' };
                 nameEl.textContent = info.name;

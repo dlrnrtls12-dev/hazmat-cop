@@ -23,33 +23,33 @@ SUPPORTED_MODELS = [
         "id": "gpt-6.1-sol",
         "provider": "openai",
         "name": "GPT-6.1-sol",
-        "tag": "OpenAI / 차세대 최신 플래그십",
+        "tag": "OpenAI / 내 플랜 최신 플래그십",
         "badge": "bg-rose-500/20 text-rose-400 border-rose-500/30",
-        "description": "OpenAI 최신 차세대 추론 엔진, 압도적인 법률 분석 및 고난도 수사 지휘에 최적"
+        "description": "사용자 OpenAI 플랜 사용. 최신 차세대 추론 엔진, 압도적인 법률 분석 및 고난도 수사 지휘에 최적"
     },
     {
         "id": "gpt-4o-mini",
         "provider": "openai",
         "name": "GPT-4o-mini",
-        "tag": "OpenAI / 초고속 경량",
+        "tag": "OpenAI / 내 플랜 알뜰형 (토큰절약 [권장])",
         "badge": "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-        "description": "응답 속도가 가장 빠르고 경제적이며 수량 계산 및 단속 절차에 최적화"
+        "description": "사용자 OpenAI 플랜 사용. 응답 속도가 가장 빠르고 토큰 소모가 극소량이라 플랜 한도 절약에 최적"
     },
     {
         "id": "gpt-4o",
         "provider": "openai",
         "name": "GPT-4o",
-        "tag": "OpenAI / 최고 성능 플래그십",
+        "tag": "OpenAI / 내 플랜 고성능",
         "badge": "bg-purple-500/20 text-purple-400 border-purple-500/30",
-        "description": "가장 뛰어난 추론 능력과 정밀한 법률 포섭 및 수사전략 지휘에 적합"
+        "description": "사용자 OpenAI 플랜 사용. 가장 뛰어난 추론 능력과 정밀한 법률 포섭 및 수사전략 지휘에 적합"
     },
     {
         "id": "gemini-3.8-flash",
         "provider": "gemini",
         "name": "Gemini 3.8 Flash",
-        "tag": "Google / 3.8 플래시 최신판",
+        "tag": "Google / 별도 충전 필요 (비권장)",
         "badge": "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-        "description": "구글 차세대 최신 초고속 모델, 대용량 위험물 데이터 및 화학물질 초고속 분석"
+        "description": "구글 AI Studio 별도 결제 필요. 크레딧 소진 시 402 에러 발생 (OpenAI 플랜과 무관)"
     },
     {
         "id": "gemini-2.5-flash",
