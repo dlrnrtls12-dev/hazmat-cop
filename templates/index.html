@@ -570,21 +570,24 @@
                                     <span>서식 초기화</span>
                                 </button>
                             </div>
-                            <div class="flex space-x-1.5 text-xs">
-                                <button onclick="selectDocType('violation')" id="doc-btn-violation" class="px-2.5 py-1 font-bold rounded-lg bg-blue-600 text-white shadow-sm">
-                                    위반사실확인서
+                            <div class="flex space-x-1.5 text-xs flex-wrap gap-y-1">
+                                <button onclick="selectDocType('violation')" id="doc-btn-violation" class="px-2.5 py-1 font-bold rounded-lg bg-blue-600 text-white shadow-sm transition-colors">
+                                    소방관계법령 위반사실확인서
                                 </button>
-                                <button onclick="selectDocType('sample')" id="doc-btn-sample" class="px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                <button onclick="selectDocType('admission')" id="doc-btn-admission" class="px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
+                                    자 인 서 (自認書)
+                                </button>
+                                <button onclick="selectDocType('sample')" id="doc-btn-sample" class="px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
                                     시료채취확인서
                                 </button>
-                                <button onclick="selectDocType('crime')" id="doc-btn-crime" class="px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                <button onclick="selectDocType('crime')" id="doc-btn-crime" class="px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">
                                     범죄인지보고서
                                 </button>
                             </div>
                         </div>
 
                         <!-- Target Metadata Input -->
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">상호 (사업장명)</label>
                                 <input type="text" id="target-biz-name" value="" placeholder="(주)상호명 입력" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
@@ -594,16 +597,27 @@
                                 <input type="text" id="target-rep-name" value="" placeholder="대표자 성명" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
                             </div>
                             <div>
+                                <label class="block font-semibold text-slate-700 mb-1">직책</label>
+                                <input type="text" id="target-rep-position" value="대표이사" placeholder="대표이사 / 안전관리자 / 공장장" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">주민등록번호(생년월일)</label>
+                                <input type="text" id="target-resident-no" value="" placeholder="예: 800101-1******" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
+                            </div>
+                            <div>
                                 <label class="block font-semibold text-slate-700 mb-1">연락처</label>
                                 <input type="text" id="target-contact" value="" placeholder="전화번호 (예: 010-0000-0000)" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
-                            </div>
-                            <div class="col-span-2 sm:col-span-2">
-                                <label class="block font-semibold text-slate-700 mb-1">소재지 (주소)</label>
-                                <input type="text" id="target-address" value="" placeholder="사업장 소재지 주소" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
                             </div>
                             <div>
                                 <label class="block font-semibold text-slate-700 mb-1">단속관(특사경)</label>
                                 <input type="text" id="inspector-name" value="" placeholder="소속 소방서 및 단속관 성명" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block font-semibold text-slate-700 mb-1">소재지 (주소) 및 적발 상세위치</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" id="target-address" value="" placeholder="사업장 소재지 주소" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
+                                    <input type="text" id="target-exact-location" value="" placeholder="상세 적발 위치 (예: 공장 1동 뒤편 옥외 야적장)" class="w-full rounded-lg border border-slate-300 bg-white py-1.5 px-2.5 text-slate-800 placeholder-slate-400">
+                                </div>
                             </div>
                         </div>
 
@@ -2211,10 +2225,12 @@
         }
 
         function resetDocumentInputs(isSilent = false) {
-            ['target-biz-name', 'target-rep-name', 'target-contact', 'target-address', 'inspector-name'].forEach(id => {
+            ['target-biz-name', 'target-rep-name', 'target-resident-no', 'target-contact', 'target-address', 'target-exact-location', 'inspector-name'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+            const posEl = document.getElementById('target-rep-position');
+            if (posEl) posEl.value = '대표이사';
 
             // 서명 패드 초기화
             if (typeof clearSignature === 'function') {
@@ -2981,10 +2997,12 @@
 
         function selectDocType(type) {
             currentDocType = type;
-            ['violation', 'sample', 'crime'].forEach(t => {
+            ['violation', 'admission', 'sample', 'crime'].forEach(t => {
                 const btn = document.getElementById('doc-btn-' + t);
-                if (t === type) btn.className = "px-2.5 py-1 font-bold rounded-lg bg-blue-600 text-white shadow-sm";
-                else btn.className = "px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200";
+                if (btn) {
+                    if (t === type) btn.className = "px-2.5 py-1 font-bold rounded-lg bg-blue-600 text-white shadow-sm transition-colors";
+                    else btn.className = "px-2.5 py-1 font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors";
+                }
             });
             updateDocumentPreview();
         }
@@ -3322,7 +3340,10 @@
             const targetInfo = {
                 business_name: (document.getElementById('target-biz-name') ? document.getElementById('target-biz-name').value : '') || '',
                 representative_name: (document.getElementById('target-rep-name') ? document.getElementById('target-rep-name').value : '') || '',
+                position: (document.getElementById('target-rep-position') ? document.getElementById('target-rep-position').value : '') || '대표자',
+                resident_reg_no: (document.getElementById('target-resident-no') ? document.getElementById('target-resident-no').value : '') || '',
                 address: (document.getElementById('target-address') ? document.getElementById('target-address').value : '') || '',
+                exact_location: (document.getElementById('target-exact-location') ? document.getElementById('target-exact-location').value : '') || '',
                 contact: (document.getElementById('target-contact') ? document.getElementById('target-contact').value : '') || '',
                 inspector_name: inspVal,
                 inspector_org: inspVal.includes('(') ? (inspVal.split('(')[1].replace(')', '')) : ""
@@ -3371,13 +3392,23 @@
         // 2단계: 공식 소방특사경 PDF 다운로드 (html2pdf.js)
         async function exportOfficialPDF() {
             const container = document.getElementById('printable-pdf-container');
-            const targetBiz = document.getElementById('target-biz-name').value;
-            const targetRep = document.getElementById('target-rep-name').value;
-            const targetAddr = document.getElementById('target-address').value;
-            const inspector = document.getElementById('inspector-name').value;
+            const targetBiz = document.getElementById('target-biz-name').value || '(주)상호명 미기재';
+            const targetRep = document.getElementById('target-rep-name').value || '대표자 성명 미기재';
+            const targetPos = (document.getElementById('target-rep-position') ? document.getElementById('target-rep-position').value : '') || '대표이사';
+            const targetResident = (document.getElementById('target-resident-no') ? document.getElementById('target-resident-no').value : '') || '현장 신원 확인';
+            const targetAddr = document.getElementById('target-address').value || '단속 장소 미기재';
+            const targetExactLoc = (document.getElementById('target-exact-location') ? document.getElementById('target-exact-location').value : '') || '공장 내 현장';
+            const targetContact = (document.getElementById('target-contact') ? document.getElementById('target-contact').value : '') || '-';
+            const inspector = document.getElementById('inspector-name').value || '소방특별사법경찰관';
+
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
+            const timeStr = `${now.getHours()}시 ${String(now.getMinutes()).padStart(2, '0')}분`;
+            const docNo = `${now.getFullYear()}-특사경-${now.toISOString().slice(5, 7)}${now.toISOString().slice(8, 10)}-01`;
 
             const docTitles = {
-                'violation': '위 반 사 실 확 인 서',
+                'violation': '소방관계법령 위반사실 확인서',
+                'admission': '자   인   서 (自 認 書)',
                 'sample': '시 료 채 취 확 인 서',
                 'crime': '범 죄 인 지 보 고 서'
             };
@@ -3385,27 +3416,32 @@
 
             // 적발 품목 테이블 행 생성
             let itemsRowsHtml = '';
-            if (currentAssessment && currentAssessment.item_results) {
+            let itemsSummaryInline = '';
+            if (currentAssessment && currentAssessment.item_results && currentAssessment.item_results.length > 0) {
                 itemsRowsHtml = currentAssessment.item_results.map((it, idx) => `
                     <tr style="border-bottom: 1px solid #cbd5e1;">
-                        <td style="padding: 8px; text-align: center;">${idx + 1}</td>
-                        <td style="padding: 8px; font-weight: bold;">${it.name}</td>
-                        <td style="padding: 8px; text-align: center;">${it.container_desc || '-'}</td>
-                        <td style="padding: 8px; text-align: right; font-weight: bold;">${it.quantity} ${it.unit}</td>
-                        <td style="padding: 8px; text-align: right;">${it.designated_qty} ${it.unit}</td>
-                        <td style="padding: 8px; text-align: right; font-weight: bold; color: #b91c1c;">${it.multiple} 배</td>
+                        <td style="padding: 6px 8px; text-align: center;">${idx + 1}</td>
+                        <td style="padding: 6px 8px; font-weight: bold;">${it.name}</td>
+                        <td style="padding: 6px 8px; text-align: center;">${it.container_desc || '-'}</td>
+                        <td style="padding: 6px 8px; text-align: right; font-weight: bold;">${it.quantity} ${it.unit}</td>
+                        <td style="padding: 6px 8px; text-align: right;">${it.designated_qty} ${it.unit}</td>
+                        <td style="padding: 6px 8px; text-align: right; font-weight: bold; color: #b91c1c;">${it.multiple} 배</td>
                     </tr>
                 `).join('');
+                itemsSummaryInline = currentAssessment.item_results.map(it => `${it.name} ${it.quantity}${it.unit}(${it.multiple}배)`).join(', ');
             } else {
                 itemsRowsHtml = `<tr><td colspan="6" style="padding: 12px; text-align: center; color: #64748b;">적발 품목 없음</td></tr>`;
+                itemsSummaryInline = '위험물';
             }
 
             // 위반 법조항
             let violationsHtml = '';
-            if (currentAssessment && currentAssessment.violations) {
+            if (currentAssessment && currentAssessment.violations && currentAssessment.violations.length > 0) {
                 violationsHtml = currentAssessment.violations.map(v => `
                     <li style="margin-bottom: 4px;"><strong>[${v.law_type}] ${v.clause} (${v.title})</strong>: ${v.penalty_or_sanction}</li>
                 `).join('');
+            } else {
+                violationsHtml = '<li>위반 사항 없음</li>';
             }
 
             // 채증 사진 목록 2열 그리드
@@ -3413,14 +3449,14 @@
             if (evidencePhotos.length > 0) {
                 photosHtml = `
                     <div style="page-break-before: always; margin-top: 30px;">
-                        <h3 style="font-size: 15px; font-weight: bold; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 15px;">
-                            [별첨 1] 단속 현장 채증 사진 목록 (총 ${evidencePhotos.length}장)
+                        <h3 style="font-size: 14px; font-weight: bold; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 14px;">
+                            [별첨] 현장 채증 사진 목록 (총 ${evidencePhotos.length}장 / GPS·타임스탬프 각인)
                         </h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             ${evidencePhotos.map((p, idx) => `
                                 <div style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #f8fafc;">
-                                    <img src="${p.url}" style="width: 100%; height: 180px; object-fit: cover; display: block;">
-                                    <div style="padding: 8px; font-size: 11px;">
+                                    <img src="${p.url}" style="width: 100%; height: 160px; object-fit: cover; display: block;">
+                                    <div style="padding: 8px; font-size: 10.5px;">
                                         <strong>사진 ${idx + 1}. [${p.category}] ${p.caption}</strong><br>
                                         <span style="color: #64748b;">일시: ${p.timestamp}</span><br>
                                         <span style="color: #64748b;">위치: ${p.gps_coords}</span>
@@ -3432,91 +3468,225 @@
                 `;
             }
 
-            const now = new Date();
-            const dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
-
-            // 공식 서식 HTML 조합
-            container.innerHTML = `
-                <div style="padding: 30px; font-family: 'Pretendard', sans-serif; color: #0f172a; background: #ffffff; line-height: 1.6;">
-                    <div style="text-align: center; border-bottom: 3px double #0f172a; padding-bottom: 12px; margin-bottom: 24px;">
-                        <span style="font-size: 12px; color: #475569; letter-spacing: 2px;">대한민국 소방특별사법경찰 공문서</span>
-                        <h1 style="font-size: 24px; font-weight: 900; margin: 6px 0 0 0; letter-spacing: 4px;">${currentTitle}</h1>
-                    </div>
-
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; border: 1px solid #cbd5e1;">
-                        <tr style="background: #f1f5f9;">
-                            <th style="padding: 8px; border: 1px solid #cbd5e1; width: 18%; text-align: left;">사 업 장 명</th>
-                            <td style="padding: 8px; border: 1px solid #cbd5e1; width: 32%; font-weight: bold;">${targetBiz}</td>
-                            <th style="padding: 8px; border: 1px solid #cbd5e1; width: 18%; text-align: left;">대표자/행위자</th>
-                            <td style="padding: 8px; border: 1px solid #cbd5e1; width: 32%; font-weight: bold;">${targetRep}</td>
-                        </tr>
-                        <tr>
-                            <th style="padding: 8px; border: 1px solid #cbd5e1; background: #f1f5f9; text-align: left;">단 속 소 재 지</th>
-                            <td colspan="3" style="padding: 8px; border: 1px solid #cbd5e1;">${targetAddr}</td>
-                        </tr>
-                        <tr>
-                            <th style="padding: 8px; border: 1px solid #cbd5e1; background: #f1f5f9; text-align: left;">단 속 일 시</th>
-                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${dateStr}</td>
-                            <th style="padding: 8px; border: 1px solid #cbd5e1; background: #f1f5f9; text-align: left;">단 속 관</th>
-                            <td style="padding: 8px; border: 1px solid #cbd5e1;">${inspector}</td>
-                        </tr>
-                    </table>
-
-                    <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; border-left: 4px solid #1d4ed8; padding-left: 8px;">1. 적발 위험물 저장·취급 내역</h3>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; border: 1px solid #cbd5e1;">
-                        <thead style="background: #e2e8f0;">
-                            <tr>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1; width: 8%;">연번</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1;">품명</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1;">보관 규격</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1;">적발 수량</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1;">지정수량</th>
-                                <th style="padding: 8px; border: 1px solid #cbd5e1;">배수</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${itemsRowsHtml}
-                        </tbody>
-                        <tfoot style="background: #f8fafc; font-weight: bold;">
-                            <tr>
-                                <td colspan="5" style="padding: 8px; border: 1px solid #cbd5e1; text-align: right;">총 지정수량 배수의 합 :</td>
-                                <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: right; color: #b91c1c; font-size: 13px;">${currentAssessment ? currentAssessment.total_multiple : 0} 배</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <h3 style="font-size: 14px; font-weight: bold; margin-bottom: 8px; border-left: 4px solid #1d4ed8; padding-left: 8px;">2. 적용 법조 및 위반 사항</h3>
-                    <ul style="font-size: 12px; margin-bottom: 24px; padding-left: 20px; color: #334155;">
-                        ${violationsHtml || '<li>위반 사항 없음</li>'}
-                    </ul>
-
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 30px; font-size: 11px; color: #475569;">
-                        본인은 상기 일시 및 장소에서 상기 기재와 같이 위험물을 허가 없이 저장·취급하거나 관련 법령 및 조례를 위반한 사실이 틀림없음을 확인하고, 소방특별사법경찰관의 현장 단속 결과에 이의 없이 자필 서명 날인합니다.
-                    </div>
-
-                    <!-- 서명란 영역 -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 20px;">
-                        <div style="text-align: center; width: 45%;">
-                            <span style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 8px;">확인자(피의자/관계인) 자필서명</span>
-                            <div style="height: 60px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #0f172a;">
-                                ${repSignatureData ? `<img src="${repSignatureData}" style="max-height: 55px; max-width: 180px;">` : `<span style="color: #94a3b8; font-size: 11px;">(미서명)</span>`}
-                            </div>
-                            <span style="font-size: 12px; font-weight: bold; display: block; margin-top: 4px;">성명 : ${targetRep} (인)</span>
+            // [서식 1] 자인서 (自認書) 전용 레이아웃
+            if (currentDocType === 'admission') {
+                container.innerHTML = `
+                    <div style="padding: 28px 32px; font-family: 'Pretendard', sans-serif; color: #0f172a; background: #ffffff; line-height: 1.6; font-size: 11.5px;">
+                        <!-- 헤더 -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #94a3b8; padding-bottom: 6px; margin-bottom: 12px;">
+                            <span style="font-size: 10.5px; color: #64748b;">사건번호: 제 ${docNo} 호</span>
+                            <span style="font-size: 10.5px; color: #64748b;">소방특별사법경찰관 공문서</span>
+                        </div>
+                        <div style="text-align: center; margin-bottom: 18px;">
+                            <h1 style="font-size: 23px; font-weight: 900; letter-spacing: 6px; margin: 0; color: #0f172a;">자   인   서</h1>
+                            <span style="font-size: 13px; font-weight: bold; letter-spacing: 4px; color: #475569;">( 自  認  書 )</span>
                         </div>
 
-                        <div style="text-align: center; width: 45%;">
-                            <span style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 8px;">조사자(소방특별사법경찰관)</span>
-                            <div style="height: 60px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #0f172a;">
-                                ${inspSignatureData ? `<img src="${inspSignatureData}" style="max-height: 55px; max-width: 180px;">` : `<span style="color: #94a3b8; font-size: 11px;">(미서명)</span>`}
-                            </div>
-                            <span style="font-size: 12px; font-weight: bold; display: block; margin-top: 4px;">소속/성명 : ${inspector} (인)</span>
-                        </div>
-                    </div>
+                        <!-- 1. 자인자 인적사항 -->
+                        <h3 style="font-size: 12.5px; font-weight: bold; margin-bottom: 6px; border-left: 3px solid #1d4ed8; padding-left: 6px;">1. 자인자 (피의자 / 행위자) 인적사항</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 11px; border: 1px solid #cbd5e1;">
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 18%; text-align: left;">성        명</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 32%; font-weight: bold;">${targetRep}</td>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 18%; text-align: left;">주민등록번호</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 32%;">${targetResident}</td>
+                            </tr>
+                            <tr>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">상        호</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: bold;">${targetBiz}</td>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">직        책</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${targetPos}</td>
+                            </tr>
+                            <tr>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">소   재   지</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${targetAddr}</td>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">연   락   처</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${targetContact}</td>
+                            </tr>
+                        </table>
 
-                    <!-- 채증 사진 별첨 (있을 경우 자동 포함) -->
-                    ${photosHtml}
-                </div>
-            `;
+                        <!-- 2. 피의자 권리 고지 및 확인 (미란다 원칙) -->
+                        <h3 style="font-size: 12.5px; font-weight: bold; margin-bottom: 6px; border-left: 3px solid #dc2626; padding-left: 6px; color: #991b1b;">2. 피의자 권리 고지 및 확인 (형사소송법 제244조의3 및 헌법 제12조제2항)</h3>
+                        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; font-size: 10.5px;">
+                            <p style="font-weight: bold; color: #991b1b; margin-bottom: 5px;">본인은 소방특별사법경찰관으로부터 조사를 받음에 앞서 다음 권리를 사전에 명확히 고지받았음을 확인합니다.</p>
+                            <div style="space-y: 3px; color: #450a0a;">
+                                <div>☑ <strong>일체의 진술을 하지 아니하거나 개개의 질문에 대하여 진술을 거부할 권리</strong>가 있음을 고지받았습니까?  <strong style="color: #1d4ed8;">[ 예 (확인) ]</strong></div>
+                                <div>☑ <strong>진술을 거부하더라도 어떠한 불이익도 받지 아니함</strong>을 고지받았습니까?  <strong style="color: #1d4ed8;">[ 예 (확인) ]</strong></div>
+                                <div>☑ <strong>진술을 거부할 권리를 포기하고 행한 진술은 법정에서 유죄의 증거로 사용될 수 있음</strong>을 고지받았습니까?  <strong style="color: #1d4ed8;">[ 예 (확인) ]</strong></div>
+                                <div>☑ <strong>변호인을 선임하여 조력을 받을 권리</strong>가 있음을 고지받았습니까?  <strong style="color: #1d4ed8;">[ 예 (확인) ]</strong></div>
+                            </div>
+                            <div style="text-align: right; margin-top: 6px; font-weight: bold; font-size: 10px;">
+                                권리고지 확인자 : ${targetRep} ${repSignatureData ? `<span style="color:#16a34a;">(전자서명 완료✓)</span>` : `(서명/무인)`}
+                            </div>
+                        </div>
+
+                        <!-- 3. 자인 사실의 요지 (피의사실 시인 및 자백) -->
+                        <h3 style="font-size: 12.5px; font-weight: bold; margin-bottom: 6px; border-left: 3px solid #1d4ed8; padding-left: 6px;">3. 자인 사실의 요지 (피의사실 시인 및 자백)</h3>
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; font-size: 11px; line-height: 1.65;">
+                            <p style="margin-bottom: 6px;">
+                                <strong>문 :</strong> 귀하는 「${targetBiz}」에서 어떠한 직무와 책임을 맡고 있습니까?<br>
+                                <strong>답 :</strong> 본인은 위 사업장의 ${targetPos}로서 사업장 내 위험물 입출고 및 저장·취급을 총괄 관리하는 사람입니다.
+                            </p>
+                            <p style="margin-bottom: 6px;">
+                                <strong>문 :</strong> 귀하는 ${dateStr} ${timeStr}경, 「${targetAddr} (${targetExactLoc})」에서 관할청의 허가를 받지 아니하고 지정수량 이상의 위험물을 저장·취급한 사실이 있습니까?<br>
+                                <strong>답 :</strong> 예, 사실입니다. 관할 소방서장의 설치 허가를 받지 아니한 채 상기 장소에서 <strong>[${itemsSummaryInline}]</strong> 등 총 지정수량 <strong>${currentAssessment ? currentAssessment.total_multiple : 0}배</strong>에 달하는 위험물을 보관·취급하였습니다.
+                            </p>
+                            <p style="margin-bottom: 6px;">
+                                <strong>문 :</strong> 지정수량 이상의 위험물은 허가를 받은 제조소·저장소 등에서만 저장·취급하여야 함을 알고 있었습니까?<br>
+                                <strong>답 :</strong> 예, 알고 있었으나 작업 편의 및 임시 보관 목적으로 허가를 받지 아니하고 임의로 적치하여 저장·취급하였습니다. 법을 위반한 저의 잘못을 모두 인정합니다.
+                            </p>
+                            <p style="margin: 0;">
+                                <strong>문 :</strong> 위 진술은 단속관으로부터 폭행, 협박, 강요, 회유 등 없이 귀하의 자유로운 의사에 따라 사실대로 진술한 것입니까?<br>
+                                <strong>답 :</strong> 예, 어떠한 강요나 협박도 없었으며 오로지 저의 자유로운 의사로 사실 그대로 솔직하게 자백한 것입니다.
+                            </p>
+                        </div>
+
+                        <!-- 4. 말미 열람 및 확인 -->
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; margin-bottom: 20px; font-size: 10.5px; color: #475569; text-align: center;">
+                            본 자인서를 본인이 직접 읽어보았으며(또는 단속관이 낭독해주어 들었으며), 본인이 진술한 내용과 조금도 다름이 없고 오기나 누락이 없음을 확인하고 자필 서명 날인(무인)합니다.
+                        </div>
+
+                        <!-- 5. 서명 및 날인 영역 -->
+                        <div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 20px;">
+                            ${dateStr}
+                        </div>
+
+                        <div style="display: flex; justify-content: space-around; align-items: flex-end; margin-top: 15px; padding: 0 15px;">
+                            <div style="text-align: center; width: 42%;">
+                                <span style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">자 인 자 (피의자 / 행위자)</span>
+                                <div style="height: 55px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #0f172a;">
+                                    ${repSignatureData ? `<img src="${repSignatureData}" style="max-height: 50px; max-width: 160px;">` : `<span style="color: #94a3b8; font-size: 10px;">(자필 서명 또는 무인 날인)</span>`}
+                                </div>
+                                <span style="font-size: 11px; font-weight: bold; display: block; margin-top: 4px;">성명 : ${targetRep} (서명 / 인)</span>
+                            </div>
+
+                            <div style="text-align: center; width: 42%;">
+                                <span style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">조 사 관 (소방특별사법경찰관)</span>
+                                <div style="height: 55px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #0f172a;">
+                                    ${inspSignatureData ? `<img src="${inspSignatureData}" style="max-height: 50px; max-width: 160px;">` : `<span style="color: #94a3b8; font-size: 10px;">(직인 또는 서명)</span>`}
+                                </div>
+                                <span style="font-size: 11px; font-weight: bold; display: block; margin-top: 4px;">소속/성명 : ${inspector} (직인/인)</span>
+                            </div>
+                        </div>
+
+                        <!-- 채증 사진 별첨 (있을 경우 자동 포함) -->
+                        ${photosHtml}
+                    </div>
+                `;
+            } else {
+                // [기본 서식] 소방관계법령 위반사실 확인서 (공식 법정 표준 서식 규격)
+                container.innerHTML = `
+                    <div style="padding: 28px 32px; font-family: 'Pretendard', sans-serif; color: #0f172a; background: #ffffff; line-height: 1.6; font-size: 11.5px;">
+                        <!-- 법정 서식 헤더 -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #94a3b8; padding-bottom: 6px; margin-bottom: 12px;">
+                            <span style="font-size: 10.5px; color: #475569; font-weight: bold;">[별지 제1호 서식]</span>
+                            <span style="font-size: 10.5px; color: #64748b;">관리번호: 제 ${docNo} 호</span>
+                        </div>
+
+                        <div style="text-align: center; margin-bottom: 18px; border-bottom: 2px solid #0f172a; padding-bottom: 10px;">
+                            <span style="font-size: 11px; color: #475569; letter-spacing: 2px;">대한민국 소방특별사법경찰 공문서</span>
+                            <h1 style="font-size: 22px; font-weight: 900; margin: 4px 0 2px 0; letter-spacing: 2px;">${currentTitle}</h1>
+                            <span style="font-size: 11px; color: #64748b;">(위험물안전관리법 위반 사실 확인)</span>
+                        </div>
+
+                        <!-- 1. 대상처 인적사항 -->
+                        <h3 style="font-size: 12.5px; font-weight: bold; margin-bottom: 6px; border-left: 3px solid #1d4ed8; padding-left: 6px;">1. 대 상 처 (위 반 자) 인 적 사 항</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 11px; border: 1px solid #cbd5e1;">
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 18%; text-align: left;">상  호 (사업장명)</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 32%; font-weight: bold;">${targetBiz}</td>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 18%; text-align: left;">대표자 / 행위자</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 32%; font-weight: bold;">${targetRep} (${targetPos})</td>
+                            </tr>
+                            <tr>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">주민등록번호</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${targetResident}</td>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">연   락   처</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${targetContact}</td>
+                            </tr>
+                            <tr>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">사 업 장 소 재 지</th>
+                                <td colspan="3" style="padding: 6px 8px; border: 1px solid #cbd5e1;">${targetAddr}</td>
+                            </tr>
+                            <tr>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">단 속 일 시 및 장 소</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${dateStr} ${timeStr}</td>
+                                <th style="padding: 6px 8px; border: 1px solid #cbd5e1; background: #f8fafc; text-align: left;">적 발 상 세 위 치</th>
+                                <td style="padding: 6px 8px; border: 1px solid #cbd5e1;">${targetExactLoc}</td>
+                            </tr>
+                        </table>
+
+                        <!-- 2. 적발 위험물 내역 -->
+                        <h3 style="font-size: 12.5px; font-weight: bold; margin-bottom: 6px; border-left: 3px solid #1d4ed8; padding-left: 6px;">2. 위 반 사 실 의 요 지 (위험물 저장·취급 내역)</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10.5px; border: 1px solid #cbd5e1;">
+                            <thead style="background: #e2e8f0;">
+                                <tr>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1; width: 7%;">연번</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">품명</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">보관 규격</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">적발 수량</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">지정수량</th>
+                                    <th style="padding: 6px 8px; border: 1px solid #cbd5e1;">배수</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsRowsHtml}
+                            </tbody>
+                            <tfoot style="background: #f8fafc; font-weight: bold;">
+                                <tr>
+                                    <td colspan="5" style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right;">총 지정수량 배수의 합 :</td>
+                                    <td style="padding: 6px 8px; border: 1px solid #cbd5e1; text-align: right; color: #b91c1c; font-size: 12px;">${currentAssessment ? currentAssessment.total_multiple : 0} 배</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <!-- 3. 위반 법령 및 적용 조항 -->
+                        <h3 style="font-size: 12.5px; font-weight: bold; margin-bottom: 6px; border-left: 3px solid #1d4ed8; padding-left: 6px;">3. 위 반 법 령 및 적 용 조 항</h3>
+                        <ul style="font-size: 11px; margin-bottom: 16px; padding-left: 18px; color: #334155;">
+                            ${violationsHtml}
+                        </ul>
+
+                        <!-- 4. 진술 및 확인 문구 -->
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 22px; font-size: 11px; color: #334155;">
+                            위 본인은 상기 일시 및 장소에서 관할 소방당국의 설치 허가를 받지 아니하고 지정수량 이상의 위험물을 저장·취급하거나 소방관계법령 및 조례를 위반한 사실이 틀림없음을 정히 확인하며, 본 확인서의 기재 내용에 이의가 없음을 자인하고 서명·날인합니다.
+                        </div>
+
+                        <!-- 5. 서명 날인란 -->
+                        <div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 20px;">
+                            ${dateStr}
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
+                            <div style="text-align: center; width: 32%;">
+                                <span style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">확인자(피의자/관계인)</span>
+                                <div style="height: 55px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #0f172a;">
+                                    ${repSignatureData ? `<img src="${repSignatureData}" style="max-height: 50px; max-width: 150px;">` : `<span style="color: #94a3b8; font-size: 10px;">(자필 서명 또는 무인)</span>`}
+                                </div>
+                                <span style="font-size: 11px; font-weight: bold; display: block; margin-top: 4px;">성명 : ${targetRep} (서명 / 인)</span>
+                            </div>
+
+                            <div style="text-align: center; width: 32%;">
+                                <span style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">단속자(소방특별사법경찰관)</span>
+                                <div style="height: 55px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #0f172a;">
+                                    ${inspSignatureData ? `<img src="${inspSignatureData}" style="max-height: 50px; max-width: 150px;">` : `<span style="color: #94a3b8; font-size: 10px;">(직인 또는 서명)</span>`}
+                                </div>
+                                <span style="font-size: 11px; font-weight: bold; display: block; margin-top: 4px;">소속/성명 : ${inspector} (직인/인)</span>
+                            </div>
+
+                            <div style="text-align: center; width: 28%;">
+                                <span style="font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px;">입 회 인 (현장 참여인)</span>
+                                <div style="height: 55px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #0f172a;">
+                                    <span style="color: #cbd5e1; font-size: 10px;">(서명 또는 날인)</span>
+                                </div>
+                                <span style="font-size: 11px; font-weight: bold; display: block; margin-top: 4px;">성명 : ________________ (인)</span>
+                            </div>
+                        </div>
+
+                        <!-- 채증 사진 별첨 (있을 경우 자동 포함) -->
+                        ${photosHtml}
+                    </div>
+                `;
+            }
 
             container.classList.remove('hidden');
 

@@ -426,6 +426,14 @@ async def generate_document_endpoint(req: DocGenerateRequest):
             rep_signature=req.rep_signature,
             insp_signature=req.insp_signature
         )
+    elif req.doc_type == "admission":
+        doc_text = ProcedureEngine.generate_admission_statement(
+            target=req.target,
+            assessment=assessment,
+            photos=req.photos,
+            rep_signature=req.rep_signature,
+            insp_signature=req.insp_signature
+        )
     elif req.doc_type == "sample":
         doc_text = ProcedureEngine.generate_sample_collection_receipt(
             target=req.target,

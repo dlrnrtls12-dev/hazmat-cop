@@ -9,9 +9,12 @@ from core.calculator import ComprehensiveAssessment
 
 class InspectionTargetInfo(BaseModel):
     business_name: str = Field(description="사업장명 / 상호 (예: (주)한국케미칼)")
+    business_reg_no: Optional[str] = Field(default="", description="사업자등록번호")
     representative_name: str = Field(description="대표자 또는 행위자 성명")
+    position: Optional[str] = Field(default="대표자", description="직책 (예: 대표이사, 안전관리책임자, 공장장)")
     resident_reg_no: Optional[str] = Field(default="", description="주민등록번호(생년월일)")
     address: str = Field(description="사업장 소재지 (도로명 또는 지번 주소)")
+    exact_location: Optional[str] = Field(default="", description="상세 적발 장소 (예: 공장 본동 뒤편 옥외 야적장)")
     contact: str = Field(description="연락처")
     inspector_name: str = Field(description="단속 공무원(특사경) 성명")
     inspector_org: str = Field(description="단속 기관 (예: 경기도 소방재난본부 특사경 / 화성소방서)")
@@ -57,7 +60,8 @@ class ProcedureEngine:
                 required_documents=[
                     "단속계획서 (수사계획서)",
                     "현장조사서 양식",
-                    "위반사실확인서(적발확인서) 양식",
+                    "소방관계법령 위반사실 확인서 (법정 표준서식)",
+                    "자 인 서 (自認書, 피의자 자백 서식)",
                     "시료채취확인서 양식"
                 ]
             )
@@ -71,7 +75,8 @@ class ProcedureEngine:
                     "위험물 용기(드럼, 말통, IBC탱크) 라벨, 품명, 용량 실측 및 사진 채증",
                     "납품 거래명세서, 세금계산서, 출하전표, MSDS(물질안전보건자료) 원본 요구 및 촬영",
                     "필요시 시료 채취(관계인 입회하에 2병 분취 후 봉인 스티커 부착 및 관계인 서명)",
-                    "위반 배수 1배 이상 등 범죄 혐의 확인 시 즉시 '미란다 원칙(진술거부권)' 고지"
+                    "위반 배수 1배 이상 등 범죄 혐의 확인 시 즉시 '미란다 원칙(진술거부권)' 구두 고지",
+                    "현장 '소방관계법령 위반사실 확인서' 및 '자 인 서(自認書)' 작성 후 피의자/관계인 자필서명(지장) 징구"
                 ],
                 notices=[
                     {
@@ -89,7 +94,8 @@ class ProcedureEngine:
                 ],
                 required_documents=[
                     "현장조사서 (현장 작성용)",
-                    "위반사실확인서 (관계인 자필 서명 날인)",
+                    "소방관계법령 위반사실 확인서 (법정 표준서식)",
+                    "자 인 서 (自認書, 미란다 원칙 고지 및 혐의 인정 서식)",
                     "시료채취확인서 (시료 채취 시)"
                 ]
             )
@@ -98,6 +104,7 @@ class ProcedureEngine:
                 stage_name="[단속 후] 서류 정리 및 사법/행정 처리 단계",
                 checklist=[
                     "형사사건의 경우: 귀서 즉시 '범죄인지보고서' 작성 및 사건번호 부여(특사경 입건)",
+                    "현장 소방관계법령 위반사실 확인서 및 자인서(自認書) 수사기록 편철",
                     "채증 사진 및 동영상 전산 편철 (수사기록 증거목록 작성)",
                     "확보한 시료 국립소방연구원 또는 한국소방산업기술원(KFI) 정밀 성분감정 의뢰",
                     "피의자 출석요구서 발송 및 피의자신문조서 작성 일정 조율",
@@ -112,6 +119,7 @@ class ProcedureEngine:
                 ],
                 required_documents=[
                     "범죄인지보고서 (형사사건용)",
+                    "자인서 및 소방관계법령 위반사실 확인서 원본",
                     "수사보고서 (단속 경위 및 현장 채증 결과)",
                     "시정명령서 (경기도 조례 위반용)",
                     "과태료 부과 사전통지서 및 의견제출서"
@@ -127,73 +135,175 @@ class ProcedureEngine:
         insp_signature: Optional[str] = None
     ) -> str:
         """
-        단속 현장에서 즉시 출력/서명받을 수 있는 [위반사실확인서(적발확인서)] 자동 생성
+        소방관계법령 공식 법정 표준 서식: [소방관계법령 위반사실 확인서]
         """
-        now_str = (target.inspection_datetime or datetime.now()).strftime("%Y년 %m월 %d일 %H시 %M분")
+        now = target.inspection_datetime or datetime.now()
+        now_str = now.strftime("%Y년 %m월 %d일 %H시 %M분")
+        doc_date_str = now.strftime("%Y년 %m월 %d일")
+        doc_no = f"{now.strftime('%Y')}-소방특사경-확인-{now.strftime('%m%d')}-01"
         
         # 적발 품목 요약 텍스트
         item_rows = []
-        for it in assessment.item_results:
-            c_info = f" | 보관형태: {it.container_desc}" if it.container_desc else ""
+        for idx, it in enumerate(assessment.item_results, 1):
+            c_info = f" (보관형태: {it.container_desc})" if it.container_desc else ""
             item_rows.append(
-                f"- 품명: {it.name}{c_info} (총 {it.quantity}{it.unit}) | 법정지정수량: {it.designated_qty}{it.unit} | 배수: {it.multiple}배"
+                f"   {idx}. 품명: {it.name}{c_info}\n"
+                f"      - 적발수량: {it.quantity} {it.unit} | 법정지정수량: {it.designated_qty} {it.unit} | 산정배수: {it.multiple} 배"
             )
-        items_summary_txt = "\n".join(item_rows) if item_rows else "- 적발 품목 없음"
+        items_summary_txt = "\n".join(item_rows) if item_rows else "   - 적발 품목 없음"
 
         # 위반 법조항 요약
         violation_rows = []
         for v in assessment.violations:
-            violation_rows.append(f"· [{v.law_type}] {v.clause} ({v.title}) - {v.penalty_or_sanction}")
-        violations_txt = "\n".join(violation_rows) if violation_rows else "· 해당 없음"
+            violation_rows.append(f"   · [{v.law_type}] {v.clause} ({v.title})\n     └ 적용벌칙/조치: {v.penalty_or_sanction}")
+        violations_txt = "\n".join(violation_rows) if violation_rows else "   · 해당 없음"
 
         # 별첨: 채증 사진 목록
         photos_txt = ""
         if photos and len(photos) > 0:
-            photos_lines = ["\n[별첨 1] 단속 현장 채증 사진 목록:"]
+            photos_lines = ["\n[별첨 1] 단속 현장 채증 사진 목록 (법적 증거자료):"]
             for idx, p in enumerate(photos, 1):
-                loc_str = f" | 위치: {p.gps_coords}" if p.gps_coords else ""
+                loc_str = f" | GPS: {p.gps_coords}" if p.gps_coords else ""
                 time_str = f" [{p.timestamp}]" if p.timestamp else ""
                 photos_lines.append(f"   사진 {idx}. [{p.category}] {p.caption}{time_str}{loc_str}")
             photos_txt = "\n".join(photos_lines)
 
         # 서명 상태 표기
-        rep_sign_str = f"{target.representative_name}  [자필 전자서명 날인 완료 ✓]" if rep_signature else f"{target.representative_name}  (서명 또는 인)"
-        insp_sign_str = f"{target.inspector_org} {target.inspector_name}  [특사경 직인/서명 완료 ✓]" if insp_signature else f"{target.inspector_org} {target.inspector_name}  (인)"
+        rep_sign_str = f"{target.representative_name}  [자필 전자서명 날인 완료 ✓]" if rep_signature else f"{target.representative_name}  (서명 또는 무인)"
+        insp_sign_str = f"{target.inspector_org} {target.inspector_name}  [특사경 직인/서명 날인 완료 ✓]" if insp_signature else f"{target.inspector_org} {target.inspector_name}  (직인/서명)"
+
+        target_place = f"{target.address} {target.exact_location or '내 현장'}".strip()
 
         doc = f"""
 ================================================================================
-                           위 반 사 실 확 인 서
+[별지 제1호 서식]                                    관리번호: 제 {doc_no} 호
+
+                       소방관계법령 위반사실 확인서
+                       (위험물안전관리법 위반 사실 확인)
+
 ================================================================================
 
-1. 대 상 처 인 적 사 항
+1. 대 상 처 (위 반 자) 인 적 사 항
    - 상  호 (사업장명) : {target.business_name}
-   - 소  재  지 : {target.address}
-   - 성  명 (대표자/행위자) : {target.representative_name} (주민등록번호: {target.resident_reg_no or '현장 확인'})
-   - 연  락  처 : {target.contact}
+   - 사업자등록번호    : {target.business_reg_no or '현장 확인 중'}
+   - 성  명 (대표자)   : {target.representative_name}
+   - 직  책            : {target.position or '대표자/행위자'}
+   - 주민등록번호      : {target.resident_reg_no or '현장 신원 확인'}
+   - 사 업 장 소 재 지 : {target.address}
+   - 연  락  처        : {target.contact}
 
 2. 단 속 일 시 및 장 소
-   - 일  시 : {now_str}
-   - 장  소 : {target.address} 내 현장
+   - 단  속  일  시 : {now_str}
+   - 단  속  장  소 : {target_place}
 
-3. 위 반 사 실 (위험물 저장·취급 내역)
+3. 위 반 사 실 의 요 지 (위험물 저장·취급 내역)
 {items_summary_txt}
 
-   ▶ 총 지정수량 배수의 합 : {assessment.total_multiple} 배
-   ▶ 지정수량 이상 여부    : {'예 (1.0배 이상)' if assessment.is_designated_qty_or_more else '아니오 (1.0배 미만)'}
-   ▶ 경기도 조례 대상 여부 : {'해당 (0.2배 이상 ~ 1.0배 미만)' if assessment.is_gg_ordinance_applicable else '해당 없음'}
+   ▶ 총 지정수량 배수의 합계 : {assessment.total_multiple} 배
+   ▶ 지정수량 이상 여부       : {'예 (1.0배 이상 - 형사처벌 대상)' if assessment.is_designated_qty_or_more else '아니오 (1.0배 미만)'}
+   ▶ 경기도 조례 대상 여부    : {'해당 (0.2배 이상 ~ 1.0배 미만 - 과태료 처분 대상)' if assessment.is_gg_ordinance_applicable else '해당 없음'}
 
-4. 적 용 법 조 및 위 반 내 역
+4. 위 반 법 령 및 적 용 조 항
 {violations_txt}
 {photos_txt}
 
-5. 진 술 및 확 인
-   본인은 상기 일시 및 장소에서 상기 기재와 같이 위험물을 허가 없이 저장·취급하거나
-   관련 법령 및 조례를 위반한 사실이 틀림없음을 자인하며, 본 확인서에 서명 날인합니다.
+5. 진 술 및 확 인 (법령 위반 인정 확인)
+   위 본인은 상기 일시 및 장소에서 관할 소방당국의 설치 허가를 받지 아니하고
+   지정수량 이상의 위험물을 저장·취급하거나 관련 법령 및 조례를 위반한 사실이
+   틀림없음을 정히 확인하며, 본 확인서의 기재 내용에 이의가 없음을 자인하고 서명·날인합니다.
 
-                                        {datetime.now().strftime("%Y년  %m월  %d일")}
+                                        {doc_date_str}
 
-                                        확 인 자(관계인) : {rep_sign_str}
-                                        조 사 자(단속관) : {insp_sign_str}
+                   확 인 자 (관계인/피의자) : {rep_sign_str}
+                   단 속 자 (소방특별사법경찰관) : {insp_sign_str}
+                   입 회 인 (현장 참여인) :                      (서명 또는 인)
+================================================================================
+"""
+        return doc.strip()
+
+    @staticmethod
+    def generate_admission_statement(
+        target: InspectionTargetInfo,
+        assessment: ComprehensiveAssessment,
+        photos: Optional[List[EvidencePhoto]] = None,
+        rep_signature: Optional[str] = None,
+        insp_signature: Optional[str] = None
+    ) -> str:
+        """
+        소방특별사법경찰 공식 법정 표준 서식: [자 인 서 (自認書)]
+        피의사실 인정 및 미란다 원칙(진술거부권 및 변호인 조력권) 고지 확인서
+        """
+        now = target.inspection_datetime or datetime.now()
+        now_str = now.strftime("%Y년 %m월 %d일 %H시 %M분")
+        doc_date_str = now.strftime("%Y년 %m월 %d일")
+        case_no = f"{now.strftime('%Y')}-특사경-자인-제{now.strftime('%m%d')}-01호"
+
+        # 위험물 요약
+        items_summary_list = []
+        for it in assessment.item_results:
+            items_summary_list.append(f"{it.name} {it.quantity}{it.unit} (지정수량 {it.designated_qty}{it.unit}, {it.multiple}배)")
+        items_desc = ", ".join(items_summary_list) if items_summary_list else "위험물"
+
+        target_place = f"{target.address} {target.exact_location or '사업장 내'}".strip()
+
+        # 별첨: 채증 사진 목록
+        photos_txt = ""
+        if photos and len(photos) > 0:
+            photos_lines = ["\n[증거 목록] 현장 채증 사진 목록:"]
+            for idx, p in enumerate(photos, 1):
+                photos_lines.append(f"   사진 {idx}. [{p.category}] {p.caption} ({p.timestamp})")
+            photos_txt = "\n".join(photos_lines)
+
+        rep_sign_str = f"{target.representative_name}  [자필 전자서명 및 무인 날인 완료 ✓]" if rep_signature else f"{target.representative_name}  (자필서명 또는 무인)"
+        insp_sign_str = f"{target.inspector_org} {target.inspector_name}  [특사경 직인/서명 날인 완료 ✓]" if insp_signature else f"{target.inspector_org} {target.inspector_name}  (직인/서명)"
+
+        doc = f"""
+================================================================================
+사건번호: {case_no}
+
+                              자   인   서
+                               (自  認  書)
+
+================================================================================
+
+1. 자 인 자 (피의자 / 행위자) 인적사항
+   - 성        명 : {target.representative_name} (주민등록번호: {target.resident_reg_no or '현장 확인'})
+   - 상        호 : {target.business_name}
+   - 직        책 : {target.position or '대표자/안전관리책임자'}
+   - 주        소 : {target.address}
+   - 연   락   처 : {target.contact}
+
+2. 피의자 권리 고지 및 확인 (형사소송법 제244조의3 및 헌법 제12조제2항)
+   본인은 소방특별사법경찰관으로부터 조사를 받음에 앞서 다음의 권리를 사전에 명확히 고지받았습니다.
+   [ V ] 일체의 진술을 하지 아니하거나 개개의 질문에 대하여 진술을 거부할 권리가 있음을 고지받았습니까?  [ 예 ]
+   [ V ] 진술을 거부하더라도 어떠한 불이익도 받지 아니함을 고지받았습니까?  [ 예 ]
+   [ V ] 진술을 거부할 권리를 포기하고 행한 진술은 법정에서 유죄의 증거로 사용될 수 있음을 고지받았습니까?  [ 예 ]
+   [ V ] 변호인을 선임하여 조력을 받을 권리가 있음을 고지받았습니까?  [ 예 ]
+
+   ▶ 위 권리고지를 사전에 명확히 고지받았음을 확인합니다 : {target.representative_name} (서명/무인)
+
+3. 자 인 사 실 의 요 지 (피의사실 시인 및 자백)
+   문 : 귀하는 「{target.business_name}」에서 어떠한 직무를 담당하고 있습니까?
+   답 : 본인은 위 사업장의 {target.position or '대표자'}로서 사업장 내 위험물 입출고 및 저장·취급 등 전반적인 관리 업무를 총괄·책임지고 있는 사람입니다.
+
+   문 : 귀하는 {now_str}경, 「{target_place}」에서 관할청의 허가를 받지 아니하고 지정수량 이상의 위험물을 저장·취급한 사실이 있습니까?
+   답 : 예, 사실입니다. 관할 소방서장의 설치 허가를 받지 아니한 채, 상기 장소에서 [{items_desc}] 등 총 지정수량 {assessment.total_multiple}배에 달하는 위험물을 보관·취급하였습니다.
+
+   문 : 위험물안전관리법상 지정수량 이상의 위험물은 허가를 받은 제조소·저장소·취급소에서만 저장·취급하여야 한다는 사실을 알고 있었습니까?
+   답 : 예, 법령상 허가를 받아야 함을 알고 있었으나, 공장 작업 편의 및 임시 보관 목적으로 허가를 받지 아니하고 임의로 적치하여 저장·취급하였습니다. 법을 위반한 저의 잘못을 모두 인정합니다.
+
+   문 : 위 진술은 단속관으로부터 폭행, 협박, 강요, 회유 등 없이 귀하의 자유로운 의사에 따라 사실대로 진술한 것입니까?
+   답 : 예, 어떠한 강요나 협박도 없었으며 오로지 저의 자유로운 의사로 사실 그대로 솔직하게 자백한 것입니다.
+{photos_txt}
+
+4. 말 미 열 람 및 확 인
+   위 자인서를 본인이 직접 읽어보았으며(또는 단속관이 낭독해주어 들었으며), 본인이 진술한 내용과 조금도 다름이 없고 오기나 누락이 없음을 확인하고 자필 서명 날인(무인)합니다.
+
+                                        {doc_date_str}
+
+                   자 인 자 (피의자) : {rep_sign_str}
+                   조 사 관 (소방특별사법경찰관) : {insp_sign_str}
+                   입 회 인 (현장 참여인) :                      (서명 또는 인)
 ================================================================================
 """
         return doc.strip()
