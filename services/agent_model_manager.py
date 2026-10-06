@@ -89,21 +89,21 @@ SUPPORTED_MODELS = [
 DEFAULT_CONFIG = {
     "calc_agent": {
         "model_id": "gpt-4o-mini",
-        "temperature": 0.2,
+        "temperature": 0.1,
         "reasoning_effort": "low",
         "max_tokens": 500,
         "note": "수량계산 & 위법판정관 (GPT-4o-mini: 초고속 정밀 연산 & 토큰 극소 소모)"
     },
     "infer_agent": {
         "model_id": "gpt-4o-mini",
-        "temperature": 0.3,
-        "reasoning_effort": "medium",
-        "max_tokens": 650,
-        "note": "미상물질 & 화학감별관 (GPT-4o-mini: 화학 화합물·MSDS 신속 역산)"
+        "temperature": 0.2,
+        "reasoning_effort": "low",
+        "max_tokens": 600,
+        "note": "미상물질 & 화학감별관 (GPT-4o-mini: MSDS 및 화학 데이터 신속 감별)"
     },
     "procedure_agent": {
         "model_id": "gpt-4o-mini",
-        "temperature": 0.2,
+        "temperature": 0.1,
         "reasoning_effort": "low",
         "max_tokens": 500,
         "note": "단속절차 & 포렌식수사관 (GPT-4o-mini: 적법절차 체크 & 서식 신속 출력)"
@@ -117,10 +117,10 @@ DEFAULT_CONFIG = {
     },
     "public_agent": {
         "model_id": "gpt-4o-mini",
-        "temperature": 0.3,
-        "reasoning_effort": "medium",
-        "max_tokens": 650,
-        "note": "공공데이터 & 유권해석관 (GPT-4o-mini: 공공데이터 & 유권해석 매칭)"
+        "temperature": 0.2,
+        "reasoning_effort": "low",
+        "max_tokens": 600,
+        "note": "공공데이터 & 유권해석관 (GPT-4o-mini: 경기도 공공데이터 & 유권해석 매칭)"
     },
     "tactics_agent": {
         "model_id": "gpt-6.1-sol",
@@ -138,10 +138,10 @@ DEFAULT_CONFIG = {
     },
     "main_chatbot": {
         "model_id": "gpt-4o-mini",
-        "temperature": 0.3,
-        "reasoning_effort": "medium",
-        "max_tokens": 800,
-        "note": "메인 법률상담 AI 비서 (GPT-4o-mini: 삼단논법 5단계 고속 판정 & 토큰 알뜰 절약)"
+        "temperature": 0.2,
+        "reasoning_effort": "low",
+        "max_tokens": 750,
+        "note": "메인 법률상담 AI 비서 (GPT-4o-mini: 삼단논법 5단계 초고속 판정 & 토큰 알뜰 절약)"
     }
 }
 
