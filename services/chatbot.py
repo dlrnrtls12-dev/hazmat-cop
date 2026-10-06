@@ -37,12 +37,23 @@ class HazmatChatbot:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
-    def ask(self, user_message: str, chat_history: Optional[List[Dict[str, str]]] = None) -> str:
+    def ask(self, user_message: str, chat_history: Optional[List[Dict[str, str]]] = None, model_id: Optional[str] = None) -> str:
+        return self.ask_with_meta(user_message, chat_history, model_id=model_id)["response"]
+
+    def ask_with_meta(self, user_message: str, chat_history: Optional[List[Dict[str, str]]] = None, model_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        사용자 질의에 대해 위험물법, 경기도 조례, 및 법제처·소방청 법령해석례 전문 기반 위법성 판단 응답 반환
+        사용자 질의에 대해 위험물법, 경기도 조례, 및 법제처·소방청 법령해석례 전문 기반 위법성 판단 응답 및 모델 메타 반환
         """
+        import time
+        start_time = time.time()
+
         if not self.client:
-            return "⚠️ OpenAI API 키가 설정되지 않았습니다. .env 파일을 확인해 주세요."
+            return {
+                "response": "⚠️ OpenAI API 키가 설정되지 않았습니다. .env 파일을 확인해 주세요.",
+                "model_used": "none",
+                "elapsed_ms": 0,
+                "mode": "error"
+            }
 
         # 1. 위험물 DB 기준치 컨텍스트 주입 (토큰 최적화: 압축된 1줄 형태)
         boosted_context = ""
@@ -124,9 +135,15 @@ class HazmatChatbot:
 
         try:
             from services.agent_model_manager import AgentModelManager
-            llm_res = AgentModelManager.call_agent_llm("main_chatbot", messages, override_max_tokens=700)
+            llm_res = AgentModelManager.call_agent_llm("main_chatbot", messages, override_max_tokens=700, override_model_id=model_id)
             if llm_res["success"]:
-                return llm_res["content"]
+                elapsed_ms = llm_res.get("elapsed_ms") or int((time.time() - start_time) * 1000)
+                return {
+                    "response": llm_res["content"],
+                    "model_used": llm_res.get("model", model_id or "gpt-4o-mini"),
+                    "elapsed_ms": elapsed_ms,
+                    "mode": llm_res.get("mode", "llm")
+                }
             else:
                 # 2차 긴급 안전망: OpenAI gpt-4o-mini로 즉시 무중단 답변 생성
                 openai_key = os.getenv("OPENAI_API_KEY")
@@ -139,12 +156,30 @@ class HazmatChatbot:
                             max_tokens=700,
                             temperature=0.3
                         )
-                        return em_res.choices[0].message.content
+                        elapsed_ms = int((time.time() - start_time) * 1000)
+                        return {
+                            "response": em_res.choices[0].message.content,
+                            "model_used": "gpt-4o-mini (긴급 자동 전환)",
+                            "elapsed_ms": elapsed_ms,
+                            "mode": "fallback_llm"
+                        }
                     except Exception as em_err:
                         print(f"[HazmatChatbot] Emergency OpenAI fallback failed: {em_err}")
 
                 from services.multi_agent_service import MultiAgentService
                 offline_summary = MultiAgentService._generate_offline_agent_reply("tactics_agent", user_message, "")
-                return f"💡 [안내: AI 모델 일시 지연으로 내장 특사경 룰 엔진으로 즉시 전문 답변을 제공합니다]\n\n" + offline_summary
+                elapsed_ms = int((time.time() - start_time) * 1000)
+                return {
+                    "response": f"💡 [안내: AI 모델 일시 지연으로 내장 특사경 룰 엔진으로 즉시 전문 답변을 제공합니다]\n\n" + offline_summary,
+                    "model_used": "offline-heuristic",
+                    "elapsed_ms": elapsed_ms,
+                    "mode": "offline"
+                }
         except Exception as e:
-            return f"⚠️ AI 챗봇 호출 중 오류가 발생했습니다: {str(e)}"
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            return {
+                "response": f"⚠️ AI 챗봇 호출 중 오류가 발생했습니다: {str(e)}",
+                "model_used": "error",
+                "elapsed_ms": elapsed_ms,
+                "mode": "error"
+            }

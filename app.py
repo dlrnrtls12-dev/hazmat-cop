@@ -379,6 +379,7 @@ class DocGenerateRequest(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[Dict[str, str]]] = None
+    model_id: Optional[str] = None
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -447,13 +448,40 @@ async def generate_document_endpoint(req: DocGenerateRequest):
 
     return {"document_text": doc_text}
 
+class ChatbotModelUpdateRequest(BaseModel):
+    model_id: str
+
+@app.get("/api/chatbot/model")
+async def get_chatbot_model_endpoint():
+    """
+    메인 챗봇의 현재 대화 모델 및 선택 가능 모델 목록 조회
+    """
+    cfg = AgentModelManager.get_agent_config("main_chatbot")
+    return {
+        "model_id": cfg.get("model_id", "gpt-4o-mini"),
+        "config": cfg,
+        "supported_models": AgentModelManager.get_supported_models()
+    }
+
+@app.post("/api/chatbot/model")
+async def set_chatbot_model_endpoint(req: ChatbotModelUpdateRequest):
+    """
+    메인 챗봇 대화 모델 실시간 변경 및 영속 저장
+    """
+    current = AgentModelManager.load_config()
+    if "main_chatbot" not in current:
+        current["main_chatbot"] = {}
+    current["main_chatbot"]["model_id"] = req.model_id
+    AgentModelManager.save_config(current)
+    return {"success": True, "model_id": req.model_id}
+
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest):
     """
     위험물 단속 AI 법률 상담 챗봇 API
     """
-    answer = chatbot.ask(req.message, req.history)
-    return {"response": answer}
+    res = chatbot.ask_with_meta(req.message, req.history, model_id=req.model_id)
+    return res
 
 # =========================================================================
 # 6대 전문 서브에이전트 관제 & 1:1 대화 & 에이전트 간 합동 회의 API

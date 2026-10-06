@@ -352,13 +352,14 @@ class AgentModelManager:
         cls,
         agent_id: str,
         messages: List[Dict[str, str]],
-        override_max_tokens: Optional[int] = None
+        override_max_tokens: Optional[int] = None,
+        override_model_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         에이전트에게 할당된 모델과 파라미터로 LLM을 호출하고 결과를 반환
         """
         cfg = cls.get_agent_config(agent_id)
-        model_id = cfg.get("model_id", "gpt-4o-mini")
+        model_id = override_model_id or cfg.get("model_id", "gpt-4o-mini")
         temperature = float(cfg.get("temperature", 0.2))
         max_tokens = override_max_tokens or cfg.get("max_tokens", 800)
 
