@@ -24,6 +24,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- QRCode.js for Mobile Cross-Device Connection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -104,21 +106,33 @@
             opacity: 0.9;
         }
 
-        /* Bottom Sheet Transition */
-        #statute-bottom-sheet {
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+        /* Bottom Sheet & Backdrop Transitions */
+        #statute-bottom-sheet,
+        #case-archive-sheet,
+        .bottom-sheet {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, visibility 0.3s;
         }
-        #statute-bottom-sheet.sheet-hidden {
-            transform: translateY(105%);
-            opacity: 0;
-            pointer-events: none;
+        #statute-bottom-sheet.sheet-hidden,
+        #case-archive-sheet.sheet-hidden,
+        .bottom-sheet.sheet-hidden,
+        .sheet-hidden {
+            transform: translateY(105%) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
         }
-        #sheet-backdrop {
-            transition: opacity 0.25s ease;
+        #sheet-backdrop,
+        #case-sheet-backdrop,
+        .sheet-backdrop {
+            transition: opacity 0.25s ease, visibility 0.25s;
         }
-        #sheet-backdrop.backdrop-hidden {
-            opacity: 0;
-            pointer-events: none;
+        #sheet-backdrop.backdrop-hidden,
+        #case-sheet-backdrop.backdrop-hidden,
+        .sheet-backdrop.backdrop-hidden,
+        .backdrop-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
         }
 
         /* Chat bubbles */
@@ -174,6 +188,12 @@
             <button type="button" onclick="openStatuteSheet()" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-amber-400 border border-slate-700 flex items-center space-x-1" title="법정 불변 수치 퀵 핸드북">
                 <i data-lucide="book-open" class="w-4 h-4"></i>
                 <span class="text-[11px] font-bold text-slate-200 hidden xs:inline">법정수치</span>
+            </button>
+
+            <!-- 현장 공유 QR코드 버튼 -->
+            <button type="button" onclick="openMobileQrModal()" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-slate-700 flex items-center space-x-1" title="동료 단속관 현장 공유 QR코드">
+                <i data-lucide="qr-code" class="w-4 h-4 text-emerald-400"></i>
+                <span class="text-[11px] font-bold text-slate-200 hidden xs:inline">QR</span>
             </button>
 
             <!-- PC 모드로 전환 버튼 -->
@@ -773,6 +793,44 @@
         </div>
     </div>
 
+    <!-- ======================================================== -->
+    <!-- 📱 현장 공유 QR코드 모달 (Mobile QR Modal) -->
+    <!-- ======================================================== -->
+    <div id="mobile-qr-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
+        <div class="bg-[#0f172a] border border-slate-700 rounded-3xl p-6 w-full max-w-xs shadow-2xl text-center space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                        <i data-lucide="qr-code" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="text-xs font-extrabold text-white">현장 공유 QR코드</h3>
+                </div>
+                <button type="button" onclick="closeMobileQrModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- High-contrast White Container for QR Code -->
+            <div id="mobile-qr-code-container" class="bg-white p-4 rounded-2xl mx-auto flex items-center justify-center w-48 h-48 shadow-lg">
+                <!-- QR code rendered dynamically -->
+            </div>
+
+            <p class="text-[11px] text-slate-300 font-medium leading-relaxed">
+                동료 단속관의 스마트폰 카메라로 QR 코드를 스캔하면 현재 모바일 화면으로 즉시 연결됩니다.
+            </p>
+
+            <!-- URL Display & Copy Button -->
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between gap-1.5 text-left">
+                <span id="mobile-qr-url-text" class="text-[10px] font-mono text-emerald-300 truncate select-all flex-1">
+                    https://...
+                </span>
+                <button type="button" onclick="copyMobileQrUrl()" class="btn-touch px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold rounded-lg shrink-0 border border-slate-700">
+                    복사
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Client-side Logic Script -->
     <script>
         // Bottom Sheet Functions
@@ -784,6 +842,60 @@
         function closeStatuteSheet() {
             document.getElementById('sheet-backdrop').classList.add('backdrop-hidden');
             document.getElementById('statute-bottom-sheet').classList.add('sheet-hidden');
+        }
+
+        // Mobile Share QR Code Modal Functions
+        let mobileQrInstance = null;
+        let activeMobileShareUrl = "";
+
+        async function openMobileQrModal() {
+            const modal = document.getElementById('mobile-qr-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+
+            try {
+                const res = await fetch('/api/system/network-info');
+                const data = await res.json();
+                if (data.public_url) {
+                    activeMobileShareUrl = data.public_url.replace(/\/+$/, '') + '/m';
+                } else if (data.mobile_url) {
+                    activeMobileShareUrl = data.mobile_url.replace(/\/+$/, '') + '/m';
+                } else {
+                    activeMobileShareUrl = window.location.origin + '/m';
+                }
+            } catch (err) {
+                activeMobileShareUrl = window.location.origin + '/m';
+            }
+
+            const urlText = document.getElementById('mobile-qr-url-text');
+            if (urlText) urlText.textContent = activeMobileShareUrl;
+
+            const container = document.getElementById('mobile-qr-code-container');
+            container.innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                mobileQrInstance = new QRCode(container, {
+                    text: activeMobileShareUrl,
+                    width: 160,
+                    height: 160,
+                    colorDark: '#0f172a',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+            lucide.createIcons();
+        }
+
+        function closeMobileQrModal() {
+            const modal = document.getElementById('mobile-qr-modal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function copyMobileQrUrl() {
+            if (!activeMobileShareUrl) activeMobileShareUrl = window.location.origin + '/m';
+            navigator.clipboard.writeText(activeMobileShareUrl).then(() => {
+                alert('모바일 현장 접속 주소가 복사되었습니다!\n\n' + activeMobileShareUrl);
+            });
         }
 
         // Tab Switching Function
