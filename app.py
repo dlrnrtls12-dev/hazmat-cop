@@ -606,15 +606,28 @@ def get_local_ip() -> str:
 @app.get("/api/system/network-info")
 async def get_network_info():
     """
-    모바일 기기 연결 및 QR 생성을 위한 현재 서버 IP 및 포트 정보 반환
+    모바일 기기 연결 및 QR 생성을 위한 현재 서버 IP, 포트 및 공용 HTTPS URL 정보 반환
     """
     ip = get_local_ip()
     port = int(os.environ.get("PORT", 8000))
+    public_url = None
+    tunnel_file = os.path.join(os.path.dirname(__file__), "data", "public_tunnel_url.txt")
+    if os.path.exists(tunnel_file):
+        try:
+            with open(tunnel_file, "r", encoding="utf-8") as f:
+                url_candidate = f.read().strip()
+                if url_candidate.startswith("http"):
+                    public_url = url_candidate
+        except Exception:
+            pass
+
     return {
         "local_ip": ip,
         "port": port,
         "local_url": f"http://localhost:{port}",
-        "mobile_url": f"http://{ip}:{port}"
+        "wifi_url": f"http://{ip}:{port}",
+        "public_url": public_url,
+        "mobile_url": public_url or f"http://{ip}:{port}"
     }
 
 @app.get("/manifest.json")

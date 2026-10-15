@@ -24,6 +24,11 @@ echo [1/2] 로컬 단속 엔진을 실행하는 중입니다...
 echo (이 창을 닫으면 서버가 종료되므로 최소화하여 켜두세요)
 echo.
 
+if exist "cloudflared.exe" (
+    echo [안내] 외부 모바일(LTE/5G) 전용 보안 터널을 연결 중입니다...
+    start /B .\cloudflared.exe tunnel --url http://localhost:8000 > nul 2>&1
+)
+
 start "" http://localhost:8000
 .\.venv\Scripts\python app.py
 
