@@ -98,12 +98,12 @@ class HazmatChatbot:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
 
-    def ask(self, user_message: str, chat_history: Optional[List[Dict[str, str]]] = None, model_id: Optional[str] = None) -> str:
-        return self.ask_with_meta(user_message, chat_history, model_id=model_id)["response"]
+    def ask(self, user_message: str, chat_history: Optional[List[Dict[str, str]]] = None, model_id: Optional[str] = None, images: Optional[List[str]] = None) -> str:
+        return self.ask_with_meta(user_message, chat_history, model_id=model_id, images=images)["response"]
 
-    def ask_with_meta(self, user_message: str, chat_history: Optional[List[Dict[str, str]]] = None, model_id: Optional[str] = None) -> Dict[str, Any]:
+    def ask_with_meta(self, user_message: str, chat_history: Optional[List[Dict[str, str]]] = None, model_id: Optional[str] = None, images: Optional[List[str]] = None) -> Dict[str, Any]:
         """
-        사용자 질의에 대해 위험물법, 경기도 조례, 및 법제처·소방청 법령해석례 전문 기반 위법성 판단 응답 및 모델 메타 반환
+        사용자 질의 및 사진/영상 시각 증거에 대해 위험물법, 경기도 조례, 및 법제처·소방청 법령해석례 전문 기반 위법성 판단 응답 및 모델 메타 반환
         """
         import time
         start_time = time.time()
@@ -219,6 +219,17 @@ class HazmatChatbot:
             "- '사안에 따라 다를 수 있습니다', '검토가 필요합니다', '소방서에 확인해 보아야 합니다' 같은 회피성 문구를 최종 결론으로 두지 마십시오.\n"
             "- 소방서 재량/허가 사항인 경우에도 '원칙상 불가(위법)하며, 관할 소방서장의 설치허가(특례승인)를 받아야 함'과 같이 단정형으로 종결하십시오."
         )
+
+        if images and len(images) > 0:
+            extra_sys_info += (
+                "\n\n[★ 현장 사진/동영상 프레임 시각 증거 정밀 판독 지침]\n"
+                "- 사용자가 첨부한 현장 사진 또는 동영상 프레임을 정밀 판독하십시오.\n"
+                "- 1단계: 위험물 용기 형태(드럼통, 플라스틱 말통, IBC탱크, 탱크로리 등) 및 수량을 식별하십시오.\n"
+                "- 2단계: 용기 표면의 위험물 경고라벨, GHS 그림문자, 품명, 화기엄금 표지판, UN 번호를 판독하십시오.\n"
+                "- 3단계: 무허가 적치 장소(공장 마당, 야외 나대지 등) 보관 상태 및 안전거리/보유공지 위반 여부를 확인하십시오.\n"
+                "- 4단계: 지정수량 배수를 계산하고, 1.0배 이상 형사입건(법 제5조) 또는 0.2배 이상 조례 위반 과태료 여부를 명확히 단정하여 판정하십시오."
+            )
+
         messages = [{"role": "system", "content": extra_sys_info}]
 
         # 토큰 절약: 최근 4개(2턴) 대화만 유지하고, 이전 어시스턴트 답변은 200자로 축약
@@ -229,7 +240,17 @@ class HazmatChatbot:
                     content = content[:200] + "..."
                 messages.append({"role": h.get("role"), "content": content})
 
-        messages.append({"role": "user", "content": user_message})
+        if images and len(images) > 0:
+            user_prompt = user_message.strip() if user_message else "첨부된 현장 사진/영상의 위험물 품명, 수량, 표시사항 및 위법성 여부를 정밀 분석해 주십시오."
+            user_content = [{"type": "text", "text": user_prompt}]
+            for img in images[:4]:
+                user_content.append({
+                    "type": "image_url",
+                    "image_url": {"url": img}
+                })
+            messages.append({"role": "user", "content": user_content})
+        else:
+            messages.append({"role": "user", "content": user_message})
 
         try:
             from services.agent_model_manager import AgentModelManager

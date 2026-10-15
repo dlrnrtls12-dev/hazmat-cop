@@ -392,7 +392,7 @@ class AgentModelManager:
     def call_agent_llm(
         cls,
         agent_id: str,
-        messages: List[Dict[str, str]],
+        messages: List[Dict[str, Any]],
         override_max_tokens: Optional[int] = None,
         override_model_id: Optional[str] = None
     ) -> Dict[str, Any]:

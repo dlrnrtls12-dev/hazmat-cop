@@ -483,11 +483,39 @@
                 </div>
             </div>
 
-            <!-- Chat Input Box -->
+            <!-- Chat Input & Multimodal Attachment Box -->
             <div class="sticky bottom-[78px] pt-1 pb-1 z-30">
-                <form onsubmit="handleMobileChatSubmit(event)" class="flex space-x-2">
-                    <input type="text" id="mobile-chat-input" placeholder="질문 입력 (예: 임시저장 최대 기간은?)" class="flex-1 bg-slate-900/95 border border-slate-700 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-lg">
-                    <button type="submit" id="mobile-chat-send-btn" class="btn-touch px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center shrink-0 shadow-neon-blue">
+                <!-- Attachment Preview Bar (Thumbnails of photos / video frames) -->
+                <div id="chat-attachment-preview" class="hidden mb-2 p-2 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-lg flex items-center space-x-2 overflow-x-auto">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <form onsubmit="handleMobileChatSubmit(event)" class="flex items-center space-x-1.5">
+                    <!-- Hidden inputs for Camera and Video/Media -->
+                    <input type="file" id="chat-camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleChatPhotoUpload(event)">
+                    <input type="file" id="chat-media-input" accept="image/*,video/*" class="hidden" onchange="handleChatMediaUpload(event)">
+
+                    <!-- Camera Trigger -->
+                    <button type="button" onclick="document.getElementById('chat-camera-input').click()" class="btn-touch p-2.5 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-blue-400 border border-slate-700 shrink-0 shadow-sm" title="현장 사진 즉시 촬영">
+                        <i data-lucide="camera" class="w-5 h-5"></i>
+                    </button>
+
+                    <!-- Gallery / Video Trigger -->
+                    <button type="button" onclick="document.getElementById('chat-media-input').click()" class="btn-touch p-2.5 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-emerald-400 border border-slate-700 shrink-0 shadow-sm" title="사진/영상 첨부">
+                        <i data-lucide="paperclip" class="w-5 h-5"></i>
+                    </button>
+
+                    <!-- Voice STT Mic Button -->
+                    <button type="button" id="voice-stt-btn" onclick="toggleVoiceSTT()" class="btn-touch p-2.5 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-amber-400 border border-slate-700 shrink-0 relative shadow-sm" title="음성 인식 (말하기)">
+                        <i data-lucide="mic" class="w-5 h-5" id="voice-stt-icon"></i>
+                        <span id="voice-pulsing-dot" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                    </button>
+
+                    <!-- Text Input Field -->
+                    <input type="text" id="mobile-chat-input" placeholder="질문 입력 또는 음성/사진/영상 첨부" class="flex-1 bg-slate-900/95 border border-slate-700 rounded-2xl px-3.5 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-lg">
+
+                    <!-- Send Button -->
+                    <button type="submit" id="mobile-chat-send-btn" class="btn-touch px-3.5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center shrink-0 shadow-neon-blue">
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
                 </form>
@@ -866,28 +894,293 @@ ${dateStr}
             reader.readAsDataURL(file);
         }
 
+        // ==========================================
+        // AI Chat Multimodal (Photo, Video, Voice)
+        // ==========================================
+        let attachedChatImages = [];
+        let speechRecognition = null;
+        let isRecognizingSpeech = false;
+
+        // Photo Upload Handler (Camera & Gallery)
+        function handleChatPhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            processAndAttachImage(file);
+            event.target.value = '';
+        }
+
+        // Media (Image or Video) Upload Handler
+        async function handleChatMediaUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.type.startsWith('video/')) {
+                // Video file: extract 2 keyframes
+                renderLoadingChip('동영상 주요 프레임 추출 중...');
+                try {
+                    const frames = await extractVideoFrames(file, 2);
+                    removeLoadingChip();
+                    if (frames.length > 0) {
+                        frames.forEach(frame => attachedChatImages.push(frame));
+                        renderAttachmentPreview();
+                    } else {
+                        alert('동영상에서 프레임을 추출하지 못했습니다. 일반 사진이나 다른 비디오를 선택해 주세요.');
+                    }
+                } catch (err) {
+                    removeLoadingChip();
+                    console.error('Video extraction error:', err);
+                    alert('동영상 처리 중 오류가 발생했습니다: ' + err.message);
+                }
+            } else {
+                // Image file
+                processAndAttachImage(file);
+            }
+            event.target.value = '';
+        }
+
+        // Helper: Compress and add image to attachedChatImages
+        function processAndAttachImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1024;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    attachedChatImages.push(dataUrl);
+                    renderAttachmentPreview();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Helper: Extract keyframes from video file
+        function extractVideoFrames(file, maxFrames = 2) {
+            return new Promise((resolve) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.src = URL.createObjectURL(file);
+                video.muted = true;
+                video.playsInline = true;
+
+                video.onloadedmetadata = () => {
+                    const duration = video.duration || 3;
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const frames = [];
+                    const times = [Math.min(0.5, duration / 3), Math.min(duration * 0.65, duration - 0.2)];
+
+                    let currentIndex = 0;
+                    function seekNext() {
+                        if (currentIndex >= times.length || frames.length >= maxFrames) {
+                            URL.revokeObjectURL(video.src);
+                            resolve(frames);
+                            return;
+                        }
+                        video.currentTime = times[currentIndex];
+                    }
+
+                    video.onseeked = () => {
+                        let width = video.videoWidth || 640;
+                        let height = video.videoHeight || 480;
+                        const maxDim = 800;
+                        if (width > maxDim || height > maxDim) {
+                            if (width > height) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            } else {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(video, 0, 0, width, height);
+                        frames.push(canvas.toDataURL('image/jpeg', 0.82));
+                        currentIndex++;
+                        seekNext();
+                    };
+
+                    seekNext();
+                };
+
+                video.onerror = () => {
+                    URL.revokeObjectURL(video.src);
+                    resolve([]);
+                };
+            });
+        }
+
+        // Render preview chips above chat input
+        function renderAttachmentPreview() {
+            const container = document.getElementById('chat-attachment-preview');
+            container.innerHTML = '';
+
+            if (attachedChatImages.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            attachedChatImages.forEach((imgSrc, idx) => {
+                const chip = document.createElement('div');
+                chip.className = 'relative shrink-0 rounded-xl overflow-hidden border border-blue-500/50 shadow-md group w-14 h-14 bg-slate-800';
+                chip.innerHTML = `
+                    <img src="${imgSrc}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeAttachedImage(${idx})" class="absolute top-0.5 right-0.5 w-4 h-4 bg-black/80 rounded-full text-white flex items-center justify-center text-[10px] hover:bg-rose-600 transition-colors">
+                        &times;
+                    </button>
+                `;
+                container.appendChild(chip);
+            });
+            lucide.createIcons();
+        }
+
+        function removeAttachedImage(idx) {
+            attachedChatImages.splice(idx, 1);
+            renderAttachmentPreview();
+        }
+
+        function renderLoadingChip(text) {
+            const container = document.getElementById('chat-attachment-preview');
+            container.classList.remove('hidden');
+            container.innerHTML = `
+                <div id="loading-chip" class="flex items-center space-x-2 text-xs text-blue-400 py-1.5 px-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                    <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i>
+                    <span>${text}</span>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function removeLoadingChip() {
+            const chip = document.getElementById('loading-chip');
+            if (chip) chip.remove();
+        }
+
+        // Voice Recognition (Speech-to-Text via Web Speech API)
+        function toggleVoiceSTT() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('현재 브라우저 환경에서 음성 인식(STT)이 지원되지 않습니다. 스마트폰 크롬(Chrome) 또는 사파리(Safari) 브라우저를 이용해 주십시오.');
+                return;
+            }
+
+            if (isRecognizingSpeech && speechRecognition) {
+                speechRecognition.stop();
+                return;
+            }
+
+            try {
+                speechRecognition = new SpeechRecognition();
+                speechRecognition.lang = 'ko-KR';
+                speechRecognition.interimResults = true;
+                speechRecognition.continuous = false;
+
+                const micBtn = document.getElementById('voice-stt-btn');
+                const pulsingDot = document.getElementById('voice-pulsing-dot');
+                const input = document.getElementById('mobile-chat-input');
+                const originalPlaceholder = input.placeholder;
+
+                speechRecognition.onstart = () => {
+                    isRecognizingSpeech = true;
+                    micBtn.classList.add('bg-red-600/30', 'border-red-500/70', 'text-red-400');
+                    pulsingDot.classList.remove('hidden');
+                    input.placeholder = '음성을 듣고 있습니다... 편하게 말씀해 주세요 🎙️';
+                };
+
+                speechRecognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    input.value = transcript;
+                };
+
+                speechRecognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    stopVoiceSTTUI();
+                };
+
+                speechRecognition.onend = () => {
+                    stopVoiceSTTUI();
+                    if (input.value.trim().length > 0) {
+                        input.focus();
+                    }
+                };
+
+                function stopVoiceSTTUI() {
+                    isRecognizingSpeech = false;
+                    micBtn.classList.remove('bg-red-600/30', 'border-red-500/70', 'text-red-400');
+                    pulsingDot.classList.add('hidden');
+                    input.placeholder = originalPlaceholder;
+                }
+
+                speechRecognition.start();
+            } catch (err) {
+                console.error('Speech init error:', err);
+                alert('음성 인식 시작 실패: ' + err.message);
+            }
+        }
+
         // AI Chat Handling
         async function handleMobileChatSubmit(event) {
             event.preventDefault();
             const input = document.getElementById('mobile-chat-input');
             const message = input.value.trim();
-            if (!message) return;
+            const imagesToSend = [...attachedChatImages];
+
+            if (!message && imagesToSend.length === 0) return;
 
             const chatLog = document.getElementById('mobile-chat-log');
 
-            // Append user bubble
+            // Append user bubble with attachments preview
             const userBubble = document.createElement('div');
-            userBubble.className = 'bubble-user p-3.5 max-w-[85%] ml-auto text-xs leading-relaxed font-medium';
-            userBubble.textContent = message;
+            userBubble.className = 'bubble-user p-3.5 max-w-[85%] ml-auto text-xs leading-relaxed font-medium space-y-2';
+
+            let bubbleContent = '';
+            if (imagesToSend.length > 0) {
+                bubbleContent += `<div class="grid grid-cols-${Math.min(imagesToSend.length, 3)} gap-1.5 pb-1">`;
+                imagesToSend.forEach(imgSrc => {
+                    bubbleContent += `<img src="${imgSrc}" class="w-full h-16 object-cover rounded-lg border border-white/20">`;
+                });
+                bubbleContent += `</div>`;
+            }
+            if (message) {
+                bubbleContent += `<div>${message}</div>`;
+            } else {
+                bubbleContent += `<div class="italic text-blue-100">[사진/영상 시각 증거 분석 요청]</div>`;
+            }
+            userBubble.innerHTML = bubbleContent;
             chatLog.appendChild(userBubble);
+
+            // Clear inputs and previews
             input.value = '';
+            attachedChatImages = [];
+            renderAttachmentPreview();
             chatLog.scrollTop = chatLog.scrollHeight;
 
             // Loading bubble
             const loadingBubble = document.createElement('div');
             loadingBubble.className = 'bubble-agent p-3.5 max-w-[90%] text-xs text-slate-400 flex items-center space-x-2';
             loadingBubble.id = 'chat-loading-indicator';
-            loadingBubble.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin text-blue-400"></i><span>위험물 법령 및 사례집 표준 해석 검색 중...</span>';
+            loadingBubble.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin text-blue-400"></i><span>위험물 시각 증거 및 법령 사례집 정밀 분석 중...</span>';
             chatLog.appendChild(loadingBubble);
             chatLog.scrollTop = chatLog.scrollHeight;
             lucide.createIcons();
@@ -898,7 +1191,11 @@ ${dateStr}
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: message, model_id: modelId })
+                    body: JSON.stringify({ 
+                        message: message, 
+                        model_id: modelId,
+                        images: imagesToSend.length > 0 ? imagesToSend : null
+                    })
                 });
                 const data = await res.json();
                 loadingBubble.remove();
@@ -907,7 +1204,7 @@ ${dateStr}
                 agentBubble.className = 'bubble-agent p-3.5 shadow-sm space-y-1.5';
                 agentBubble.innerHTML = `
                     <div class="font-extrabold text-blue-400 text-[11px] flex items-center justify-between">
-                        <span>회신 요지 (사례집 표준 규정)</span>
+                        <span>회신 요지 (사례집 표준 규정 & 시각 판독)</span>
                         <span class="text-[9px] text-slate-400 font-mono">${data.model_used || modelId}</span>
                     </div>
                     <div class="text-slate-100 leading-relaxed whitespace-pre-wrap font-normal">${data.response}</div>

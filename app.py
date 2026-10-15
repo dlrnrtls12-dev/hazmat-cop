@@ -383,9 +383,10 @@ class DocGenerateRequest(BaseModel):
     insp_signature: Optional[str] = None
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = ""
     history: Optional[List[Dict[str, str]]] = None
     model_id: Optional[str] = None
+    images: Optional[List[str]] = None
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, mode: Optional[str] = None):
@@ -534,9 +535,9 @@ async def set_chatbot_model_endpoint(req: ChatbotModelUpdateRequest):
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest):
     """
-    위험물 단속 AI 법률 상담 챗봇 API
+    위험물 단속 AI 멀티모달(사진/영상/음성텍스트) 법률 상담 챗봇 API
     """
-    res = chatbot.ask_with_meta(req.message, req.history, model_id=req.model_id)
+    res = chatbot.ask_with_meta(req.message, req.history, model_id=req.model_id, images=req.images)
     return res
 
 # =========================================================================
