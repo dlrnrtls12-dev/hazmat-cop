@@ -106,9 +106,15 @@
             <div class="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
                 <!-- Mobile Connect QR Button -->
                 <button type="button" onclick="openMobileConnectModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all shadow-xs" title="스마트폰/태블릿 기기 연결 QR 코드">
-                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <i data-lucide="qr-code" class="w-3.5 h-3.5 text-emerald-400"></i>
                     <span class="hidden md:inline">모바일 연결</span>
                 </button>
+
+                <!-- Mobile Mode Dedicated Link -->
+                <a href="/m?mode=mobile" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition-all shadow-xs" title="스마트폰 전용 모바일 화면(/m)으로 전환">
+                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-indigo-400"></i>
+                    <span class="hidden md:inline">모바일 모드</span>
+                </a>
 
                 <button type="button" onclick="openHazmatSearchModal()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-blue-200 text-xs font-bold transition-all shadow-xs group" title="국가위험물·화학물질 통합 검색 (Ctrl+K)">
                     <i data-lucide="search" class="w-3.5 h-3.5 text-blue-400 group-hover:scale-110 transition-transform"></i>

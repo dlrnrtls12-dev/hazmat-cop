@@ -6,12 +6,18 @@ import os
 import socket
 from typing import List, Dict, Optional, Any
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import uvicorn
 from dotenv import load_dotenv
+
+def is_mobile_user_agent(user_agent: str) -> bool:
+    if not user_agent:
+        return False
+    ua = user_agent.lower()
+    return any(k in ua for k in ["android", "iphone", "ipad", "mobile", "ipod", "blackberry", "windows phone", "opera mini"])
 
 from core.hazmat_db import find_hazmat, search_hazmat_catalog, search_hazmat_ranked, get_hazmat_stats
 from core.calculator import HazmatEngine, InspectionContext, InspectionItem, ComprehensiveAssessment
@@ -382,11 +388,53 @@ class ChatRequest(BaseModel):
     model_id: Optional[str] = None
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+async def read_root(request: Request, mode: Optional[str] = None):
     """
     메인 웹 대시보드 렌더링
+    - mode='mobile': 모바일 전용 뷰 렌더링 및 선호 쿠키 저장
+    - mode='pc': 기존 PC 전용 뷰 렌더링 및 선호 쿠키 저장
+    - 미지정 시: 쿠키 및 User-Agent 확인하여 스마트폰이면 /m 으로 자동 안내
     """
+    cookie_mode = request.cookies.get("preferred_mode")
+    ua = request.headers.get("user-agent", "")
+
+    # 1. 명시적 모드 파라미터 지정 시
+    if mode == "mobile":
+        resp = templates.TemplateResponse(request=request, name="mobile.html")
+        resp.set_cookie("preferred_mode", "mobile", max_age=60 * 60 * 24 * 30)
+        return resp
+    elif mode == "pc":
+        resp = templates.TemplateResponse(request=request, name="index.html")
+        resp.set_cookie("preferred_mode", "pc", max_age=60 * 60 * 24 * 30)
+        return resp
+
+    # 2. 기존 선호 쿠키 존재 시
+    if cookie_mode == "mobile":
+        return RedirectResponse(url="/m")
+    elif cookie_mode == "pc":
+        return templates.TemplateResponse(request=request, name="index.html")
+
+    # 3. 모바일 브라우저 자동 감지
+    if is_mobile_user_agent(ua):
+        return RedirectResponse(url="/m")
+
+    # 4. 기본 데스크톱 PC 모드 렌더링
     return templates.TemplateResponse(request=request, name="index.html")
+
+@app.get("/m", response_class=HTMLResponse)
+@app.get("/mobile", response_class=HTMLResponse)
+async def read_mobile(request: Request, mode: Optional[str] = None):
+    """
+    스마트폰 현장 단속관 전용 최적화 인터페이스 (/m 및 /mobile)
+    """
+    if mode == "pc":
+        resp = RedirectResponse(url="/?mode=pc")
+        resp.set_cookie("preferred_mode", "pc", max_age=60 * 60 * 24 * 30)
+        return resp
+
+    resp = templates.TemplateResponse(request=request, name="mobile.html")
+    resp.set_cookie("preferred_mode", "mobile", max_age=60 * 60 * 24 * 30)
+    return resp
 
 @app.post("/api/calculate")
 async def calculate_endpoint(ctx: InspectionContext):
