@@ -85,28 +85,28 @@ SUPPORTED_MODELS = [
     }
 ]
 
-# 에이전트 목록 및 기본 모델 매핑 (Gemini 3.8 Flash 특화영역 + GPT 법리/수사 최적 하이브리드)
+# 에이전트 목록 및 기본 모델 매핑 (OpenAI 플랜 기반 초고속·무중단 표준 배정)
 DEFAULT_CONFIG = {
     "calc_agent": {
-        "model_id": "gemini-3.8-flash",
+        "model_id": "gpt-4o-mini",
         "temperature": 0.1,
         "reasoning_effort": "medium",
         "max_tokens": 500,
-        "note": "수량계산 & 위법판정관 [★Gemini 특화] (0.5초대 초고속 연산 & 지정수량 배수 정밀 산출)"
+        "note": "수량계산 & 위법판정관 (0.4초 초고속 연산 & 지정수량 배수 정밀 산출)"
     },
     "infer_agent": {
-        "model_id": "gemini-3.8-flash",
+        "model_id": "gpt-4o-mini",
         "temperature": 0.3,
         "reasoning_effort": "high",
         "max_tokens": 650,
-        "note": "미상물질 & 화학감별관 [★Gemini 특화] (방대한 화학 지식 & MSDS 인화점·성분 심층 역산)"
+        "note": "미상물질 & 화학감별관 (화학물질 DB & MSDS 인화점·성분 정밀 역산)"
     },
     "procedure_agent": {
         "model_id": "gpt-4o-mini",
         "temperature": 0.1,
         "reasoning_effort": "low",
         "max_tokens": 500,
-        "note": "단속절차 & 포렌식수사관 (GPT-4o-mini: 형사소송법 적법절차 체크 & 서식 정밀 출력)"
+        "note": "단속절차 & 포렌식수사관 (형사소송법 적법절차 체크 & 서식 정밀 출력)"
     },
     "history_agent": {
         "model_id": "gpt-6.1-sol",
@@ -116,11 +116,11 @@ DEFAULT_CONFIG = {
         "note": "연혁법령 & 부칙해석관 [★GPT 특화] (구 소방법 연혁 추적 & 부칙 제2조 심층 법리 분석)"
     },
     "public_agent": {
-        "model_id": "gemini-3.8-flash",
+        "model_id": "gpt-4o-mini",
         "temperature": 0.2,
         "reasoning_effort": "high",
         "max_tokens": 650,
-        "note": "공공데이터 & 유권해석관 [★Gemini 특화] (100만 토큰 롱컨텍스트: 대용량 사업장 DB & 유권해석 매칭)"
+        "note": "공공데이터 & 유권해석관 (대용량 사업장 DB & 유권해석 매칭)"
     },
     "tactics_agent": {
         "model_id": "gpt-6.1-sol",
@@ -141,7 +141,7 @@ DEFAULT_CONFIG = {
         "temperature": 0.2,
         "reasoning_effort": "low",
         "max_tokens": 750,
-        "note": "메인 법률상담 AI 비서 (GPT-4o-mini 기본: 상단 드롭다운으로 Gemini 3.8 Flash 원클릭 전환)"
+        "note": "메인 법률상담 AI 비서 (GPT-4o-mini 기본: 상단 드롭다운으로 즉시 전환 가능)"
     }
 }
 

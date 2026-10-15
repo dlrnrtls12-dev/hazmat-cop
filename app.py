@@ -894,6 +894,49 @@ async def clear_all_cases_endpoint():
     success = CaseManager.clear_all()
     return {"success": success}
 
+# =========================================================================
+# 위험물제조소등 유형별 단속 체크리스트 API
+# =========================================================================
+from services.checklist_service import ChecklistService
+
+@app.get("/api/checklists")
+async def get_all_checklists_endpoint():
+    """
+    모든 시설 유형별 체크리스트 메타 목록 조회
+    """
+    return ChecklistService.get_all_facilities()
+
+@app.get("/api/checklists/{facility_id}")
+async def get_facility_checklist_endpoint(facility_id: str):
+    """
+    특정 시설 유형의 상세 체크리스트(서류, 4단계 점검항목, 법조문) 조회
+    """
+    checklist = ChecklistService.get_facility_checklist(facility_id)
+    if not checklist:
+        return JSONResponse(status_code=404, content={"error": "Facility type not found"})
+    return checklist
+
+class ChecklistReportRequest(BaseModel):
+    facility_id: str
+    checked_violations: List[str] = []
+    missing_docs: List[str] = []
+    memo: str = ""
+    biz_info: Optional[Dict[str, str]] = None
+
+@app.post("/api/checklists/report")
+async def generate_checklist_report_endpoint(req: ChecklistReportRequest):
+    """
+    체크리스트 기반 공식 단속 적발보고서 텍스트 및 요약 생성
+    """
+    report = ChecklistService.generate_inspection_report(
+        facility_id=req.facility_id,
+        checked_violations=req.checked_violations,
+        missing_docs=req.missing_docs,
+        memo=req.memo,
+        biz_info=req.biz_info
+    )
+    return report
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     local_ip = get_local_ip()

@@ -223,16 +223,20 @@
                     </div>
                 </div>
             </div>
-            <div class="flex items-center space-x-1.5 shrink-0">
-                <button type="button" onclick="startNewCaseMobile()" class="btn-touch px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 text-[11px] font-bold border border-rose-500/30 flex items-center space-x-1" title="새로운 단속 건 시작 (화면 초기화)">
+            <div class="flex items-center space-x-1 shrink-0">
+                <button type="button" onclick="switchMobileTab('tab-checklist')" class="btn-touch px-2 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-extrabold flex items-center space-x-1" title="유형별 단속 체크리스트 열기">
+                    <i data-lucide="clipboard-check" class="w-3 h-3 text-amber-400"></i>
+                    <span>체크리스트</span>
+                </button>
+                <button type="button" onclick="startNewCaseMobile()" class="btn-touch px-1.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 text-[11px] font-bold border border-rose-500/30 flex items-center space-x-1" title="새로운 단속 건 시작 (화면 초기화)">
                     <i data-lucide="rotate-ccw" class="w-3 h-3 text-rose-400"></i>
                     <span>초기화</span>
                 </button>
-                <button type="button" onclick="saveCurrentCaseMobile()" class="btn-touch px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-extrabold shadow-neon-blue flex items-center space-x-1" title="현재 단속 내용 저장">
+                <button type="button" onclick="saveCurrentCaseMobile()" class="btn-touch px-2 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-extrabold shadow-neon-blue flex items-center space-x-1" title="현재 단속 내용 저장">
                     <i data-lucide="save" class="w-3 h-3"></i>
                     <span>저장</span>
                 </button>
-                <button type="button" onclick="openCaseArchiveSheetMobile()" class="btn-touch px-2 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-[11px] font-bold flex items-center space-x-1" title="저장된 단속 건 목록 열기">
+                <button type="button" onclick="openCaseArchiveSheetMobile()" class="btn-touch px-1.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-[11px] font-bold flex items-center space-x-1" title="저장된 단속 건 목록 열기">
                     <i data-lucide="archive" class="w-3 h-3 text-indigo-400"></i>
                     <span>보관함</span>
                 </button>
@@ -339,7 +343,132 @@
         </section>
 
         <!-- ======================================================== -->
-        <!-- TAB 2: 📝 법정 서식 (Statutory Documents) -->
+        <!-- TAB: 📋 위험물제조소등 유형별 단속 체크리스트 -->
+        <!-- ======================================================== -->
+        <section id="tab-checklist" class="tab-content space-y-3.5">
+            <!-- Header Banner Card -->
+            <div class="glass-card p-4 space-y-3 border border-amber-500/30 bg-gradient-to-br from-slate-900 via-amber-950/20 to-slate-900 shadow-xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-extrabold text-white flex items-center gap-1.5">
+                                <span>유형별 단속 체크리스트</span>
+                                <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">실무 4단계</span>
+                            </h2>
+                            <p class="text-[10px] text-slate-400">필수 징구 서류 확인 및 현장 위법 자동 포섭</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="resetChecklistFormMobile()" class="btn-touch px-2 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white text-[10px] font-bold border border-slate-700 flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                        <span>재설정</span>
+                    </button>
+                </div>
+
+                <!-- 6대 시설 유형 원클릭 선택 캐러셀 (Horizontal scroll) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                        <span>단속 시설 유형 선택 (6대 표준)</span>
+                        <span class="text-[10px] text-amber-400 font-mono">좌우 스크롤 ➔</span>
+                    </label>
+                    <div id="checklist-facility-pills" class="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs font-bold">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- 실시간 적발 위법 스코어보드 -->
+                <div class="p-3 rounded-xl bg-[#070d1a] border border-slate-800 grid grid-cols-3 gap-2 text-center">
+                    <div class="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">적발 위반</span>
+                        <strong id="chk-violation-count" class="text-base font-black text-slate-400">0건</strong>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">미비 서류</span>
+                        <strong id="chk-missing-docs-count" class="text-base font-black text-amber-400">0건</strong>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800/80">
+                        <span class="text-[10px] text-slate-400 block">최고 형량</span>
+                        <strong id="chk-highest-penalty-badge" class="text-[11px] font-bold text-slate-300 truncate block mt-0.5">적합</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1부: 📂 필수 확인 및 징구 서류 목록 -->
+            <div class="glass-card p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div class="flex items-center space-x-1.5">
+                        <i data-lucide="folder-check" class="w-4 h-4 text-blue-400"></i>
+                        <span class="text-xs font-black text-white">1부. 현장 필수 확인·징구 서류</span>
+                    </div>
+                    <button type="button" onclick="checkAllDocs(true)" class="text-[10px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-0.5">
+                        <i data-lucide="check-check" class="w-3 h-3"></i>
+                        <span>모두 확인</span>
+                    </button>
+                </div>
+                <div id="chk-docs-container" class="space-y-2">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- 2부: 🔍 단계별 현장 점검 및 위법 포섭 -->
+            <div class="glass-card p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div class="flex items-center space-x-1.5">
+                        <i data-lucide="search-check" class="w-4 h-4 text-emerald-400"></i>
+                        <span class="text-xs font-black text-white">2부. 단계별 현장 점검 & 위법 포섭</span>
+                    </div>
+                    <span id="chk-step-progress-label" class="text-[10px] text-slate-400">체크 시 형량 자동산출</span>
+                </div>
+                <div id="chk-steps-container" class="space-y-3">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- 3부: 🏢 단속 사업장 정보 & 단속관 메모 -->
+            <div class="glass-card p-4 space-y-3">
+                <div class="flex items-center space-x-1.5 border-b border-slate-800 pb-2">
+                    <i data-lucide="building-2" class="w-4 h-4 text-indigo-400"></i>
+                    <span class="text-xs font-black text-white">3부. 단속 대상 정보 & 현장 메모</span>
+                </div>
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">상호 또는 사업장명</label>
+                        <input type="text" id="chk-biz-name" placeholder="예: (주)한국특수화학 화성공장" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">단속 현장 상세 주소</label>
+                        <input type="text" id="chk-location" placeholder="예: 경기도 화성시 남양읍 시화호수로 123" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">현장 특이사항 및 피의자 진술 메모</label>
+                        <textarea id="chk-memo" rows="3" placeholder="예: 공장 뒤편에 신나 200L 드럼 15개 무단 적치 확인, 안전관리자 부재, 경리실에서 입고 세금계산서 확보함" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white leading-relaxed focus:outline-none focus:border-amber-500"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 원클릭 액션 바 -->
+            <div class="glass-card p-3 space-y-2 bg-gradient-to-r from-slate-900 via-amber-950/20 to-slate-900 border border-amber-500/30 shadow-2xl">
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" onclick="generateChecklistReportMobile()" class="btn-touch py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 shadow-lg shadow-amber-500/20">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>단속보고서 생성</span>
+                    </button>
+                    <button type="button" onclick="saveChecklistToCaseMobile()" class="btn-touch py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 shadow-neon-blue">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>기록 보관함 저장</span>
+                    </button>
+                </div>
+                <button type="button" onclick="transferChecklistToViolationDoc()" class="btn-touch w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5">
+                    <i data-lucide="arrow-right-circle" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>위반 내용 ➔ [위반서식] 탭으로 자동 전송</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- TAB 3: 📝 법정 서식 (Statutory Documents) -->
         <!-- ======================================================== -->
         <section id="tab-docs" class="tab-content space-y-3.5">
             <div class="glass-card p-4 space-y-3.5">
@@ -514,8 +643,9 @@
                     </div>
                 </div>
                 <select id="chat-model-select" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-bold focus:outline-none">
-                    <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash</option>
-                    <option value="gpt-4o-mini">🧠 GPT-4o Mini</option>
+                    <option value="gpt-4o-mini" selected>⚡ GPT-4o Mini (권장·초고속)</option>
+                    <option value="gpt-6.1-sol">✨ GPT-6.1-sol (심층 수사)</option>
+                    <option value="gemini-3.8-flash">🌟 Gemini 3.8 Flash (구글 크레딧 소진시 자동백업)</option>
                 </select>
             </div>
 
@@ -603,26 +733,31 @@
     </main>
 
     <!-- Bottom Sticky Navigation Bar (Floating Glass Island) -->
-    <nav class="fixed bottom-3 left-3 right-3 z-50 bg-[#090e1a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-2 py-2 safe-bottom shadow-2xl max-w-lg mx-auto">
-        <div class="grid grid-cols-4 gap-1">
-            <button type="button" onclick="switchMobileTab('tab-calc')" id="btn-tab-calc" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-blue-400 font-bold transition-all">
-                <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">계산기</span>
+    <nav class="fixed bottom-3 left-3 right-3 z-50 bg-[#090e1a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-1.5 py-1.5 safe-bottom shadow-2xl max-w-lg mx-auto">
+        <div class="grid grid-cols-5 gap-0.5">
+            <button type="button" onclick="switchMobileTab('tab-calc')" id="btn-tab-calc" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-blue-400 font-bold transition-all">
+                <i data-lucide="calculator" class="w-4.5 h-4.5 mb-0.5"></i>
+                <span class="text-[9.5px] tracking-tight">계산기</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shadow-neon-blue"></span>
             </button>
-            <button type="button" onclick="switchMobileTab('tab-docs')" id="btn-tab-docs" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 font-semibold transition-all">
-                <i data-lucide="file-text" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">위반서식</span>
+            <button type="button" onclick="switchMobileTab('tab-checklist')" id="btn-tab-checklist" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
+                <i data-lucide="clipboard-check" class="w-4.5 h-4.5 mb-0.5 text-amber-400"></i>
+                <span class="text-[9.5px] tracking-tight">체크리스트</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
-            <button type="button" onclick="switchMobileTab('tab-evidence')" id="btn-tab-evidence" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 font-semibold transition-all">
-                <i data-lucide="camera" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">현장채증</span>
+            <button type="button" onclick="switchMobileTab('tab-docs')" id="btn-tab-docs" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
+                <i data-lucide="file-text" class="w-4.5 h-4.5 mb-0.5"></i>
+                <span class="text-[9.5px] tracking-tight">위반서식</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
-            <button type="button" onclick="switchMobileTab('tab-ai')" id="btn-tab-ai" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 font-semibold transition-all">
-                <i data-lucide="bot" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px] tracking-tight">AI특사경</span>
+            <button type="button" onclick="switchMobileTab('tab-evidence')" id="btn-tab-evidence" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
+                <i data-lucide="camera" class="w-4.5 h-4.5 mb-0.5"></i>
+                <span class="text-[9.5px] tracking-tight">현장채증</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
+            </button>
+            <button type="button" onclick="switchMobileTab('tab-ai')" id="btn-tab-ai" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
+                <i data-lucide="bot" class="w-4.5 h-4.5 mb-0.5"></i>
+                <span class="text-[9.5px] tracking-tight">AI특사경</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
         </div>
@@ -828,6 +963,63 @@
                     복사
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 📋 단속 체크리스트 결과 보고서 바텀시트 모달 -->
+    <!-- ======================================================== -->
+    <div id="checklist-sheet-backdrop" onclick="closeChecklistReportModalMobile()" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 backdrop-hidden"></div>
+    <div id="checklist-report-sheet" class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-50 bg-[#0a1122] border-t border-slate-700/80 rounded-t-3xl p-5 shadow-2xl sheet-hidden max-h-[85vh] overflow-y-auto bottom-sheet">
+        <!-- Drag Handle -->
+        <div class="w-12 h-1.5 bg-slate-600 rounded-full mx-auto mb-4"></div>
+
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                    <i data-lucide="file-check-2" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-extrabold text-white">현장단속 적발보고서</h3>
+                    <p class="text-[10px] text-slate-400">위반 사실 및 적용 법조문 자동 완성본</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeChecklistReportModalMobile()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="py-3 space-y-3">
+            <!-- 요약 칩 바 -->
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                <div>
+                    <span class="text-slate-400 text-[10px] block">단속 시설</span>
+                    <strong id="chk-modal-facility-title" class="text-white font-bold">-</strong>
+                </div>
+                <div class="text-right">
+                    <span class="text-slate-400 text-[10px] block">적발 위법</span>
+                    <span id="chk-modal-violation-badge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">0건</span>
+                </div>
+            </div>
+
+            <!-- 전문 텍스트 영역 -->
+            <textarea id="chk-report-full-text" rows="12" readonly class="w-full bg-[#040812] border border-slate-700/80 rounded-xl p-3 text-xs font-mono text-slate-200 leading-relaxed focus:outline-none shadow-inner"></textarea>
+
+            <!-- 액션 버튼 그리드 -->
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="copyChecklistReportText()" class="btn-touch py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-bold flex items-center justify-center space-x-1 border border-slate-700">
+                    <i data-lucide="copy" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>보고서 복사</span>
+                </button>
+                <button type="button" onclick="saveChecklistFromModal()" class="btn-touch py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white text-xs font-black flex items-center justify-center space-x-1 shadow-neon-blue">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                    <span>보관함에 저장</span>
+                </button>
+            </div>
+            <button type="button" onclick="transferChecklistToViolationDoc(); closeChecklistReportModalMobile();" class="btn-touch w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 text-xs font-bold flex items-center justify-center space-x-1.5">
+                <i data-lucide="file-signature" class="w-3.5 h-3.5"></i>
+                <span>이 내용으로 [위반서식] 바로 작성</span>
+            </button>
         </div>
     </div>
 
@@ -1479,6 +1671,9 @@ ${dateStr}
             const modelId = document.getElementById('chat-model-select').value;
 
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 35000);
+
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1486,8 +1681,22 @@ ${dateStr}
                         message: message, 
                         model_id: modelId,
                         images: imagesToSend.length > 0 ? imagesToSend : null
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    let errMsg = `서버 통신 상태 이상 (HTTP ${res.status})`;
+                    try {
+                        const errJson = JSON.parse(errorText);
+                        if (errJson.detail) errMsg = errJson.detail;
+                        else if (errJson.response) errMsg = errJson.response;
+                    } catch(e) {}
+                    throw new Error(errMsg);
+                }
+
                 const data = await res.json();
                 loadingBubble.remove();
 
@@ -1503,9 +1712,18 @@ ${dateStr}
                 chatLog.appendChild(agentBubble);
             } catch (err) {
                 loadingBubble.remove();
+                const isTimeout = err.name === 'AbortError';
                 const errBubble = document.createElement('div');
-                errBubble.className = 'bubble-agent p-3.5 text-rose-400 text-xs';
-                errBubble.textContent = '⚠️ 응답 생성 중 통신 오류가 발생했습니다: ' + err.message;
+                errBubble.className = 'bubble-agent p-3.5 text-rose-400 text-xs border border-rose-500/30 bg-rose-500/10 rounded-2xl space-y-1';
+                errBubble.innerHTML = `
+                    <div class="font-bold flex items-center space-x-1.5">
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-400"></i>
+                        <span>AI 응답 처리 안내</span>
+                    </div>
+                    <div class="text-slate-200 text-[11px] leading-relaxed">
+                        ${isTimeout ? '통신 응답 시간이 초과되었습니다. 상단 모델을 [GPT-4o Mini]로 선택 후 다시 전송해 주세요.' : (err.message || '일시적 통신 지연이 발생했습니다. 다시 시도해 주세요.')}
+                    </div>
+                `;
                 chatLog.appendChild(errBubble);
             }
 
@@ -2035,6 +2253,7 @@ ${dateStr}
                         model_id: modelId
                     })
                 });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 let cleanReply = (data.response || '')
                     .replace(/[*#_`~>•-]/g, '')
@@ -2215,11 +2434,464 @@ ${dateStr}
             }
         }
 
+        // ========================================================
+        // 📋 위험물제조소등 유형별 단속 체크리스트 스마트 엔진
+        // ========================================================
+        let activeChecklistFacilityId = 'unauthorized_storage';
+        let checklistFacilitiesMeta = [];
+        let checklistCurrentDetail = null;
+        let checklistCheckedDocs = new Set();
+        let checklistViolations = new Set();
+
+        const CHECKLIST_DEFAULT_FACILITIES = [
+            { id: "unauthorized_storage", name: "무허가 저장·취급", icon: "alert-triangle", badge: "bg-rose-500/20 text-rose-300 border-rose-500/30" },
+            { id: "mfg_general", name: "제조소·일반취급소", icon: "factory", badge: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
+            { id: "indoor_outdoor_storage", name: "옥내·옥외창고", icon: "warehouse", badge: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30" },
+            { id: "outdoor_tank", name: "옥외탱크저장소", icon: "cylinder", badge: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" },
+            { id: "mobile_tank", name: "탱크로리(이동탱크)", icon: "truck", badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" },
+            { id: "gas_station", name: "주유취급소", icon: "fuel", badge: "bg-amber-500/20 text-amber-300 border-amber-500/30" }
+        ];
+
+        async function initChecklistEngine() {
+            try {
+                const res = await fetch('/api/checklists');
+                if (res.ok) {
+                    checklistFacilitiesMeta = await res.json();
+                } else {
+                    checklistFacilitiesMeta = CHECKLIST_DEFAULT_FACILITIES;
+                }
+            } catch (e) {
+                checklistFacilitiesMeta = CHECKLIST_DEFAULT_FACILITIES;
+            }
+            renderFacilityPills();
+            await selectChecklistFacility(activeChecklistFacilityId);
+        }
+
+        function renderFacilityPills() {
+            const container = document.getElementById('checklist-facility-pills');
+            if (!container) return;
+            container.innerHTML = checklistFacilitiesMeta.map(f => {
+                const isActive = (f.id === activeChecklistFacilityId);
+                const activeStyle = isActive 
+                    ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border-amber-400 font-black' 
+                    : 'bg-slate-900/90 text-slate-300 border-slate-700/80 hover:bg-slate-800';
+                return `
+                    <button type="button" onclick="selectChecklistFacility('${f.id}')" 
+                        class="btn-touch px-3 py-2 rounded-xl border text-[11px] whitespace-nowrap flex items-center space-x-1.5 transition-all shrink-0 ${activeStyle}">
+                        <i data-lucide="${f.icon || 'clipboard-list'}" class="w-3.5 h-3.5 ${isActive ? 'text-slate-950' : 'text-amber-400'}"></i>
+                        <span>${f.name}</span>
+                        ${f.id === 'unauthorized_storage' ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>' : ''}
+                    </button>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        async function selectChecklistFacility(facilityId) {
+            activeChecklistFacilityId = facilityId;
+            renderFacilityPills();
+
+            try {
+                const res = await fetch(`/api/checklists/${facilityId}`);
+                if (res.ok) {
+                    checklistCurrentDetail = await res.json();
+                }
+            } catch (err) {
+                console.warn("Checklist detail fetch error:", err);
+            }
+
+            if (!checklistCurrentDetail || checklistCurrentDetail.id !== facilityId) {
+                return;
+            }
+
+            renderChecklistDocs(checklistCurrentDetail.required_documents || []);
+            renderChecklistSteps(checklistCurrentDetail.steps || []);
+            updateChecklistScoreboard();
+            lucide.createIcons();
+        }
+
+        function renderChecklistDocs(docs) {
+            const container = document.getElementById('chk-docs-container');
+            if (!container) return;
+            if (docs.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-400 p-2 text-center">등록된 서류 목록이 없습니다.</div>`;
+                return;
+            }
+
+            container.innerHTML = docs.map(doc => {
+                const isChecked = checklistCheckedDocs.has(doc.id);
+                const borderClass = isChecked ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-slate-800 bg-slate-900/60';
+                return `
+                    <label class="p-2.5 rounded-xl border flex items-start space-x-2.5 cursor-pointer transition-all ${borderClass}">
+                        <input type="checkbox" onchange="toggleChecklistDoc('${doc.id}')" ${isChecked ? 'checked' : ''} class="mt-0.5 w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-600 focus:ring-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-bold ${isChecked ? 'text-emerald-300' : 'text-slate-200'}">${doc.name}</span>
+                                ${doc.critical ? '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30">필수</span>' : ''}
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">${doc.desc || ''}</p>
+                        </div>
+                        <span class="text-[10px] font-bold ${isChecked ? 'text-emerald-400' : 'text-amber-400/80'} shrink-0">
+                            ${isChecked ? '확인완료' : '미제출'}
+                        </span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function toggleChecklistDoc(docId) {
+            if (checklistCheckedDocs.has(docId)) {
+                checklistCheckedDocs.delete(docId);
+            } else {
+                checklistCheckedDocs.add(docId);
+            }
+            if (checklistCurrentDetail) {
+                renderChecklistDocs(checklistCurrentDetail.required_documents || []);
+            }
+            updateChecklistScoreboard();
+        }
+
+        function checkAllDocs(selectAll) {
+            if (!checklistCurrentDetail) return;
+            (checklistCurrentDetail.required_documents || []).forEach(doc => {
+                if (selectAll) checklistCheckedDocs.add(doc.id);
+                else checklistCheckedDocs.delete(doc.id);
+            });
+            renderChecklistDocs(checklistCurrentDetail.required_documents || []);
+            updateChecklistScoreboard();
+        }
+
+        function renderChecklistSteps(steps) {
+            const container = document.getElementById('chk-steps-container');
+            if (!container) return;
+            if (steps.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-400 p-2 text-center">점검 항목이 없습니다.</div>`;
+                return;
+            }
+
+            container.innerHTML = steps.map(step => {
+                const itemsHtml = step.items.map(item => {
+                    const isViolated = checklistViolations.has(item.id);
+                    const cardClass = isViolated 
+                        ? 'border-rose-500/60 bg-gradient-to-br from-rose-950/40 via-slate-900 to-slate-900 shadow-lg shadow-rose-950/30' 
+                        : 'border-slate-800/80 bg-slate-900/60';
+
+                    return `
+                        <div class="p-3 rounded-xl border transition-all ${cardClass}" id="card-item-${item.id}">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-black ${isViolated ? 'text-rose-300' : 'text-slate-100'} flex items-center gap-1.5 flex-wrap">
+                                        <span>${item.title}</span>
+                                        ${isViolated ? '<span class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-rose-600 text-white animate-pulse">적발</span>' : ''}
+                                    </div>
+                                    <p class="text-[11px] text-slate-300 mt-1 leading-snug">${item.check_point}</p>
+                                </div>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <button type="button" onclick="setChecklistItemViolation('${item.id}', false)" 
+                                        class="btn-touch px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${!isViolated ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm' : 'bg-slate-800 text-slate-400 border-slate-700'}">
+                                        정상
+                                    </button>
+                                    <button type="button" onclick="setChecklistItemViolation('${item.id}', true)" 
+                                        class="btn-touch px-2 py-1.5 rounded-lg text-[10px] font-black border transition-all ${isViolated ? 'bg-rose-600 text-white border-rose-500 shadow-lg shadow-rose-600/40' : 'bg-slate-800 text-rose-300 border-slate-700 hover:border-rose-500/40'}">
+                                        🚨 적발
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Detailed Legal Binding (Visible when violated) -->
+                            <div class="${isViolated ? 'block' : 'hidden'} mt-2.5 pt-2 border-t border-rose-500/30 space-y-1.5 text-[11px]">
+                                <div class="flex items-start gap-1.5 text-blue-300">
+                                    <i data-lucide="scale" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-400"></i>
+                                    <span><strong>적용 법조:</strong> ${item.law}</span>
+                                </div>
+                                <div class="flex items-start gap-1.5 text-rose-300">
+                                    <i data-lucide="gavel" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-rose-400"></i>
+                                    <span><strong>법정 형량:</strong> ${item.penalty}</span>
+                                </div>
+                                <div class="flex items-start gap-1.5 text-amber-300 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                                    <i data-lucide="camera" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400"></i>
+                                    <span><strong>채증 가이드:</strong> ${item.evidence_point}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-1.5 text-xs font-black text-slate-300 px-0.5">
+                            <span class="w-1.5 h-3.5 rounded-full bg-blue-500"></span>
+                            <span>${step.step_name}</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setChecklistItemViolation(itemId, isViolation) {
+            if (isViolation) {
+                checklistViolations.add(itemId);
+            } else {
+                checklistViolations.delete(itemId);
+            }
+            if (checklistCurrentDetail) {
+                renderChecklistSteps(checklistCurrentDetail.steps || []);
+            }
+            updateChecklistScoreboard();
+            lucide.createIcons();
+        }
+
+        function updateChecklistScoreboard() {
+            const countEl = document.getElementById('chk-violation-count');
+            const docsEl = document.getElementById('chk-missing-docs-count');
+            const penaltyEl = document.getElementById('chk-highest-penalty-badge');
+
+            const totalViolations = checklistViolations.size;
+            if (countEl) {
+                countEl.textContent = `${totalViolations}건`;
+                if (totalViolations > 0) {
+                    countEl.className = 'text-base font-black text-rose-400 animate-pulse';
+                } else {
+                    countEl.className = 'text-base font-black text-slate-400';
+                }
+            }
+
+            if (docsEl && checklistCurrentDetail) {
+                const totalDocs = (checklistCurrentDetail.required_documents || []).length;
+                const checkedDocsCount = (checklistCurrentDetail.required_documents || []).filter(d => checklistCheckedDocs.has(d.id)).length;
+                const missing = Math.max(0, totalDocs - checkedDocsCount);
+                docsEl.textContent = `${missing}건`;
+                docsEl.className = missing > 0 ? 'text-base font-black text-amber-400' : 'text-base font-black text-emerald-400';
+            }
+
+            let highestPenalty = "적합 (위반 없음)";
+            let highestRank = 0;
+            const penaltyRankMap = {
+                "criminal_5y": { rank: 5, text: "5년 징역/5천만원" },
+                "criminal_3y": { rank: 4, text: "3년 징역/3천만원" },
+                "criminal_1y": { rank: 3, text: "1년 징역/1천만원" },
+                "criminal_fine_1500": { rank: 2, text: "벌금 1,500만원" },
+                "fine_500": { rank: 1, text: "과태료 500만원" },
+                "fine_200": { rank: 1, text: "과태료 200만원" }
+            };
+
+            if (checklistCurrentDetail && checklistCurrentDetail.steps) {
+                for (const step of checklistCurrentDetail.steps) {
+                    for (const item of step.items) {
+                        if (checklistViolations.has(item.id)) {
+                            const pInfo = penaltyRankMap[item.penalty_level] || { rank: 1, text: item.penalty };
+                            if (pInfo.rank > highestRank) {
+                                highestRank = pInfo.rank;
+                                highestPenalty = pInfo.text;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (penaltyEl) {
+                penaltyEl.textContent = highestPenalty;
+                if (highestRank >= 4) {
+                    penaltyEl.className = 'text-[11px] font-black text-rose-400 truncate block mt-0.5 animate-pulse';
+                } else if (highestRank >= 2) {
+                    penaltyEl.className = 'text-[11px] font-black text-amber-400 truncate block mt-0.5';
+                } else {
+                    penaltyEl.className = 'text-[11px] font-bold text-slate-300 truncate block mt-0.5';
+                }
+            }
+        }
+
+        function resetChecklistFormMobile() {
+            if (checklistViolations.size > 0 || checklistCheckedDocs.size > 0) {
+                if (!confirm("현재 작성 중인 체크리스트와 적발 항목을 초기화하시겠습니까?")) return;
+            }
+            checklistCheckedDocs.clear();
+            checklistViolations.clear();
+            const memoEl = document.getElementById('chk-memo');
+            if (memoEl) memoEl.value = '';
+            if (checklistCurrentDetail) {
+                renderChecklistDocs(checklistCurrentDetail.required_documents || []);
+                renderChecklistSteps(checklistCurrentDetail.steps || []);
+            }
+            updateChecklistScoreboard();
+            lucide.createIcons();
+        }
+
+        async function generateChecklistReportMobile() {
+            if (!checklistCurrentDetail) return;
+
+            const bizName = (document.getElementById('chk-biz-name') ? document.getElementById('chk-biz-name').value : '') || '현장 점검 사업장';
+            const location = (document.getElementById('chk-location') ? document.getElementById('chk-location').value : '') || '현장 미기재';
+            const memo = (document.getElementById('chk-memo') ? document.getElementById('chk-memo').value : '') || '';
+
+            const missingDocs = (checklistCurrentDetail.required_documents || [])
+                .filter(d => !checklistCheckedDocs.has(d.id))
+                .map(d => d.id);
+
+            const payload = {
+                facility_id: activeChecklistFacilityId,
+                checked_violations: Array.from(checklistViolations),
+                missing_docs: missingDocs,
+                memo: memo,
+                biz_info: {
+                    biz_name: bizName,
+                    location: location,
+                    inspector: "소방특별사법경찰관"
+                }
+            };
+
+            let reportText = "";
+            let highestPenalty = "위반사항 없음";
+            let violationsCount = checklistViolations.size;
+
+            try {
+                const res = await fetch('/api/checklists/report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    reportText = data.report_text;
+                    highestPenalty = data.highest_penalty;
+                    violationsCount = data.violations_count;
+                }
+            } catch (err) {
+                console.warn("Server report generation error, using client fallback:", err);
+            }
+
+            if (!reportText) {
+                const lines = [
+                    "============================================================",
+                    "【소방특별사법경찰 위험물제조소등 현장단속 적발보고서】",
+                    "============================================================",
+                    `• 단속 대상: ${bizName} (${checklistCurrentDetail.name})`,
+                    `• 현장 주소: ${location}`,
+                    `• 적발 위법 건수: ${violationsCount}건`,
+                    "------------------------------------------------------------",
+                    "■ 적발된 위법 사실 및 처벌 규정:"
+                ];
+                let count = 1;
+                for (const step of (checklistCurrentDetail.steps || [])) {
+                    for (const item of step.items) {
+                        if (checklistViolations.has(item.id)) {
+                            lines.push(` ${count++}. ${item.title}`);
+                            lines.push(`    - 적용 법조: ${item.law}`);
+                            lines.push(`    - 처벌 규정: ${item.penalty}`);
+                            lines.push(`    - 채증 요령: ${item.evidence_point}`);
+                        }
+                    }
+                }
+                if (violationsCount === 0) lines.push("  - 특이 위반사항 없음 (적합)");
+                if (memo.trim()) {
+                    lines.push("------------------------------------------------------------");
+                    lines.push(`■ 현장 특이사항:\n${memo.trim()}`);
+                }
+                lines.push("============================================================");
+                reportText = lines.join('\n');
+            }
+
+            document.getElementById('chk-modal-facility-title').textContent = checklistCurrentDetail.name;
+            document.getElementById('chk-modal-violation-badge').textContent = `${violationsCount}건 적발`;
+            document.getElementById('chk-report-full-text').value = reportText;
+
+            openChecklistReportModalMobile();
+        }
+
+        function openChecklistReportModalMobile() {
+            document.getElementById('checklist-sheet-backdrop').classList.remove('backdrop-hidden');
+            document.getElementById('checklist-report-sheet').classList.remove('sheet-hidden');
+            lucide.createIcons();
+        }
+
+        function closeChecklistReportModalMobile() {
+            document.getElementById('checklist-sheet-backdrop').classList.add('backdrop-hidden');
+            document.getElementById('checklist-report-sheet').classList.add('sheet-hidden');
+        }
+
+        function copyChecklistReportText() {
+            const txt = document.getElementById('chk-report-full-text').value;
+            if (!txt) return;
+            navigator.clipboard.writeText(txt).then(() => {
+                alert("📋 단속보고서 전문이 클립보드에 복사되었습니다!");
+            }).catch(() => {
+                alert("클립보드 복사 권한을 확인해 주세요.");
+            });
+        }
+
+        async function saveChecklistToCaseMobile() {
+            if (!checklistCurrentDetail) return;
+            const bizName = (document.getElementById('chk-biz-name') ? document.getElementById('chk-biz-name').value : '') || `${checklistCurrentDetail.name} 점검`;
+            const location = (document.getElementById('chk-location') ? document.getElementById('chk-location').value : '') || '현장 점검';
+            const memo = (document.getElementById('chk-memo') ? document.getElementById('chk-memo').value : '') || '';
+
+            const missingDocs = (checklistCurrentDetail.required_documents || [])
+                .filter(d => !checklistCheckedDocs.has(d.id))
+                .map(d => d.id);
+
+            const payload = {
+                title: `[${checklistCurrentDetail.name}] ${bizName}`,
+                location: location,
+                notes: memo,
+                evidence_photos: [],
+                data: {
+                    type: "facility_checklist",
+                    facility_id: activeChecklistFacilityId,
+                    facility_name: checklistCurrentDetail.name,
+                    checked_violations: Array.from(checklistViolations),
+                    missing_docs: missingDocs,
+                    violations_count: checklistViolations.size
+                }
+            };
+
+            try {
+                const res = await fetch('/api/cases', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert(`✅ [${checklistCurrentDetail.name}] 단속 체크리스트가 단속 보관함에 안전하게 저장되었습니다!`);
+                    await fetchAllCases();
+                } else {
+                    alert("저장에 실패했습니다: " + (result.message || "알 수 없는 오류"));
+                }
+            } catch (err) {
+                alert("통신 오류가 발생했습니다: " + err.message);
+            }
+        }
+
+        function saveChecklistFromModal() {
+            saveChecklistToCaseMobile();
+            closeChecklistReportModalMobile();
+        }
+
+        function transferChecklistToViolationDoc() {
+            if (!checklistCurrentDetail) return;
+            const bizName = (document.getElementById('chk-biz-name') ? document.getElementById('chk-biz-name').value : '') || '';
+            const location = (document.getElementById('chk-location') ? document.getElementById('chk-location').value : '') || '';
+
+            if (document.getElementById('doc-biz-name') && bizName) {
+                document.getElementById('doc-biz-name').value = bizName;
+            }
+            if (document.getElementById('doc-location') && location) {
+                document.getElementById('doc-location').value = location;
+            }
+
+            switchMobileTab('tab-docs');
+            alert("📋 단속 사업장 정보가 [위반서식] 탭으로 전송되었습니다. 즉시 서식을 출력하실 수 있습니다!");
+        }
+
         // Initialize icons, default value, and load cases on DOM load
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             quickSelectChem('신나', '제1석유류 비수용성', 200, 'L');
             fetchAllCases();
+            initChecklistEngine();
         });
     </script>
 </body>

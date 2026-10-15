@@ -46,3 +46,6 @@ hwp_out.txt
 .DS_Store
 Thumbs.db
 ehthumbs.db
+
+# Executables
+cloudflared.exe

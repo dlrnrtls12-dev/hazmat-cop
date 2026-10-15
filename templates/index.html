@@ -137,6 +137,13 @@
                     <span class="sm:hidden">저장</span>
                 </button>
 
+                <!-- 유형별 단속 체크리스트 버튼 -->
+                <button type="button" onclick="openPcChecklistModal()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/40 text-amber-300 text-xs font-bold transition-all shadow-xs group" title="위험물제조소등 6대 유형별 단속 체크리스트 열기">
+                    <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span class="hidden sm:inline">단속 체크리스트</span>
+                    <span class="sm:hidden">체크리스트</span>
+                </button>
+
                 <!-- 단속 기록 보관함 버튼 -->
                 <button type="button" onclick="openCaseArchiveModalPc()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition-all shadow-xs group" title="저장된 단속 건별 기록 보관함 열기">
                     <i data-lucide="archive" class="w-3.5 h-3.5 text-indigo-400"></i>
@@ -422,6 +429,26 @@
         <!-- TAB 2: 단속 절차 & 스마트 서류 생성기 -->
         <!-- ======================================================== -->
         <section id="tab-procedure" class="tab-content hidden space-y-6">
+            <!-- 📋 위험물제조소등 유형별 단속 체크리스트 신규 배너 -->
+            <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div class="flex items-center space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                            <span>위험물제조소등 유형별 단속 체크리스트</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300">신규 표준</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">제조소, 옥내외저장소, 옥외탱크, 탱크로리, 주유소, 무허가 장소별 필수 징구 서류 & 4단계 위법 포섭</p>
+                    </div>
+                </div>
+                <button type="button" onclick="openPcChecklistModal()" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold flex items-center justify-center space-x-1.5 shadow-sm transition-all shrink-0">
+                    <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                    <span>유형별 체크리스트 열기</span>
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                 <!-- 절차 및 고지문 (5 cols) -->
@@ -7573,5 +7600,503 @@
             </div>
         </div>
     </div>
+
+    <!-- ======================================================== -->
+    <!-- 📋 PC 위험물제조소등 유형별 단속 체크리스트 모달 -->
+    <!-- ======================================================== -->
+    <div id="pc-checklist-modal" class="fixed inset-0 z-[260] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 transition-all duration-200 opacity-0 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+            <!-- Header -->
+            <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white shadow-sm">
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-bold text-white">위험물제조소등 유형별 단속 체크리스트</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">소방특사경 표준</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">6대 시설별 필수 징구 서류 확인 & 4단계 현장 점검 위법 포섭</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="resetPcChecklistForm()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1 border border-slate-700">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>재설정</span>
+                    </button>
+                    <button type="button" onclick="closePcChecklistModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Facility Pills Bar -->
+            <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3 overflow-x-auto">
+                <div class="flex items-center space-x-1.5 text-xs font-bold" id="pc-chk-facility-pills">
+                    <!-- Populated dynamically -->
+                </div>
+                <div class="flex items-center space-x-3 shrink-0 text-xs bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500">적발 위반:</span>
+                        <strong id="pc-chk-violation-count" class="text-slate-700 font-black">0건</strong>
+                    </div>
+                    <span class="text-slate-300">|</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500">미비 서류:</span>
+                        <strong id="pc-chk-missing-docs-count" class="text-amber-600 font-black">0건</strong>
+                    </div>
+                    <span class="text-slate-300">|</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-500">최고 형량:</span>
+                        <strong id="pc-chk-highest-penalty-badge" class="text-slate-800 font-bold">적합</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body Grid (2 Columns: Left=Docs & Target Info, Right=4-Step Inspection Points) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-slate-200 text-xs">
+                <!-- Left (4 cols): Target Info & Documents -->
+                <div class="lg:col-span-4 p-4 overflow-y-auto space-y-4 bg-slate-50/50">
+                    <!-- Target Business Info -->
+                    <div class="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2.5">
+                        <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <i data-lucide="building-2" class="w-3.5 h-3.5 text-blue-600"></i>
+                            <span>단속 대상 및 현장 정보</span>
+                        </span>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 font-semibold mb-1">상호 또는 사업장명</label>
+                            <input type="text" id="pc-chk-biz-name" placeholder="예: (주)한국특수화학 화성공장" class="w-full rounded-lg border border-slate-300 p-2 text-xs text-slate-800 focus:ring-1 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 font-semibold mb-1">단속 현장 상세 주소</label>
+                            <input type="text" id="pc-chk-location" placeholder="예: 경기도 화성시 남양읍 시화호수로 123" class="w-full rounded-lg border border-slate-300 p-2 text-xs text-slate-800 focus:ring-1 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 font-semibold mb-1">현장 특이사항 메모</label>
+                            <textarea id="pc-chk-memo" rows="2" placeholder="드럼 적치 수량, 안전관리자 부재 여부 등" class="w-full rounded-lg border border-slate-300 p-2 text-xs text-slate-800 focus:ring-1 focus:ring-amber-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Required Documents -->
+                    <div class="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                            <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                                <i data-lucide="folder-check" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                <span>1부. 필수 확인·징구 서류</span>
+                            </span>
+                            <button type="button" onclick="checkAllPcDocs(true)" class="text-[10px] text-blue-600 font-bold hover:underline">
+                                모두 확인
+                            </button>
+                        </div>
+                        <div id="pc-chk-docs-container" class="space-y-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right (8 cols): 4-Step Inspection Points & Violations -->
+                <div class="lg:col-span-8 p-4 overflow-y-auto space-y-4 bg-white">
+                    <div class="flex items-center justify-between pb-1 border-b border-slate-200">
+                        <span class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                            <i data-lucide="search-check" class="w-4 h-4 text-emerald-600"></i>
+                            <span>2부. 단계별 현장 점검 & 위법 포섭</span>
+                        </span>
+                        <span class="text-slate-500 text-[11px]">위반 체크 시 법조문·형량 자동 바인딩</span>
+                    </div>
+
+                    <div id="pc-chk-steps-container" class="space-y-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <button type="button" onclick="closePcChecklistModal()" class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold hover:bg-slate-100">
+                    닫기
+                </button>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="generatePcChecklistReport()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold flex items-center gap-1.5 shadow-xs">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>단속보고서 생성</span>
+                    </button>
+                    <button type="button" onclick="savePcChecklistToCase()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 shadow-xs">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>단속기록 보관함 저장</span>
+                    </button>
+                    <button type="button" onclick="transferPcChecklistToDoc()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-1.5 shadow-xs">
+                        <i data-lucide="arrow-right-circle" class="w-4 h-4"></i>
+                        <span>위반서식에 반영</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script logic for PC Checklist -->
+    <script>
+        let pcActiveFacilityId = 'unauthorized_storage';
+        let pcChecklistFacilities = [];
+        let pcChecklistCurrentDetail = null;
+        let pcChecklistCheckedDocs = new Set();
+        let pcChecklistViolations = new Set();
+
+        const PC_CHECKLIST_DEFAULTS = [
+            { id: "unauthorized_storage", name: "무허가 저장·취급", icon: "alert-triangle" },
+            { id: "mfg_general", name: "제조소·일반취급소", icon: "factory" },
+            { id: "indoor_outdoor_storage", name: "옥내·옥외창고", icon: "warehouse" },
+            { id: "outdoor_tank", name: "옥외탱크저장소", icon: "cylinder" },
+            { id: "mobile_tank", name: "탱크로리(이동탱크)", icon: "truck" },
+            { id: "gas_station", name: "주유취급소", icon: "fuel" }
+        ];
+
+        async function initPcChecklistEngine() {
+            try {
+                const res = await fetch('/api/checklists');
+                if (res.ok) {
+                    pcChecklistFacilities = await res.json();
+                } else {
+                    pcChecklistFacilities = PC_CHECKLIST_DEFAULTS;
+                }
+            } catch (e) {
+                pcChecklistFacilities = PC_CHECKLIST_DEFAULTS;
+            }
+            renderPcFacilityPills();
+        }
+
+        function renderPcFacilityPills() {
+            const container = document.getElementById('pc-chk-facility-pills');
+            if (!container) return;
+            container.innerHTML = pcChecklistFacilities.map(f => {
+                const isActive = (f.id === pcActiveFacilityId);
+                const activeStyle = isActive 
+                    ? 'bg-amber-600 text-white shadow-xs font-bold' 
+                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100';
+                return `
+                    <button type="button" onclick="selectPcChecklistFacility('${f.id}')" 
+                        class="px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1.5 transition-colors whitespace-nowrap ${activeStyle}">
+                        <i data-lucide="${f.icon || 'clipboard-list'}" class="w-3.5 h-3.5"></i>
+                        <span>${f.name}</span>
+                        ${f.id === 'unauthorized_storage' ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>' : ''}
+                    </button>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        async function openPcChecklistModal() {
+            const modal = document.getElementById('pc-checklist-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            if (pcChecklistFacilities.length === 0) {
+                await initPcChecklistEngine();
+            }
+            await selectPcChecklistFacility(pcActiveFacilityId);
+            lucide.createIcons();
+        }
+
+        function closePcChecklistModal() {
+            const modal = document.getElementById('pc-checklist-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        async function selectPcChecklistFacility(facilityId) {
+            pcActiveFacilityId = facilityId;
+            renderPcFacilityPills();
+
+            try {
+                const res = await fetch(`/api/checklists/${facilityId}`);
+                if (res.ok) {
+                    pcChecklistCurrentDetail = await res.json();
+                }
+            } catch (err) {
+                console.warn("PC Checklist fetch error:", err);
+            }
+
+            if (!pcChecklistCurrentDetail || pcChecklistCurrentDetail.id !== facilityId) return;
+
+            renderPcChecklistDocs(pcChecklistCurrentDetail.required_documents || []);
+            renderPcChecklistSteps(pcChecklistCurrentDetail.steps || []);
+            updatePcChecklistScoreboard();
+            lucide.createIcons();
+        }
+
+        function renderPcChecklistDocs(docs) {
+            const container = document.getElementById('pc-chk-docs-container');
+            if (!container) return;
+            container.innerHTML = docs.map(doc => {
+                const isChecked = pcChecklistCheckedDocs.has(doc.id);
+                return `
+                    <label class="p-2 rounded-lg border ${isChecked ? 'border-emerald-300 bg-emerald-50/50' : 'border-slate-200 bg-slate-50/50'} flex items-start space-x-2 cursor-pointer transition-colors">
+                        <input type="checkbox" onchange="togglePcChecklistDoc('${doc.id}')" ${isChecked ? 'checked' : ''} class="mt-0.5 rounded text-blue-600 focus:ring-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-bold ${isChecked ? 'text-emerald-900' : 'text-slate-800'}">${doc.name}</span>
+                                ${doc.critical ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-100 text-rose-700">필수</span>' : ''}
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${doc.desc || ''}</p>
+                        </div>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function togglePcChecklistDoc(docId) {
+            if (pcChecklistCheckedDocs.has(docId)) {
+                pcChecklistCheckedDocs.delete(docId);
+            } else {
+                pcChecklistCheckedDocs.add(docId);
+            }
+            if (pcChecklistCurrentDetail) {
+                renderPcChecklistDocs(pcChecklistCurrentDetail.required_documents || []);
+            }
+            updatePcChecklistScoreboard();
+        }
+
+        function checkAllPcDocs(selectAll) {
+            if (!pcChecklistCurrentDetail) return;
+            (pcChecklistCurrentDetail.required_documents || []).forEach(doc => {
+                if (selectAll) pcChecklistCheckedDocs.add(doc.id);
+                else pcChecklistCheckedDocs.delete(doc.id);
+            });
+            renderPcChecklistDocs(pcChecklistCurrentDetail.required_documents || []);
+            updatePcChecklistScoreboard();
+        }
+
+        function renderPcChecklistSteps(steps) {
+            const container = document.getElementById('pc-chk-steps-container');
+            if (!container) return;
+
+            container.innerHTML = steps.map(step => {
+                const itemsHtml = step.items.map(item => {
+                    const isViolated = pcChecklistViolations.has(item.id);
+                    return `
+                        <div class="p-3 rounded-xl border transition-all ${isViolated ? 'border-rose-400 bg-rose-50/60 shadow-xs' : 'border-slate-200 bg-slate-50/30'}">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                                        <span>${item.title}</span>
+                                        ${isViolated ? '<span class="px-1.5 py-0.2 rounded text-[10px] font-black bg-rose-600 text-white">위법 적발</span>' : ''}
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 mt-1">${item.check_point}</p>
+                                </div>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <button type="button" onclick="setPcChecklistItemViolation('${item.id}', false)" 
+                                        class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${!isViolated ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'}">
+                                        정상
+                                    </button>
+                                    <button type="button" onclick="setPcChecklistItemViolation('${item.id}', true)" 
+                                        class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-colors ${isViolated ? 'bg-rose-600 text-white border-rose-600 shadow-xs' : 'bg-white text-rose-600 border-slate-300 hover:bg-rose-50'}">
+                                        🚨 적발
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="${isViolated ? 'block' : 'hidden'} mt-2.5 pt-2 border-t border-rose-200 space-y-1.5 text-[11px]">
+                                <div class="flex items-start gap-1.5 text-blue-800">
+                                    <i data-lucide="scale" class="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5"></i>
+                                    <span><strong>적용 법조:</strong> ${item.law}</span>
+                                </div>
+                                <div class="flex items-start gap-1.5 text-rose-800">
+                                    <i data-lucide="gavel" class="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5"></i>
+                                    <span><strong>법정 형량:</strong> ${item.penalty}</span>
+                                </div>
+                                <div class="flex items-start gap-1.5 text-amber-900 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                                    <i data-lucide="camera" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i>
+                                    <span><strong>채증 가이드:</strong> ${item.evidence_point}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-1.5 font-bold text-slate-800">
+                            <span class="w-1.5 h-3.5 rounded-full bg-blue-600"></span>
+                            <span>${step.step_name}</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setPcChecklistItemViolation(itemId, isViolation) {
+            if (isViolation) {
+                pcChecklistViolations.add(itemId);
+            } else {
+                pcChecklistViolations.delete(itemId);
+            }
+            if (pcChecklistCurrentDetail) {
+                renderPcChecklistSteps(pcChecklistCurrentDetail.steps || []);
+            }
+            updatePcChecklistScoreboard();
+            lucide.createIcons();
+        }
+
+        function updatePcChecklistScoreboard() {
+            const countEl = document.getElementById('pc-chk-violation-count');
+            const docsEl = document.getElementById('pc-chk-missing-docs-count');
+            const penaltyEl = document.getElementById('pc-chk-highest-penalty-badge');
+
+            const totalViolations = pcChecklistViolations.size;
+            if (countEl) {
+                countEl.textContent = `${totalViolations}건`;
+                countEl.className = totalViolations > 0 ? 'text-rose-600 font-black' : 'text-slate-700 font-black';
+            }
+
+            if (docsEl && pcChecklistCurrentDetail) {
+                const totalDocs = (pcChecklistCurrentDetail.required_documents || []).length;
+                const checked = (pcChecklistCurrentDetail.required_documents || []).filter(d => pcChecklistCheckedDocs.has(d.id)).length;
+                docsEl.textContent = `${Math.max(0, totalDocs - checked)}건`;
+            }
+
+            let highestPenalty = "적합";
+            let highestRank = 0;
+            const penaltyRankMap = {
+                "criminal_5y": { rank: 5, text: "5년 징역/5천만원" },
+                "criminal_3y": { rank: 4, text: "3년 징역/3천만원" },
+                "criminal_1y": { rank: 3, text: "1년 징역/1천만원" },
+                "criminal_fine_1500": { rank: 2, text: "벌금 1,500만원" },
+                "fine_500": { rank: 1, text: "과태료 500만원" },
+                "fine_200": { rank: 1, text: "과태료 200만원" }
+            };
+
+            if (pcChecklistCurrentDetail && pcChecklistCurrentDetail.steps) {
+                for (const step of pcChecklistCurrentDetail.steps) {
+                    for (const item of step.items) {
+                        if (pcChecklistViolations.has(item.id)) {
+                            const pInfo = penaltyRankMap[item.penalty_level] || { rank: 1, text: item.penalty };
+                            if (pInfo.rank > highestRank) {
+                                highestRank = pInfo.rank;
+                                highestPenalty = pInfo.text;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (penaltyEl) {
+                penaltyEl.textContent = highestPenalty;
+                penaltyEl.className = highestRank >= 3 ? 'text-rose-600 font-bold' : 'text-slate-800 font-bold';
+            }
+        }
+
+        function resetPcChecklistForm() {
+            if (!confirm("체크리스트 작성 내용을 초기화하시겠습니까?")) return;
+            pcChecklistCheckedDocs.clear();
+            pcChecklistViolations.clear();
+            document.getElementById('pc-chk-biz-name').value = '';
+            document.getElementById('pc-chk-location').value = '';
+            document.getElementById('pc-chk-memo').value = '';
+            if (pcChecklistCurrentDetail) {
+                renderPcChecklistDocs(pcChecklistCurrentDetail.required_documents || []);
+                renderPcChecklistSteps(pcChecklistCurrentDetail.steps || []);
+            }
+            updatePcChecklistScoreboard();
+            lucide.createIcons();
+        }
+
+        async function generatePcChecklistReport() {
+            if (!pcChecklistCurrentDetail) return;
+            const bizName = document.getElementById('pc-chk-biz-name').value || '현장 점검 사업장';
+            const location = document.getElementById('pc-chk-location').value || '현장 미기재';
+            const memo = document.getElementById('pc-chk-memo').value || '';
+
+            const missingDocs = (pcChecklistCurrentDetail.required_documents || [])
+                .filter(d => !pcChecklistCheckedDocs.has(d.id))
+                .map(d => d.id);
+
+            const payload = {
+                facility_id: pcActiveFacilityId,
+                checked_violations: Array.from(pcChecklistViolations),
+                missing_docs: missingDocs,
+                memo: memo,
+                biz_info: { biz_name: bizName, location: location }
+            };
+
+            try {
+                const res = await fetch('/api/checklists/report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const reportText = data.report_text;
+                    navigator.clipboard.writeText(reportText).then(() => {
+                        alert("📋 단속보고서가 생성되어 클립보드에 복사되었습니다!\n\n" + reportText.substring(0, 300) + "...\n(전체 내용은 클립보드에 복사됨)");
+                    }).catch(() => {
+                        alert("단속보고서가 생성되었습니다:\n\n" + reportText);
+                    });
+                }
+            } catch (err) {
+                alert("보고서 생성 중 오류가 발생했습니다: " + err.message);
+            }
+        }
+
+        async function savePcChecklistToCase() {
+            if (!pcChecklistCurrentDetail) return;
+            const bizName = document.getElementById('pc-chk-biz-name').value || `${pcChecklistCurrentDetail.name} 점검`;
+            const location = document.getElementById('pc-chk-location').value || '현장 점검';
+            const memo = document.getElementById('pc-chk-memo').value || '';
+
+            const missingDocs = (pcChecklistCurrentDetail.required_documents || [])
+                .filter(d => !pcChecklistCheckedDocs.has(d.id))
+                .map(d => d.id);
+
+            const payload = {
+                title: `[${pcChecklistCurrentDetail.name}] ${bizName}`,
+                location: location,
+                notes: memo,
+                evidence_photos: [],
+                data: {
+                    type: "facility_checklist",
+                    facility_id: pcActiveFacilityId,
+                    facility_name: pcChecklistCurrentDetail.name,
+                    checked_violations: Array.from(pcChecklistViolations),
+                    missing_docs: missingDocs,
+                    violations_count: pcChecklistViolations.size
+                }
+            };
+
+            try {
+                const res = await fetch('/api/cases', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert(`✅ [${pcChecklistCurrentDetail.name}] 단속 체크리스트가 단속 보관함에 저장되었습니다!`);
+                    if (typeof fetchAllCasesPc === 'function') fetchAllCasesPc();
+                } else {
+                    alert("저장에 실패했습니다: " + (result.message || "오류"));
+                }
+            } catch (err) {
+                alert("통신 오류가 발생했습니다: " + err.message);
+            }
+        }
+
+        function transferPcChecklistToDoc() {
+            const bizName = document.getElementById('pc-chk-biz-name').value || '';
+            const location = document.getElementById('pc-chk-location').value || '';
+
+            closePcChecklistModal();
+            switchTab('procedure');
+
+            const repNameInput = document.getElementById('biz-name') || document.getElementById('doc-biz-name');
+            if (repNameInput && bizName) repNameInput.value = bizName;
+
+            alert("📋 단속 정보가 서식 생성 탭으로 전달되었습니다!");
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initPcChecklistEngine();
+        });
+    </script>
 </body>
 </html>
