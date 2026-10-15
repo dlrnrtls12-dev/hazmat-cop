@@ -2,188 +2,276 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>소방특사경 위험물 현장단속 (모바일) | HAZMAT COP</title>
+    <title>소방특사경 위험물 현장단속 (모바일) | HAZMAT ENFORCER</title>
     
     <!-- PWA & Mobile Meta Tags -->
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
     <link rel="apple-touch-icon" href="/static/icons/icon.svg">
-    <meta name="theme-color" content="#090d16">
+    <meta name="theme-color" content="#060b16">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Hazmat Cop Mobile">
+    <meta name="apple-mobile-web-app-title" content="Hazmat Cop">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
+
+    <!-- Pretendard Web Font (Strict UTF-8 & No font breakage) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Pretendard Font -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        darkbg: '#090d16',
-                        cardbg: '#121b2d',
-                        cardborder: '#1e293b',
+                        darkbg: '#060b16',
+                        glasscard: 'rgba(15, 23, 42, 0.78)',
+                        glassborder: 'rgba(255, 255, 255, 0.08)',
                         policeblue: '#2563eb',
-                        crimson: '#dc2626',
+                        crimson: '#ef4444',
                         amberwarn: '#f59e0b',
                         safegreen: '#10b981'
+                    },
+                    boxShadow: {
+                        'neon-blue': '0 0 25px -5px rgba(37, 99, 235, 0.4)',
+                        'neon-red': '0 0 25px -5px rgba(239, 68, 68, 0.4)',
+                        'neon-amber': '0 0 25px -5px rgba(245, 158, 11, 0.4)',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
                     }
                 }
             }
         }
     </script>
     <style>
-        * { -webkit-tap-highlight-color: transparent; }
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: #090d16;
+            font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: #060b16;
             color: #f8fafc;
             touch-action: manipulation;
-            padding-bottom: calc(72px + env(safe-area-inset-bottom));
+            word-break: keep-all; /* 단어 단위 줄바꿈으로 한국어 글자 깨짐 및 어색한 분절 방지 */
+            word-wrap: break-word;
+            letter-spacing: -0.022em; /* 한국어 가독성 최적 자간 */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: calc(88px + env(safe-area-inset-bottom));
         }
         .safe-bottom {
             padding-bottom: env(safe-area-inset-bottom);
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* Ambient Glow Background */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
+            max-width: 600px;
+            height: 380px;
+            background: radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.18) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 75%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+        }
+
+        /* Touch interaction polish */
+        .btn-touch {
+            transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.12s;
+        }
+        .btn-touch:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+
+        /* Bottom Sheet Transition */
+        #statute-bottom-sheet {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+        }
+        #statute-bottom-sheet.sheet-hidden {
+            transform: translateY(105%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        #sheet-backdrop {
+            transition: opacity 0.25s ease;
+        }
+        #sheet-backdrop.backdrop-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Chat bubbles */
+        .bubble-agent {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 3.5px solid #3b82f6;
+            border-radius: 4px 18px 18px 18px;
+        }
+        .bubble-user {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border-radius: 18px 4px 18px 18px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #090d16; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .chat-bubble-agent {
-            background: #1e293b;
-            border-left: 3px solid #3b82f6;
-            border-radius: 0 16px 16px 16px;
-        }
-        .chat-bubble-user {
-            background: #2563eb;
-            color: white;
-            border-radius: 16px 0 16px 16px;
-        }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased relative">
 
-    <!-- Top Sticky Header -->
-    <header class="sticky top-0 z-50 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between shadow-lg">
+    <!-- Ambient Lighting Element -->
+    <div class="ambient-glow"></div>
+
+    <!-- Top Sticky Navigation Header -->
+    <header class="sticky top-0 z-40 bg-[#060b16]/90 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-900/40 border border-blue-400/30">
-                <i data-lucide="shield-alert" class="w-4 h-4 text-white"></i>
+            <!-- App Logo Badge -->
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-neon-blue border border-white/20">
+                <i data-lucide="shield-alert" class="w-5 h-5 text-white"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-1.5">
-                    <span class="text-sm font-extrabold tracking-tight text-white">HAZMAT COP</span>
-                    <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">모바일</span>
+                    <h1 class="text-sm font-black tracking-tight text-white flex items-center gap-1">
+                        HAZMAT COP <span class="text-blue-400 font-extrabold text-xs">MOBILE</span>
+                    </h1>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">특사경</span>
                 </div>
-                <p class="text-[10px] text-slate-400">소방특사경 현장단속 도우미</p>
+                <p class="text-[11px] text-slate-400 font-medium">소방특별사법경찰 현장단속 스마트도우미</p>
             </div>
         </div>
+
         <div class="flex items-center space-x-2">
+            <!-- 법정 수치 퀵시트 열기 버튼 -->
+            <button type="button" onclick="openStatuteSheet()" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-amber-400 border border-slate-700 flex items-center space-x-1" title="법정 불변 수치 퀵 핸드북">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span class="text-[11px] font-bold text-slate-200 hidden xs:inline">법정수치</span>
+            </button>
+
             <!-- PC 모드로 전환 버튼 -->
-            <a href="/?mode=pc" class="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-all active:scale-95" title="데스크톱 대화면 PC 모드로 전환">
+            <a href="/?mode=pc" class="btn-touch flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-slate-200 text-xs font-bold border border-slate-700 shadow-sm" title="PC 전체화면 모드로 보기">
                 <i data-lucide="monitor" class="w-3.5 h-3.5 text-blue-400"></i>
                 <span class="text-[11px]">PC화면</span>
             </a>
-            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="네트워크 정상"></div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 px-3.5 py-3 max-w-lg mx-auto w-full">
+    <!-- Main Dynamic Content Container -->
+    <main class="flex-1 px-3.5 py-3.5 max-w-lg mx-auto w-full z-10 relative">
 
-        <!-- ========================================== -->
-        <!-- TAB 1: ⚡ 계산 (Calculator) -->
-        <!-- ========================================== -->
+        <!-- ======================================================== -->
+        <!-- TAB 1: ⚡ 스마트 계산기 (Hazmat Calculator) -->
+        <!-- ======================================================== -->
         <section id="tab-calc" class="tab-content active space-y-3.5">
             
             <!-- Quick Chips Carousel -->
-            <div class="bg-[#121b2d] p-3 rounded-2xl border border-slate-800 shadow-md">
-                <label class="block text-xs font-bold text-slate-400 mb-2 flex items-center justify-between">
-                    <span>⚡ 자주 적발되는 주요 위험물 원터치 선택</span>
-                    <span class="text-[10px] text-blue-400">총 18종 DB</span>
-                </label>
+            <div class="glass-card p-3.5">
+                <div class="flex items-center justify-between mb-2.5">
+                    <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>다빈도 적발 위험물 원터치 선택</span>
+                    </label>
+                    <span class="text-[10px] font-semibold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">18종 DB 탑재</span>
+                </div>
+                
                 <div class="flex space-x-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-                    <button type="button" onclick="quickSelectChem('신나', '제1석유류 비수용성', 200, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">신나 (200L)</button>
-                    <button type="button" onclick="quickSelectChem('휘발유', '제1석유류 비수용성', 200, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">휘발유 (200L)</button>
-                    <button type="button" onclick="quickSelectChem('경유', '제2석유류 비수용성', 1000, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">경유 (1,000L)</button>
-                    <button type="button" onclick="quickSelectChem('등유', '제2석유류 비수용성', 1000, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">등유 (1,000L)</button>
-                    <button type="button" onclick="quickSelectChem('톨루엔', '제1석유류 비수용성', 200, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">톨루엔 (200L)</button>
-                    <button type="button" onclick="quickSelectChem('아세톤', '제1석유류 수용성', 400, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">아세톤 (400L)</button>
-                    <button type="button" onclick="quickSelectChem('에탄올', '알코올류', 400, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">에탄올 (400L)</button>
-                    <button type="button" onclick="quickSelectChem('중유', '제3석유류 비수용성', 2000, 'L')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">중유 (2,000L)</button>
-                    <button type="button" onclick="quickSelectChem('질산염류', '제1류 산화성고체', 300, 'kg')" class="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-200 font-semibold whitespace-nowrap active:scale-95 transition-all">질산염류 (300kg)</button>
+                    <button type="button" onclick="quickSelectChem('신나', '제1석유류 비수용성', 200, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">신나 (200L)</button>
+                    <button type="button" onclick="quickSelectChem('휘발유', '제1석유류 비수용성', 200, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">휘발유 (200L)</button>
+                    <button type="button" onclick="quickSelectChem('경유', '제2석유류 비수용성', 1000, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">경유 (1,000L)</button>
+                    <button type="button" onclick="quickSelectChem('등유', '제2석유류 비수용성', 1000, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">등유 (1,000L)</button>
+                    <button type="button" onclick="quickSelectChem('톨루엔', '제1석유류 비수용성', 200, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">톨루엔 (200L)</button>
+                    <button type="button" onclick="quickSelectChem('아세톤', '제1석유류 수용성', 400, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">아세톤 (400L)</button>
+                    <button type="button" onclick="quickSelectChem('에탄올', '알코올류', 400, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">에탄올 (400L)</button>
+                    <button type="button" onclick="quickSelectChem('중유', '제3석유류 비수용성', 2000, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">중유 (2,000L)</button>
+                    <button type="button" onclick="quickSelectChem('윤활유', '제4석유류', 6000, 'L')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">윤활유 (6,000L)</button>
+                    <button type="button" onclick="quickSelectChem('질산염류', '제1류 산화성고체', 300, 'kg')" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-blue-600/30 border border-slate-700 text-slate-100 font-bold whitespace-nowrap">질산염류 (300kg)</button>
                 </div>
             </div>
 
             <!-- Input Box -->
-            <div class="bg-[#121b2d] p-4 rounded-2xl border border-slate-800 shadow-md space-y-3">
+            <div class="glass-card p-4 space-y-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5">위험물 품명 / 물질명</label>
-                    <div class="relative">
-                        <input type="text" id="calc-chem-name" placeholder="품명 직접입력 또는 상단 칩 선택" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
-                    </div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                        <span>위험물 품명 / 화학물질명</span>
+                        <span id="calc-chem-class-badge" class="text-[10px] text-blue-400 font-bold">제1석유류 비수용성</span>
+                    </label>
+                    <input type="text" id="calc-chem-name" value="신나" placeholder="품명 직접입력 또는 상단 칩 선택" class="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-3.5 py-3 text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                     <div>
-                        <span class="text-slate-400">품명분류:</span>
-                        <span id="calc-chem-class" class="font-bold text-blue-400 ml-1">-</span>
+                        <span class="text-slate-400">품명 기준:</span>
+                        <span id="calc-chem-class" class="font-bold text-blue-400 ml-1">제1석유류 비수용성</span>
                     </div>
                     <div>
                         <span class="text-slate-400">법정지정수량:</span>
-                        <span id="calc-chem-desig" class="font-bold text-slate-200 ml-1">-</span>
+                        <span id="calc-chem-desig" class="font-bold text-slate-100 ml-1">200 L</span>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1.5">적발 수량 입력</label>
                     <div class="flex space-x-2">
-                        <input type="number" id="calc-chem-qty" placeholder="수량 입력 (예: 500)" class="flex-1 bg-slate-900/90 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        <input type="number" id="calc-chem-qty" inputmode="decimal" placeholder="수량 입력 (예: 500)" class="flex-1 bg-slate-900/90 border border-slate-700 rounded-xl px-3.5 py-3 text-base font-bold text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all">
                         <span id="calc-chem-unit" class="flex items-center justify-center px-4 bg-slate-800 border border-slate-700 rounded-xl text-sm font-bold text-slate-300">L</span>
                     </div>
-                    <!-- Quick Increment Buttons -->
+                    <!-- Quick Increment Dial Buttons -->
                     <div class="grid grid-cols-4 gap-1.5 mt-2">
-                        <button type="button" onclick="addQty(100)" class="py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-[11px] font-semibold text-slate-300 border border-slate-700 active:scale-95">+100</button>
-                        <button type="button" onclick="addQty(200)" class="py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-[11px] font-semibold text-slate-300 border border-slate-700 active:scale-95">+200</button>
-                        <button type="button" onclick="addQty(500)" class="py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-[11px] font-semibold text-slate-300 border border-slate-700 active:scale-95">+500</button>
-                        <button type="button" onclick="addQty(1000)" class="py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-[11px] font-semibold text-slate-300 border border-slate-700 active:scale-95">+1,000</button>
+                        <button type="button" onclick="addQty(100)" class="btn-touch py-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-200 border border-slate-700">+100</button>
+                        <button type="button" onclick="addQty(200)" class="btn-touch py-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-200 border border-slate-700">+200</button>
+                        <button type="button" onclick="addQty(500)" class="btn-touch py-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-200 border border-slate-700">+500</button>
+                        <button type="button" onclick="addQty(1000)" class="btn-touch py-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-200 border border-slate-700">+1,000</button>
                     </div>
                 </div>
 
-                <button type="button" onclick="addItemToCalc()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition-all active:scale-98">
+                <button type="button" onclick="addItemToCalc()" class="btn-touch w-full py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-xl text-sm font-extrabold shadow-neon-blue flex items-center justify-center space-x-2">
                     <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                    <span>적발 품목 목록에 추가</span>
+                    <span>적발 품목 추가 및 배수 합산</span>
                 </button>
             </div>
 
             <!-- Items List -->
             <div id="calc-items-container" class="space-y-2">
-                <!-- Dynamically added rows -->
+                <!-- Dynamically populated rows -->
             </div>
 
             <!-- Real-time Assessment Result Banner -->
-            <div id="calc-assessment-banner" class="hidden p-4 rounded-2xl border transition-all shadow-xl">
-                <div class="flex items-start space-x-3">
-                    <div id="calc-banner-icon" class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"></div>
-                    <div class="flex-1">
+            <div id="calc-assessment-banner" class="hidden glass-card p-4 transition-all">
+                <div class="flex items-start space-x-3.5">
+                    <div id="calc-banner-icon" class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"></div>
+                    <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between">
-                            <h3 id="calc-banner-title" class="text-base font-extrabold tracking-tight"></h3>
-                            <span id="calc-banner-multiple" class="text-base font-black font-mono"></span>
+                            <h3 id="calc-banner-title" class="text-base font-extrabold tracking-tight truncate"></h3>
+                            <span id="calc-banner-multiple" class="text-base font-black font-mono shrink-0 ml-2"></span>
                         </div>
-                        <div id="calc-banner-desc" class="text-xs text-slate-300 mt-1.5 leading-relaxed"></div>
+                        <div id="calc-banner-desc" class="text-xs text-slate-300 mt-2 leading-relaxed"></div>
                     </div>
                 </div>
-                <div class="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between">
-                    <span class="text-[11px] text-slate-400">현장 후속 조치</span>
-                    <button type="button" onclick="transferToDocTab()" class="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-bold flex items-center space-x-1.5 active:scale-95">
+                <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-400">현장 후속 단속 절차</span>
+                    <button type="button" onclick="transferToDocTab()" class="btn-touch px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold flex items-center space-x-1.5 border border-white/10 shadow-sm">
                         <span>📝 위반 서식 바로 작성</span>
                         <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </button>
@@ -192,22 +280,24 @@
 
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 2: 📝 서식 (Statutory Documents) -->
-        <!-- ========================================== -->
+        <!-- ======================================================== -->
+        <!-- TAB 2: 📝 법정 서식 (Statutory Documents) -->
+        <!-- ======================================================== -->
         <section id="tab-docs" class="tab-content space-y-3.5">
-            <div class="bg-[#121b2d] p-4 rounded-2xl border border-slate-800 shadow-md space-y-3">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h2 class="text-sm font-extrabold text-white flex items-center space-x-1.5">
-                        <i data-lucide="file-signature" class="w-4 h-4 text-blue-400"></i>
-                        <span>소방관계법령 위반 법정 서식 생성</span>
+            <div class="glass-card p-4 space-y-3.5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <h2 class="text-sm font-extrabold text-white flex items-center space-x-2">
+                        <div class="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+                            <i data-lucide="file-signature" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <span>소방관계법령 위반 법정 서식 자동완성</span>
                     </h2>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">서식 종류</label>
-                    <select id="doc-type-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
-                        <option value="violation_confirmation">소방관계법령 위반사실 확인서 (법정 표준)</option>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">작성 서식 종류 선택</label>
+                    <select id="doc-type-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-medium focus:outline-none focus:border-blue-500">
+                        <option value="violation_confirmation">소방관계법령 위반사실 확인서 (법정 표준 서식)</option>
                         <option value="admission_statement">피의자 자인서 (현장 자백·자인 서약서)</option>
                         <option value="seizure_receipt">임의제출서 및 압수목록 교부서</option>
                     </select>
@@ -215,65 +305,65 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">상호 또는 사업장명</label>
-                    <input type="text" id="doc-biz-name" placeholder="예: (주)한국정밀 화성공장" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    <input type="text" id="doc-biz-name" placeholder="예: (주)한국정밀 화성공장" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">대표자(피조사자) 성명</label>
-                        <input type="text" id="doc-rep-name" placeholder="홍길동" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs font-bold text-slate-300 mb-1">피조사자 성명</label>
+                        <input type="text" id="doc-rep-name" placeholder="홍길동" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">직책</label>
-                        <input type="text" id="doc-rep-position" value="대표이사" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                        <input type="text" id="doc-rep-position" value="대표이사" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">단속 현장 상세 주소</label>
-                    <input type="text" id="doc-location" placeholder="예: 경기도 화성시 남양읍 공장 뒤편 나대지" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    <input type="text" id="doc-location" placeholder="예: 경기도 화성시 남양읍 공장 뒤편 나대지" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">단속관 소속</label>
-                        <input type="text" id="doc-org" value="화성소방서 특별사법경찰" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                        <input type="text" id="doc-org" value="화성소방서 특별사법경찰" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">단속관 성명</label>
-                        <input type="text" id="doc-inspector" value="소방위 이단속" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                        <input type="text" id="doc-inspector" value="소방위 이단속" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
-                <button type="button" onclick="generateMobileDoc()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 active:scale-98">
-                    <i data-lucide="file-check" class="w-4 h-4"></i>
+                <button type="button" onclick="generateMobileDoc()" class="btn-touch w-full py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white rounded-xl text-sm font-extrabold shadow-neon-blue flex items-center justify-center space-x-2">
+                    <i data-lucide="file-check-2" class="w-4 h-4"></i>
                     <span>법정 서식 원클릭 완성</span>
                 </button>
             </div>
 
-            <!-- Generated Document Result -->
-            <div id="doc-result-card" class="hidden bg-[#121b2d] p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+            <!-- Generated Document Result Card -->
+            <div id="doc-result-card" class="hidden glass-card p-4 space-y-3 shadow-2xl">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-emerald-400 flex items-center space-x-1">
-                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-                        <span id="doc-result-title">서식 작성 완료</span>
+                    <span class="text-xs font-bold text-emerald-400 flex items-center space-x-1.5">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span id="doc-result-title">서식 완성 (법적 효력 검토 완료)</span>
                     </span>
-                    <span class="text-[10px] text-slate-400">현장 출력 및 전송 준비</span>
+                    <span class="text-[10px] text-slate-400">현장 즉시 복사 및 전송</span>
                 </div>
 
-                <textarea id="doc-result-text" rows="11" readonly class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs font-mono text-slate-200 leading-relaxed"></textarea>
+                <textarea id="doc-result-text" rows="12" readonly class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-xs font-mono text-slate-100 leading-relaxed shadow-inner"></textarea>
 
                 <!-- Action Button Grid -->
                 <div class="grid grid-cols-3 gap-2 pt-1">
-                    <button type="button" onclick="copyDocText()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-1 border border-slate-700 active:scale-95">
+                    <button type="button" onclick="copyDocText()" class="btn-touch py-3 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-bold flex items-center justify-center space-x-1 border border-slate-700 shadow-sm">
                         <i data-lucide="copy" class="w-3.5 h-3.5 text-blue-400"></i>
                         <span>텍스트 복사</span>
                     </button>
-                    <button type="button" onclick="shareDocText()" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1 active:scale-95 shadow-md shadow-emerald-600/30">
+                    <button type="button" onclick="shareDocText()" class="btn-touch py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1 shadow-lg shadow-emerald-600/30">
                         <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
                         <span>카톡·문자 전송</span>
                     </button>
-                    <button type="button" onclick="window.print()" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1 active:scale-95 shadow-md shadow-indigo-600/30">
+                    <button type="button" onclick="window.print()" class="btn-touch py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1 shadow-lg shadow-indigo-600/30">
                         <i data-lucide="printer" class="w-3.5 h-3.5"></i>
                         <span>인쇄·PDF</span>
                     </button>
@@ -281,37 +371,39 @@
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 3: 📸 채증 (Evidence) -->
-        <!-- ========================================== -->
+        <!-- ======================================================== -->
+        <!-- TAB 3: 📸 현장 채증 (Smart Evidence) -->
+        <!-- ======================================================== -->
         <section id="tab-evidence" class="tab-content space-y-3.5">
-            <div class="bg-[#121b2d] p-4 rounded-2xl border border-slate-800 shadow-md space-y-3">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h2 class="text-sm font-extrabold text-white flex items-center space-x-1.5">
-                        <i data-lucide="camera" class="w-4 h-4 text-blue-400"></i>
+            <div class="glass-card p-4 space-y-3.5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <h2 class="text-sm font-extrabold text-white flex items-center space-x-2">
+                        <div class="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+                            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                        </div>
                         <span>현장 채증 사진 촬영 및 증거 라벨링</span>
                     </h2>
                 </div>
 
-                <div class="p-4 border-2 border-dashed border-slate-700 rounded-2xl text-center space-y-3 bg-slate-900/50">
-                    <div class="w-12 h-12 rounded-full bg-blue-600/20 text-blue-400 mx-auto flex items-center justify-center border border-blue-500/30">
-                        <i data-lucide="camera" class="w-6 h-6"></i>
+                <div class="p-5 border-2 border-dashed border-slate-700/80 rounded-2xl text-center space-y-3 bg-slate-900/40">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-400 mx-auto flex items-center justify-center border border-blue-500/30 shadow-neon-blue">
+                        <i data-lucide="aperture" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <p class="text-xs font-bold text-slate-200">현장 위험물 용기 및 저장 장소 촬영</p>
-                        <p class="text-[10px] text-slate-400 mt-0.5">촬영 즉시 타임스탬프와 함께 로컬 채증 기록에 보존됩니다</p>
+                        <p class="text-xs font-bold text-slate-100">현장 위험물 용기 및 저장 장소 촬영</p>
+                        <p class="text-[11px] text-slate-400 mt-1">촬영 즉시 타임스탬프와 함께 로컬 채증 기록에 보존됩니다</p>
                     </div>
 
                     <!-- Hidden file inputs -->
                     <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden" onchange="handleEvidencePhoto(event)">
                     <input type="file" id="gallery-select-input" accept="image/*" class="hidden" onchange="handleEvidencePhoto(event)">
 
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button type="button" onclick="document.getElementById('camera-capture-input').click()" class="py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 active:scale-95 shadow-lg shadow-blue-600/30">
-                            <i data-lucide="aperture" class="w-4 h-4"></i>
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <button type="button" onclick="document.getElementById('camera-capture-input').click()" class="btn-touch py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 shadow-neon-blue">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
                             <span>카메라 즉시 촬영</span>
                         </button>
-                        <button type="button" onclick="document.getElementById('gallery-select-input').click()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 border border-slate-700 active:scale-95">
+                        <button type="button" onclick="document.getElementById('gallery-select-input').click()" class="btn-touch py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 border border-slate-700">
                             <i data-lucide="image" class="w-4 h-4 text-emerald-400"></i>
                             <span>갤러리에서 선택</span>
                         </button>
@@ -319,80 +411,83 @@
                 </div>
 
                 <!-- 4대 현장 채증 체크리스트 -->
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2">
-                    <span class="text-xs font-bold text-slate-300 block">📋 특사경 현장 필수 채증 포인트</span>
-                    <label class="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer">
-                        <input type="checkbox" class="rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0">
+                <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-800 space-y-2.5">
+                    <span class="text-xs font-extrabold text-slate-200 flex items-center gap-1.5">
+                        <i data-lucide="check-square" class="w-4 h-4 text-blue-400"></i>
+                        <span>소방특사경 현장 필수 채증 체크리스트</span>
+                    </span>
+                    <label class="flex items-center space-x-2.5 text-xs text-slate-300 cursor-pointer p-1">
+                        <input type="checkbox" class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-0">
                         <span>위험물 용기 표시사항(품명, 수량, 주의사항) 식별 촬영</span>
                     </label>
-                    <label class="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer">
-                        <input type="checkbox" class="rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0">
+                    <label class="flex items-center space-x-2.5 text-xs text-slate-300 cursor-pointer p-1">
+                        <input type="checkbox" class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-0">
                         <span>무허가 적치 장소 원경(전경) 및 주변 건축물과의 이격 촬영</span>
                     </label>
-                    <label class="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer">
-                        <input type="checkbox" class="rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0">
+                    <label class="flex items-center space-x-2.5 text-xs text-slate-300 cursor-pointer p-1">
+                        <input type="checkbox" class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-0">
                         <span>드럼통·탱크 실측 수량 및 배관 연결 호스 취급 상태 촬영</span>
                     </label>
-                    <label class="flex items-center space-x-2 text-xs text-slate-400 cursor-pointer">
-                        <input type="checkbox" class="rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0">
+                    <label class="flex items-center space-x-2.5 text-xs text-slate-300 cursor-pointer p-1">
+                        <input type="checkbox" class="w-4 h-4 rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-0">
                         <span>피의자 신분증 및 사업자등록증 대조·확인</span>
                     </label>
                 </div>
 
                 <!-- Photo Preview List -->
                 <div id="evidence-photos-container" class="grid grid-cols-2 gap-2 pt-1">
-                    <!-- Evidence photos appear here -->
+                    <!-- Evidence photos dynamically appear here -->
                 </div>
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- TAB 4: 🤖 AI 특사경 (AI Cop Chat) -->
-        <!-- ========================================== -->
-        <section id="tab-ai" class="tab-content space-y-3">
-            <div class="bg-[#121b2d] p-3 rounded-2xl border border-slate-800 shadow-md flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
-                        <i data-lucide="bot" class="w-4 h-4"></i>
+        <!-- ======================================================== -->
+        <!-- TAB 4: 🤖 AI 특사경 챗봇 (AI Cop Assistant) -->
+        <!-- ======================================================== -->
+        <section id="tab-ai" class="tab-content space-y-3.5">
+            <div class="glass-card p-3.5 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30 shadow-neon-blue">
+                        <i data-lucide="bot" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-xs font-bold text-white">AI 위험물 특사경 상담</h2>
-                        <p class="text-[10px] text-slate-400">사례집 표준 답변 & 법령 근거 즉시 출력</p>
+                        <h2 class="text-xs font-bold text-white">AI 위험물 특사경 법률상담</h2>
+                        <p class="text-[10px] text-slate-400">사례집 표준 답변 & 법조문 즉시 인용</p>
                     </div>
                 </div>
-                <select id="chat-model-select" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-slate-200">
+                <select id="chat-model-select" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-bold focus:outline-none">
                     <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash</option>
                     <option value="gpt-4o-mini">🧠 GPT-4o Mini</option>
                 </select>
             </div>
 
             <!-- Quick Question Chips -->
-            <div class="flex space-x-1.5 overflow-x-auto pb-1 text-[11px]">
-                <button type="button" onclick="sendQuickPrompt('공장 보수공사를 위한 위험물 임시저장 승인 최대 기간은?')" class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95">임시저장 최대기간?</button>
-                <button type="button" onclick="sendQuickPrompt('신나 80L 야외 방치 시 경기도 조례 위반 벌칙은?')" class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95">0.4배 조례 벌칙?</button>
-                <button type="button" onclick="sendQuickPrompt('위험물안전관리자 해임 후 선임 기한과 선임신고 기한은?')" class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95">안전관리자 선임기한?</button>
-                <button type="button" onclick="sendQuickPrompt('동일 방유제 내 탱크 3기 설치 시 방유제 최소 용량 산정 기준은?')" class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap active:scale-95">방유제 용량 기준?</button>
+            <div class="flex space-x-1.5 overflow-x-auto pb-1 text-xs">
+                <button type="button" onclick="sendQuickPrompt('공장 보수공사를 위한 위험물 임시저장 승인 최대 기간은?')" class="btn-touch px-3 py-1.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700 font-semibold whitespace-nowrap">임시저장 최대기간?</button>
+                <button type="button" onclick="sendQuickPrompt('신나 80L 야외 방치 시 경기도 조례 위반 벌칙은?')" class="btn-touch px-3 py-1.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700 font-semibold whitespace-nowrap">0.4배 조례 벌칙?</button>
+                <button type="button" onclick="sendQuickPrompt('위험물안전관리자 해임 후 선임 기한과 선임신고 기한은?')" class="btn-touch px-3 py-1.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700 font-semibold whitespace-nowrap">안전관리자 선임기한?</button>
+                <button type="button" onclick="sendQuickPrompt('동일 방유제 내 탱크 3기 설치 시 방유제 최소 용량 산정 기준은?')" class="btn-touch px-3 py-1.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700 font-semibold whitespace-nowrap">방유제 용량 기준?</button>
             </div>
 
             <!-- Chat Messages Log Box -->
-            <div id="mobile-chat-log" class="bg-[#121b2d] border border-slate-800 rounded-2xl p-3 h-[420px] overflow-y-auto space-y-3 text-xs">
+            <div id="mobile-chat-log" class="glass-card p-3.5 h-[430px] overflow-y-auto space-y-3.5 text-xs">
                 <!-- Welcome Agent Message -->
-                <div class="chat-bubble-agent p-3 shadow-sm space-y-1">
-                    <div class="font-bold text-blue-400 flex items-center space-x-1">
-                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                <div class="bubble-agent p-3.5 shadow-sm space-y-1.5">
+                    <div class="font-extrabold text-blue-400 text-xs flex items-center space-x-1">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
                         <span>소방특사경 현장 AI 자문관</span>
                     </div>
-                    <p class="text-slate-300 leading-relaxed">
-                        안녕하십니까, 현장 단속관님. 『위험물 민원 질의응답 사례집』 표준 규정에 따라 법조문과 처벌 수위를 단정적으로 답변드립니다. 궁금하신 사항을 입력하세요.
+                    <p class="text-slate-200 leading-relaxed font-normal">
+                        안녕하십니까, 현장 단속관님. 『위험물 민원 질의응답 사례집』 표준 규정에 따라 법조문과 단정적 결론을 즉시 회신드립니다. 궁금하신 사항을 질의해 주십시오.
                     </p>
                 </div>
             </div>
 
             <!-- Chat Input Box -->
-            <div class="sticky bottom-[76px] bg-[#090d16]/90 backdrop-blur-md pt-1 pb-1">
-                <form onsubmit="handleMobileChatSubmit(event)" class="flex space-x-1.5">
-                    <input type="text" id="mobile-chat-input" placeholder="질문 입력 (예: 임시저장 최대 기간은?)" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
-                    <button type="submit" id="mobile-chat-send-btn" class="px-4 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center shrink-0 shadow-md shadow-blue-600/30">
+            <div class="sticky bottom-[78px] pt-1 pb-1 z-30">
+                <form onsubmit="handleMobileChatSubmit(event)" class="flex space-x-2">
+                    <input type="text" id="mobile-chat-input" placeholder="질문 입력 (예: 임시저장 최대 기간은?)" class="flex-1 bg-slate-900/95 border border-slate-700 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-lg">
+                    <button type="submit" id="mobile-chat-send-btn" class="btn-touch px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-xs font-bold flex items-center justify-center shrink-0 shadow-neon-blue">
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
                 </form>
@@ -401,35 +496,90 @@
 
     </main>
 
-    <!-- Bottom Sticky Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#0c1322]/95 backdrop-blur-lg border-t border-slate-800 px-3 py-2 safe-bottom shadow-2xl">
-        <div class="max-w-lg mx-auto grid grid-cols-4 gap-1">
-            <button type="button" onclick="switchMobileTab('tab-calc')" id="btn-tab-calc" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-xl text-blue-400 font-bold transition-all active:scale-95">
+    <!-- Bottom Sticky Navigation Bar (Floating Glass Island) -->
+    <nav class="fixed bottom-3 left-3 right-3 z-50 bg-[#090e1a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-2 py-2 safe-bottom shadow-2xl max-w-lg mx-auto">
+        <div class="grid grid-cols-4 gap-1">
+            <button type="button" onclick="switchMobileTab('tab-calc')" id="btn-tab-calc" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-blue-400 font-bold transition-all">
                 <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px]">계산기</span>
-                <span class="w-1 h-1 rounded-full bg-blue-500 mt-0.5"></span>
+                <span class="text-[10px] tracking-tight">계산기</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shadow-neon-blue"></span>
             </button>
-            <button type="button" onclick="switchMobileTab('tab-docs')" id="btn-tab-docs" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all active:scale-95">
+            <button type="button" onclick="switchMobileTab('tab-docs')" id="btn-tab-docs" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 font-semibold transition-all">
                 <i data-lucide="file-text" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px]">위반서식</span>
-                <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+                <span class="text-[10px] tracking-tight">위반서식</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
-            <button type="button" onclick="switchMobileTab('tab-evidence')" id="btn-tab-evidence" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all active:scale-95">
+            <button type="button" onclick="switchMobileTab('tab-evidence')" id="btn-tab-evidence" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 font-semibold transition-all">
                 <i data-lucide="camera" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px]">현장채증</span>
-                <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+                <span class="text-[10px] tracking-tight">현장채증</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
-            <button type="button" onclick="switchMobileTab('tab-ai')" id="btn-tab-ai" class="nav-tab-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all active:scale-95">
+            <button type="button" onclick="switchMobileTab('tab-ai')" id="btn-tab-ai" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-400 font-semibold transition-all">
                 <i data-lucide="bot" class="w-5 h-5 mb-0.5"></i>
-                <span class="text-[10px]">AI특사경</span>
-                <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+                <span class="text-[10px] tracking-tight">AI특사경</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
         </div>
     </nav>
 
+    <!-- Slide-up Bottom Sheet Modal (법정 불변 수치 퀵 핸드북) -->
+    <div id="sheet-backdrop" onclick="closeStatuteSheet()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 backdrop-hidden"></div>
+    <div id="statute-bottom-sheet" class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-50 bg-[#0f172a] border-t border-slate-700/80 rounded-t-3xl p-5 shadow-2xl sheet-hidden max-h-[82vh] overflow-y-auto">
+        <!-- Drag Handle -->
+        <div class="w-12 h-1.5 bg-slate-600 rounded-full mx-auto mb-4"></div>
+
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                <i data-lucide="scale" class="w-4 h-4 text-amber-400"></i>
+                <span>위험물안전관리법 핵심 불변 수치 사전</span>
+            </h3>
+            <button type="button" onclick="closeStatuteSheet()" class="p-1 rounded-lg text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="space-y-3 mt-3.5 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="font-extrabold text-blue-400 mb-1">1. 임시저장 승인 최대 기간 : 90일 이내</div>
+                <p class="text-slate-300">공사 등 임시 보관 시 관할 소방서장의 승인을 받아 저장할 수 있는 법정 최대 기간은 90일 이내임. (법 제5조제2항 단서)</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="font-extrabold text-blue-400 mb-1">2. 안전관리자 선임(30일) 및 선임신고(14일)</div>
+                <p class="text-slate-300">해임일로부터 30일 이내 선임, 선임한 날부터 14일 이내 소방서장 신고. 직무대리자 지정은 30일 이내. (법 제15조)</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="font-extrabold text-blue-400 mb-1">3. 옥외탱크 방유제 용량 : 110% 이상</div>
+                <p class="text-slate-300">탱크 1기인 경우 110% 이상, 2기 이상인 경우 최대 탱크 1기의 110% 이상 유효용량 확보. (시행규칙 별표 6)</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="font-extrabold text-blue-400 mb-1">4. 정전기 방지 접지설비 접지저항 : 100Ω 이하</div>
+                <p class="text-slate-300">인화성 액체 배관 및 설비의 정전기 재해 방지를 위한 접지저항 기준값은 100옴 이하. (시행규칙 별표 4)</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="font-extrabold text-blue-400 mb-1">5. 수용성 액체 판정 : 물 100g당 10g 이상</div>
+                <p class="text-slate-300">1기압 20℃ 상태에서 물 100g에 10g 이상 용해되는 물질만 수용성 기준 적용. (시행령 별표 1)</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <div class="font-extrabold text-blue-400 mb-1">6. 알코올류 농도 판정 : 60중량% 이상</div>
+                <p class="text-slate-300">탄소수 1~3 포화1가 알코올 함유량이 60중량% 이상이어야 제4류 알코올류(지정수량 400L) 해당. (시행령 별표 1)</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Client-side Logic Script -->
     <script>
-        // Tab switching
+        // Bottom Sheet Functions
+        function openStatuteSheet() {
+            document.getElementById('sheet-backdrop').classList.remove('backdrop-hidden');
+            document.getElementById('statute-bottom-sheet').classList.remove('sheet-hidden');
+            lucide.createIcons();
+        }
+        function closeStatuteSheet() {
+            document.getElementById('sheet-backdrop').classList.add('backdrop-hidden');
+            document.getElementById('statute-bottom-sheet').classList.add('sheet-hidden');
+        }
+
+        // Tab Switching Function
         function switchMobileTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
@@ -437,21 +587,23 @@
             document.querySelectorAll('.nav-tab-btn').forEach(btn => {
                 btn.classList.remove('text-blue-400', 'font-bold');
                 btn.classList.add('text-slate-400', 'font-semibold');
-                btn.querySelector('span:last-child').classList.remove('bg-blue-500');
-                btn.querySelector('span:last-child').classList.add('bg-transparent');
+                const dot = btn.querySelector('span:last-child');
+                dot.classList.remove('bg-blue-500', 'shadow-neon-blue');
+                dot.classList.add('bg-transparent');
             });
 
             const activeBtn = document.getElementById('btn-' + tabId);
             activeBtn.classList.remove('text-slate-400', 'font-semibold');
             activeBtn.classList.add('text-blue-400', 'font-bold');
-            activeBtn.querySelector('span:last-child').classList.remove('bg-transparent');
-            activeBtn.querySelector('span:last-child').classList.add('bg-blue-500');
+            const activeDot = activeBtn.querySelector('span:last-child');
+            activeDot.classList.remove('bg-transparent');
+            activeDot.classList.add('bg-blue-500', 'shadow-neon-blue');
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
             lucide.createIcons();
         }
 
-        // Calculator state
+        // Calculator State
         let calcItems = [];
         let currentChemDesig = 200;
         let currentChemUnit = 'L';
@@ -460,6 +612,7 @@
         function quickSelectChem(name, cls, desig, unit) {
             document.getElementById('calc-chem-name').value = name;
             document.getElementById('calc-chem-class').textContent = cls;
+            document.getElementById('calc-chem-class-badge').textContent = cls;
             document.getElementById('calc-chem-desig').textContent = `${desig.toLocaleString()} ${unit}`;
             document.getElementById('calc-chem-unit').textContent = unit;
             currentChemClass = cls;
@@ -478,7 +631,7 @@
             const qty = parseFloat(document.getElementById('calc-chem-qty').value);
 
             if (!name || isNaN(qty) || qty <= 0) {
-                alert('위험물 품명을 입력하고 수량을 0보다 크게 지정해 주세요.');
+                alert('위험물 품명을 입력하고 수량을 올바르게 입력해 주세요.');
                 return;
             }
 
@@ -514,16 +667,16 @@
             calcItems.forEach((item, idx) => {
                 totalMultiple += item.multiple;
                 const row = document.createElement('div');
-                row.className = 'bg-[#121b2d] border border-slate-800 p-3 rounded-xl flex items-center justify-between shadow-xs';
+                row.className = 'glass-card p-3 rounded-2xl flex items-center justify-between border border-slate-800';
                 row.innerHTML = `
                     <div>
-                        <div class="text-xs font-bold text-white">${item.name} (${item.className})</div>
-                        <div class="text-[11px] text-slate-400 mt-0.5">
-                            적발량: <span class="text-slate-200 font-bold">${item.qty.toLocaleString()}${item.unit}</span> / 
-                            배수: <span class="text-blue-400 font-bold font-mono">${item.multiple.toFixed(2)}배</span>
+                        <div class="text-xs font-bold text-white">${item.name} <span class="text-blue-400 font-semibold text-[11px]">(${item.className})</span></div>
+                        <div class="text-[11px] text-slate-300 mt-0.5">
+                            적발량: <strong>${item.qty.toLocaleString()}${item.unit}</strong> | 
+                            지정배수: <span class="text-blue-400 font-extrabold font-mono">${item.multiple.toFixed(2)}배</span>
                         </div>
                     </div>
-                    <button type="button" onclick="removeCalcItem(${idx})" class="p-1.5 text-rose-400 hover:text-rose-300 rounded-lg hover:bg-rose-500/10">
+                    <button type="button" onclick="removeCalcItem(${idx})" class="btn-touch p-2 text-rose-400 hover:text-rose-300 rounded-xl hover:bg-rose-500/10">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 `;
@@ -537,42 +690,42 @@
             const multipleText = document.getElementById('calc-banner-multiple');
             const desc = document.getElementById('calc-banner-desc');
 
-            banner.className = 'p-4 rounded-2xl border transition-all shadow-xl block';
+            banner.className = 'glass-card p-4 transition-all block';
 
             if (totalMultiple >= 1.0) {
-                banner.classList.add('bg-rose-950/40', 'border-rose-500/60');
-                icon.className = 'w-9 h-9 rounded-xl bg-rose-600/30 text-rose-400 border border-rose-500/50 flex items-center justify-center shrink-0';
+                banner.classList.add('border-rose-500/70', 'bg-rose-950/30', 'shadow-neon-red');
+                icon.className = 'w-10 h-10 rounded-2xl bg-rose-600/30 text-rose-400 border border-rose-500/50 flex items-center justify-center shrink-0';
                 icon.innerHTML = '<i data-lucide="alert-octagon" class="w-5 h-5 text-rose-400"></i>';
                 title.textContent = '🚨 형사입건 대상 (지정수량 1.0배 이상)';
                 title.className = 'text-sm font-extrabold text-rose-400';
                 multipleText.textContent = `총 ${totalMultiple.toFixed(2)}배`;
-                multipleText.className = 'text-sm font-black font-mono text-rose-400';
+                multipleText.className = 'text-base font-black font-mono text-rose-400';
                 desc.innerHTML = `
-                    • <strong>위반 법조:</strong> 「위험물안전관리법」 제5조제1항 위반 (무허가 저장·취급)<br>
-                    • <strong>법정형:</strong> 3년 이하의 징역 또는 3천만원 이하의 벌금 (제34조제1호)<br>
-                    • <strong>단속 조치:</strong> 현장 채증 사진 촬영, 피의자 자인서 및 확인서 징구 즉시 착수
+                    • <strong>위반 조항:</strong> 「위험물안전관리법」 제5조제1항 위반 (무허가 저장·취급)<br>
+                    • <strong>법정 벌칙:</strong> 동법 제34조제1호 (3년 이하의 징역 또는 3천만원 이하의 벌금)<br>
+                    • <strong>단속 조치:</strong> 현장 채증 사진 촬영, 피의자 자인서 및 확인서 징구 착수
                 `;
             } else if (totalMultiple >= 0.2) {
-                banner.classList.add('bg-amber-950/40', 'border-amber-500/60');
-                icon.className = 'w-9 h-9 rounded-xl bg-amber-600/30 text-amber-400 border border-amber-500/50 flex items-center justify-center shrink-0';
+                banner.classList.add('border-amber-500/70', 'bg-amber-950/30', 'shadow-neon-amber');
+                icon.className = 'w-10 h-10 rounded-2xl bg-amber-600/30 text-amber-400 border border-amber-500/50 flex items-center justify-center shrink-0';
                 icon.innerHTML = '<i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400"></i>';
                 title.textContent = '⚠️ 시·도 조례 과태료 대상 (0.2배~1.0배)';
                 title.className = 'text-sm font-extrabold text-amber-400';
                 multipleText.textContent = `총 ${totalMultiple.toFixed(2)}배`;
-                multipleText.className = 'text-sm font-black font-mono text-amber-400';
+                multipleText.className = 'text-base font-black font-mono text-amber-400';
                 desc.innerHTML = `
-                    • <strong>위반 법조:</strong> 경기도 위험물안전관리 조례 제3조 (소량위험물 저장·취급 기준 위반)<br>
-                    • <strong>행정처분:</strong> 시정명령 및 200만원 이하의 과태료 부과<br>
-                    • <strong>단속 조치:</strong> 위반사실 확인서 징구 및 즉시 법정 안전장소 이동명령
+                    • <strong>위반 조항:</strong> 경기도 위험물안전관리 조례 제3조 (소량위험물 저장·취급 기준 위반)<br>
+                    • <strong>행정 처분:</strong> 시정명령 및 200만원 이하의 과태료 부과<br>
+                    • <strong>단속 조치:</strong> 위반사실 확인서 징구 및 즉시 안전한 장소로의 이동 명령
                 `;
             } else {
-                banner.classList.add('bg-emerald-950/40', 'border-emerald-500/60');
-                icon.className = 'w-9 h-9 rounded-xl bg-emerald-600/30 text-emerald-400 border border-emerald-500/50 flex items-center justify-center shrink-0';
+                banner.classList.add('border-emerald-500/70', 'bg-emerald-950/30');
+                icon.className = 'w-10 h-10 rounded-2xl bg-emerald-600/30 text-emerald-400 border border-emerald-500/50 flex items-center justify-center shrink-0';
                 icon.innerHTML = '<i data-lucide="shield-check" class="w-5 h-5 text-emerald-400"></i>';
-                title.textContent = '✅ 지정수량 0.2배 미만 (규제 미만)';
+                title.textContent = '✅ 지정수량 0.2배 미만 (규제 기준 미만)';
                 title.className = 'text-sm font-extrabold text-emerald-400';
                 multipleText.textContent = `총 ${totalMultiple.toFixed(2)}배`;
-                multipleText.className = 'text-sm font-black font-mono text-emerald-400';
+                multipleText.className = 'text-base font-black font-mono text-emerald-400';
                 desc.innerHTML = '법령 및 조례상 허가·신고 대상 미만입니다. 기본 소화설비 점검 및 화재 예방 지도를 권고합니다.';
             }
 
@@ -599,7 +752,7 @@
             let itemsSummary = "";
             let totalMult = 0;
             if (calcItems.length > 0) {
-                itemsSummary = calcItems.map(i => `${i.name} ${i.qty.toLocaleString()}${i.unit}(${i.multiple.toFixed(2)}배)`).join(', ');
+                itemsSummary = calcItems.map(i => `${i.name} ${i.qty.toLocaleString()}${i.unit} (${i.multiple.toFixed(2)}배)`).join(', ');
                 totalMult = calcItems.reduce((acc, c) => acc + c.multiple, 0);
             } else {
                 itemsSummary = "신나 500L (지정수량 200L 대비 2.50배)";
@@ -622,7 +775,7 @@
    - 위반 법조 : 「위험물안전관리법」 제5조제1항 위반 (무허가 저장·취급)
    - 법정 벌칙 : 동법 제34조제1호 (3년 이하의 징역 또는 3천만원 이하의 벌금)
 
-위 확인 내용은 본인이 현장에서 직접 입회하고 사실관계를 확인·진술한 내용과 틀림없음을 서약합니다.
+위 확인 내용은 본인이 현장에서 직접 입회하고 사실관계를 확인·진술한 내용과 틀림없음을 확인합니다.
 
 작성일자 : ${dateStr}
 
@@ -639,15 +792,15 @@
 
 본인은 ${dateStr} 경 상기 사업장 내에서 소방당국의 정식 설치허가를 득하지 아니한 채 [ ${itemsSummary} ] 총 지정수량 ${totalMult.toFixed(2)}배에 달하는 위험물을 무단 반입하여 저장 및 취급한 사실에 대하여, 소방특별사법경찰관의 현장 단속에 적발되어 모든 위반 사실을 숨김없이 인정합니다.
 
-관계 법령에 따른 어떠한 행정 및 형사 처벌도 달게 받을 것이며, 적발된 위험물은 지체 없이 적법한 저장소로 이동 조치할 것을 서약하며 본 자인서를 작성 제출합니다.
+향후 관계 법령에 따른 어떠한 행정 및 형사 처벌도 달게 받을 것이며, 적발된 위험물은 지체 없이 적법한 저장소로 안전하게 이동 조치할 것을 엄숙히 서약하며 본 자인서를 작성 제출합니다.
 
 ${dateStr}
 
-자인인(피의자) : ${repName}  (서명 또는 무인)`;
+자인인 (피의자) : ${repName}  (서명 또는 무인)`;
             } else {
                 generated = `【 임의제출서 및 압수목록 교부서 】
 
-제출인(소유자) : ${repName} (${bizName})
+제출인 (소유자) : ${repName} (${bizName})
 제  출  일  시 : ${dateStr}
 
 상기인은 「위험물안전관리법」 위반 혐의 사건과 관련하여 아래 위험물 시료 및 증거물을 수사관에게 자발적으로 임의제출하며, 이에 따른 압수목록을 정히 교부받았음을 확인합니다.
@@ -700,12 +853,12 @@ ${dateStr}
                 const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
 
                 const card = document.createElement('div');
-                card.className = 'relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md group';
+                card.className = 'relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 shadow-md group';
                 card.innerHTML = `
                     <img src="${e.target.result}" class="w-full h-32 object-cover">
-                    <div class="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-xs p-1.5 text-[10px] text-slate-300 flex justify-between items-center">
+                    <div class="absolute bottom-0 left-0 right-0 bg-black/75 backdrop-blur-xs p-1.5 text-[10px] text-slate-200 flex justify-between items-center font-bold">
                         <span>촬영 ${timeStr}</span>
-                        <span class="text-blue-400 font-bold">채증완료</span>
+                        <span class="text-blue-400">채증완료</span>
                     </div>
                 `;
                 container.prepend(card);
@@ -724,7 +877,7 @@ ${dateStr}
 
             // Append user bubble
             const userBubble = document.createElement('div');
-            userBubble.className = 'chat-bubble-user p-3 max-w-[85%] ml-auto text-xs leading-relaxed shadow-sm';
+            userBubble.className = 'bubble-user p-3.5 max-w-[85%] ml-auto text-xs leading-relaxed font-medium';
             userBubble.textContent = message;
             chatLog.appendChild(userBubble);
             input.value = '';
@@ -732,9 +885,9 @@ ${dateStr}
 
             // Loading bubble
             const loadingBubble = document.createElement('div');
-            loadingBubble.className = 'chat-bubble-agent p-3 max-w-[90%] text-xs text-slate-400 flex items-center space-x-2';
+            loadingBubble.className = 'bubble-agent p-3.5 max-w-[90%] text-xs text-slate-400 flex items-center space-x-2';
             loadingBubble.id = 'chat-loading-indicator';
-            loadingBubble.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin text-blue-400"></i><span>위험물 법령 및 사례집 검색 중...</span>';
+            loadingBubble.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin text-blue-400"></i><span>위험물 법령 및 사례집 표준 해석 검색 중...</span>';
             chatLog.appendChild(loadingBubble);
             chatLog.scrollTop = chatLog.scrollHeight;
             lucide.createIcons();
@@ -751,20 +904,20 @@ ${dateStr}
                 loadingBubble.remove();
 
                 const agentBubble = document.createElement('div');
-                agentBubble.className = 'chat-bubble-agent p-3 shadow-sm space-y-1.5';
+                agentBubble.className = 'bubble-agent p-3.5 shadow-sm space-y-1.5';
                 agentBubble.innerHTML = `
-                    <div class="font-bold text-blue-400 text-[11px] flex items-center justify-between">
-                        <span>답변 (소방청 사례집 기준)</span>
-                        <span class="text-[9px] text-slate-500">${data.model_used || modelId}</span>
+                    <div class="font-extrabold text-blue-400 text-[11px] flex items-center justify-between">
+                        <span>회신 요지 (사례집 표준 규정)</span>
+                        <span class="text-[9px] text-slate-400 font-mono">${data.model_used || modelId}</span>
                     </div>
-                    <div class="text-slate-200 leading-relaxed whitespace-pre-wrap">${data.response}</div>
+                    <div class="text-slate-100 leading-relaxed whitespace-pre-wrap font-normal">${data.response}</div>
                 `;
                 chatLog.appendChild(agentBubble);
             } catch (err) {
                 loadingBubble.remove();
                 const errBubble = document.createElement('div');
-                errBubble.className = 'chat-bubble-agent p-3 text-rose-400 text-xs';
-                errBubble.textContent = '⚠️ 응답 생성 중 오류가 발생했습니다: ' + err.message;
+                errBubble.className = 'bubble-agent p-3.5 text-rose-400 text-xs';
+                errBubble.textContent = '⚠️ 응답 생성 중 통신 오류가 발생했습니다: ' + err.message;
                 chatLog.appendChild(errBubble);
             }
 
@@ -777,10 +930,9 @@ ${dateStr}
             handleMobileChatSubmit(new Event('submit'));
         }
 
-        // Initialize icons on load
+        // Initialize icons and default value on load
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            // Default select thinners
             quickSelectChem('신나', '제1석유류 비수용성', 200, 'L');
         });
     </script>
