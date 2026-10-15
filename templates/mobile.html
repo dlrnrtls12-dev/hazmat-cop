@@ -932,25 +932,38 @@
     <!-- 📱 현장 공유 QR코드 모달 (Mobile QR Modal) -->
     <!-- ======================================================== -->
     <div id="mobile-qr-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
-        <div class="bg-[#0f172a] border border-slate-700 rounded-3xl p-6 w-full max-w-xs shadow-2xl text-center space-y-4">
+        <div class="bg-[#0f172a] border border-slate-700 rounded-3xl p-5 w-full max-w-xs shadow-2xl text-center space-y-3.5">
             <div class="flex items-center justify-between pb-2 border-b border-slate-800">
                 <div class="flex items-center space-x-2">
                     <div class="w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
                         <i data-lucide="qr-code" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="text-xs font-extrabold text-white">현장 공유 QR코드</h3>
+                    <h3 class="text-xs font-extrabold text-white">동료 현장공유 QR</h3>
                 </div>
                 <button type="button" onclick="closeMobileQrModal()" class="p-1 rounded-lg text-slate-400 hover:text-white">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <!-- High-contrast White Container for QR Code -->
-            <div id="mobile-qr-code-container" class="bg-white p-4 rounded-2xl mx-auto flex items-center justify-center w-48 h-48 shadow-lg">
-                <!-- QR code rendered dynamically -->
+            <!-- Mode Switch Tabs -->
+            <div class="flex items-center gap-1.5 p-1 bg-slate-800/80 rounded-xl border border-slate-700 text-[11px]">
+                <button type="button" id="m-btn-mode-public" onclick="switchMobileQrMode('public')" class="flex-1 py-1.5 px-2 font-bold rounded-lg transition-all flex items-center justify-center gap-1 bg-emerald-600 text-white shadow-xs">
+                    <i data-lucide="globe" class="w-3 h-3"></i>
+                    <span>LTE/5G (외부)</span>
+                </button>
+                <button type="button" id="m-btn-mode-wifi" onclick="switchMobileQrMode('wifi')" class="flex-1 py-1.5 px-2 font-bold rounded-lg transition-all flex items-center justify-center gap-1 bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="wifi" class="w-3 h-3"></i>
+                    <span>Wi-Fi (로컬)</span>
+                </button>
             </div>
 
-            <p class="text-[11px] text-slate-300 font-medium leading-relaxed">
+            <!-- High-contrast White Container for QR Code -->
+            <div id="mobile-qr-code-container" class="bg-white p-3.5 rounded-2xl mx-auto flex items-center justify-center w-44 h-44 shadow-lg">
+                <!-- QR code rendered dynamically -->
+                <span class="text-xs text-slate-400 font-bold">QR 생성 중...</span>
+            </div>
+
+            <p id="mobile-qr-guide-text" class="text-[11px] text-slate-300 font-medium leading-relaxed">
                 동료 단속관의 스마트폰 카메라로 QR 코드를 스캔하면 현재 모바일 화면으로 즉시 연결됩니다.
             </p>
 
@@ -1039,42 +1052,98 @@
         // Mobile Share QR Code Modal Functions
         let mobileQrInstance = null;
         let activeMobileShareUrl = "";
+        let mobileShareNetworkData = null;
+        let mobileQrCurrentMode = "public";
 
-        async function openMobileQrModal() {
+        async function openMobileQrModal(forceRefresh = false) {
             const modal = document.getElementById('mobile-qr-modal');
             modal.classList.remove('opacity-0', 'pointer-events-none');
             modal.classList.add('opacity-100');
 
             try {
-                const res = await fetch('/api/system/network-info');
-                const data = await res.json();
-                if (data.public_url) {
-                    activeMobileShareUrl = data.public_url.replace(/\/+$/, '') + '/m';
-                } else if (data.mobile_url) {
-                    activeMobileShareUrl = data.mobile_url.replace(/\/+$/, '') + '/m';
-                } else {
-                    activeMobileShareUrl = window.location.origin + '/m';
+                if (!mobileShareNetworkData || forceRefresh) {
+                    const res = await fetch('/api/system/network-info?t=' + Date.now());
+                    mobileShareNetworkData = await res.json();
                 }
+
+                // If user is already on a public HTTPS domain, prioritize current working domain
+                if (window.location.protocol === 'https:' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+                    if (mobileShareNetworkData) {
+                        mobileShareNetworkData.public_url = window.location.origin;
+                        mobileShareNetworkData.public_mobile_url = window.location.origin + '/m';
+                    }
+                }
+
+                if ((!mobileShareNetworkData || !mobileShareNetworkData.public_url) && mobileQrCurrentMode === 'public') {
+                    mobileQrCurrentMode = 'wifi';
+                }
+                applyMobileQrMode(mobileQrCurrentMode);
             } catch (err) {
                 activeMobileShareUrl = window.location.origin + '/m';
+                renderMobileQr(activeMobileShareUrl);
+                const urlText = document.getElementById('mobile-qr-url-text');
+                if (urlText) urlText.textContent = activeMobileShareUrl;
+            }
+            lucide.createIcons();
+        }
+
+        function switchMobileQrMode(mode) {
+            mobileQrCurrentMode = mode;
+            applyMobileQrMode(mode);
+        }
+
+        function applyMobileQrMode(mode) {
+            const btnPublic = document.getElementById('m-btn-mode-public');
+            const btnWifi = document.getElementById('m-btn-mode-wifi');
+            const guideText = document.getElementById('mobile-qr-guide-text');
+            const urlText = document.getElementById('mobile-qr-url-text');
+
+            if (mode === 'public') {
+                if (btnPublic) {
+                    btnPublic.className = "flex-1 py-1.5 px-2 font-bold rounded-lg transition-all flex items-center justify-center gap-1 bg-emerald-600 text-white shadow-xs";
+                }
+                if (btnWifi) {
+                    btnWifi.className = "flex-1 py-1.5 px-2 font-bold rounded-lg transition-all flex items-center justify-center gap-1 bg-slate-800 text-slate-400 hover:text-white";
+                }
+                if (mobileShareNetworkData && mobileShareNetworkData.public_url) {
+                    activeMobileShareUrl = mobileShareNetworkData.public_mobile_url || (mobileShareNetworkData.public_url.replace(/\/+$/, '') + '/m');
+                    if (guideText) guideText.innerHTML = "🌐 <span class='text-emerald-400 font-bold'>외부 LTE/5G 보안 연결</span>: 동료 단속관이 현장 어디서든 카메라로 스캔하여 접속할 수 있습니다.";
+                } else {
+                    activeMobileShareUrl = mobileShareNetworkData ? (mobileShareNetworkData.wifi_mobile_url || (mobileShareNetworkData.wifi_url + '/m')) : (window.location.origin + '/m');
+                    if (guideText) guideText.innerHTML = "⚠️ 외부 터널 미가동 상태입니다. 로컬 Wi-Fi 주소로 자동 연결됩니다.";
+                }
+            } else {
+                if (btnPublic) {
+                    btnPublic.className = "flex-1 py-1.5 px-2 font-bold rounded-lg transition-all flex items-center justify-center gap-1 bg-slate-800 text-slate-400 hover:text-white";
+                }
+                if (btnWifi) {
+                    btnWifi.className = "flex-1 py-1.5 px-2 font-bold rounded-lg transition-all flex items-center justify-center gap-1 bg-blue-600 text-white shadow-xs";
+                }
+                activeMobileShareUrl = mobileShareNetworkData ? (mobileShareNetworkData.wifi_mobile_url || (mobileShareNetworkData.wifi_url.replace(/\/+$/, '') + '/m')) : (window.location.origin + '/m');
+                if (guideText) guideText.innerHTML = "📶 <span class='text-blue-400 font-bold'>사내/소방서 Wi-Fi</span>: 같은 무선 공유기(동일 Wi-Fi)에 연결된 단속관만 접속 가능합니다.";
             }
 
-            const urlText = document.getElementById('mobile-qr-url-text');
             if (urlText) urlText.textContent = activeMobileShareUrl;
+            renderMobileQr(activeMobileShareUrl);
+            lucide.createIcons();
+        }
 
+        function renderMobileQr(url) {
             const container = document.getElementById('mobile-qr-code-container');
+            if (!container) return;
             container.innerHTML = '';
             if (typeof QRCode !== 'undefined') {
                 mobileQrInstance = new QRCode(container, {
-                    text: activeMobileShareUrl,
-                    width: 160,
-                    height: 160,
+                    text: url,
+                    width: 144,
+                    height: 144,
                     colorDark: '#0f172a',
                     colorLight: '#ffffff',
                     correctLevel: QRCode.CorrectLevel.M
                 });
+            } else {
+                container.innerHTML = '<span class="text-xs text-slate-500 font-bold">QR 코드 로드 대기 중...</span>';
             }
-            lucide.createIcons();
         }
 
         function closeMobileQrModal() {

@@ -652,31 +652,90 @@ def get_local_ip() -> str:
         s.close()
     return ip
 
-@app.get("/api/system/network-info")
-async def get_network_info():
+def get_public_tunnel_url() -> Optional[str]:
     """
-    모바일 기기 연결 및 QR 생성을 위한 현재 서버 IP, 포트 및 공용 HTTPS URL 정보 반환
+    1) Cloudflare Quick Tunnel 메트릭스(로컬 20241 포트)에서 실시간 활성 URL 동적 감지
+    2) 감지 성공 시 data/public_tunnel_url.txt 파일 자동 갱신
+    3) 실패 시 환경변수(PUBLIC_URL) 및 data/public_tunnel_url.txt 캐시 파일 활용
     """
-    ip = get_local_ip()
-    port = int(os.environ.get("PORT", 8000))
-    public_url = None
+    import urllib.request
+    import re
+
+    # 1. Cloudflare Quick Tunnel local metrics endpoint
+    try:
+        req = urllib.request.Request("http://127.0.0.1:20241/metrics", headers={"User-Agent": "HazmatCop/1.0"})
+        with urllib.request.urlopen(req, timeout=0.6) as resp:
+            content = resp.read().decode("utf-8", errors="ignore")
+            m = re.search(r'userHostname="([^"]+)"', content)
+            if m:
+                live_url = m.group(1).strip()
+                if live_url.startswith("http"):
+                    # data/public_tunnel_url.txt 자동 동기화 갱신
+                    try:
+                        tunnel_file = os.path.join(os.path.dirname(__file__), "data", "public_tunnel_url.txt")
+                        os.makedirs(os.path.dirname(tunnel_file), exist_ok=True)
+                        with open(tunnel_file, "w", encoding="utf-8") as f:
+                            f.write(live_url)
+                    except Exception:
+                        pass
+                    return live_url.rstrip("/")
+    except Exception:
+        pass
+
+    # 2. Environment variable
+    env_url = os.environ.get("PUBLIC_URL")
+    if env_url and env_url.strip().startswith("http"):
+        return env_url.strip().rstrip("/")
+
+    # 3. Cache file
     tunnel_file = os.path.join(os.path.dirname(__file__), "data", "public_tunnel_url.txt")
     if os.path.exists(tunnel_file):
         try:
             with open(tunnel_file, "r", encoding="utf-8") as f:
                 url_candidate = f.read().strip()
                 if url_candidate.startswith("http"):
-                    public_url = url_candidate
+                    return url_candidate.rstrip("/")
         except Exception:
             pass
+
+    return None
+
+@app.get("/api/system/network-info")
+async def get_network_info(request: Request):
+    """
+    모바일 기기 연결 및 QR 생성을 위한 현재 서버 IP, 포트 및 공용 HTTPS URL 정보 반환
+    """
+    ip = get_local_ip()
+    port = int(os.environ.get("PORT", 8000))
+    public_url = get_public_tunnel_url()
+
+    # 요청 헤더의 Host 검토 (이미 외부 터널 도메인으로 접속 중인 경우)
+    req_host = request.headers.get("host", "")
+    proto = request.headers.get("x-forwarded-proto", "http")
+    if not public_url and req_host and any(k in req_host for k in ["trycloudflare.com", "localtunnel.me", "ngrok"]):
+        public_url = f"{proto}://{req_host}".rstrip("/")
+
+    wifi_url = f"http://{ip}:{port}"
+    wifi_mobile_url = f"http://{ip}:{port}/m"
+
+    if public_url:
+        public_mobile_url = f"{public_url.rstrip('/')}/m"
+        primary_mobile_url = public_mobile_url
+    else:
+        public_mobile_url = None
+        primary_mobile_url = wifi_mobile_url
 
     return {
         "local_ip": ip,
         "port": port,
         "local_url": f"http://localhost:{port}",
-        "wifi_url": f"http://{ip}:{port}",
+        "wifi_url": wifi_url,
+        "wifi_mobile_url": wifi_mobile_url,
         "public_url": public_url,
-        "mobile_url": public_url or f"http://{ip}:{port}"
+        "public_mobile_url": public_mobile_url,
+        "mobile_url": primary_mobile_url,
+        "has_public": bool(public_url),
+        "active_mode": "public" if public_url else "wifi"
     }
 
 @app.get("/manifest.json")

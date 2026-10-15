@@ -2067,7 +2067,23 @@
             </div>
 
             <!-- Modal Body -->
-            <div class="p-5 text-center space-y-4">
+            <div class="p-5 text-center space-y-3.5">
+                <!-- Mode Switch Tabs -->
+                <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button type="button" id="btn-mode-public" onclick="switchConnectMode('public')" class="flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-xs">
+                        <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                        <span>외부 LTE/5G (추천)</span>
+                    </button>
+                    <button type="button" id="btn-mode-wifi" onclick="switchConnectMode('wifi')" class="flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+                        <span>동일 Wi-Fi (로컬)</span>
+                    </button>
+                </div>
+
+                <div id="connect-mode-status" class="text-left">
+                    <!-- Populated dynamically -->
+                </div>
+
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center space-y-2">
                     <div id="mobile-qrcode-container" class="bg-white p-3 rounded-xl shadow-xs border border-slate-200 flex items-center justify-center min-h-[160px] min-w-[160px]">
                         <!-- QR Code dynamically generated here -->
@@ -2077,9 +2093,15 @@
                 </div>
 
                 <div class="space-y-1.5 text-left">
-                    <label class="block text-xs font-bold text-slate-700">모바일 직접 접속 주소 (동일 Wi-Fi)</label>
+                    <div class="flex items-center justify-between">
+                        <label id="mobile-connect-url-label" class="block text-xs font-bold text-slate-700">모바일 직접 접속 주소</label>
+                        <button type="button" onclick="openMobileConnectModal(true)" class="text-[11px] font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1 transition-colors" title="네트워크 상태 새로고침">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                            <span>새로고침</span>
+                        </button>
+                    </div>
                     <div class="flex items-center gap-1.5">
-                        <input type="text" id="mobile-connect-url-input" readonly value="http://192.168.0.9:8000" class="flex-1 rounded-lg border border-slate-300 bg-slate-50 py-1.5 px-3 font-mono text-xs font-bold text-blue-700 select-all">
+                        <input type="text" id="mobile-connect-url-input" readonly value="" class="flex-1 rounded-lg border border-slate-300 bg-slate-50 py-1.5 px-3 font-mono text-xs font-bold text-blue-700 select-all">
                         <button type="button" onclick="copyMobileUrl()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1 transition-colors flex-shrink-0">
                             <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                             <span>복사</span>
@@ -3196,23 +3218,86 @@
         // 모바일 기기 연결 (Cross-Device Mobile Pairing & PWA)
         // =============================================================
         let qrcodeInstance = null;
+        let mobileNetworkData = null;
+        let currentMobileConnectMode = 'public'; // 'public' | 'wifi'
 
-        async function openMobileConnectModal() {
+        async function openMobileConnectModal(forceRefresh = false) {
             const modal = document.getElementById('mobile-connect-modal');
             modal.classList.remove('hidden');
 
             try {
-                const res = await fetch('/api/system/network-info');
-                const data = await res.json();
-                const mobileUrl = data.mobile_url || window.location.origin;
+                if (!mobileNetworkData || forceRefresh) {
+                    const res = await fetch('/api/system/network-info?t=' + Date.now());
+                    mobileNetworkData = await res.json();
+                }
 
-                document.getElementById('mobile-connect-url-input').value = mobileUrl;
-                renderQRCode(mobileUrl);
+                // If public_url is unavailable, fallback to wifi
+                if (!mobileNetworkData || !mobileNetworkData.public_url) {
+                    currentMobileConnectMode = 'wifi';
+                } else if (!forceRefresh && !currentMobileConnectMode) {
+                    currentMobileConnectMode = 'public';
+                }
+                applyConnectMode(currentMobileConnectMode);
             } catch (err) {
-                const fallbackUrl = window.location.origin;
-                document.getElementById('mobile-connect-url-input').value = fallbackUrl;
+                const fallbackUrl = window.location.origin + '/m';
+                const input = document.getElementById('mobile-connect-url-input');
+                if (input) input.value = fallbackUrl;
                 renderQRCode(fallbackUrl);
             }
+            lucide.createIcons();
+        }
+
+        function switchConnectMode(mode) {
+            currentMobileConnectMode = mode;
+            applyConnectMode(mode);
+        }
+
+        function applyConnectMode(mode) {
+            const tabPublic = document.getElementById('btn-mode-public');
+            const tabWifi = document.getElementById('btn-mode-wifi');
+            const statusBadge = document.getElementById('connect-mode-status');
+            const urlInput = document.getElementById('mobile-connect-url-input');
+            const urlLabel = document.getElementById('mobile-connect-url-label');
+
+            let targetUrl = "";
+            const hasPublic = mobileNetworkData && mobileNetworkData.public_url;
+
+            if (mode === 'public') {
+                if (tabPublic) {
+                    tabPublic.className = "flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow-xs";
+                }
+                if (tabWifi) {
+                    tabWifi.className = "flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                }
+
+                if (hasPublic) {
+                    targetUrl = mobileNetworkData.public_mobile_url || (mobileNetworkData.public_url.replace(/\/+$/, '') + '/m');
+                    if (statusBadge) {
+                        statusBadge.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 text-[11px] font-bold"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i> 외부 어디서나 접속 가능 (Cloudflare 보안 HTTPS / LTE·5G 지원)</span>`;
+                    }
+                } else {
+                    targetUrl = mobileNetworkData ? (mobileNetworkData.wifi_mobile_url || (mobileNetworkData.wifi_url + '/m')) : (window.location.origin + '/m');
+                    if (statusBadge) {
+                        statusBadge.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 text-[11px] font-bold"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-600"></i> 외부 보안터널 미가동 (로컬 Wi-Fi 주소로 자동 대체됨)</span>`;
+                    }
+                }
+                if (urlLabel) urlLabel.textContent = "외부 모바일 접속 주소 (LTE/5G/외부망)";
+            } else {
+                if (tabPublic) {
+                    tabPublic.className = "flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                }
+                if (tabWifi) {
+                    tabWifi.className = "flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 bg-blue-600 text-white shadow-xs";
+                }
+                targetUrl = mobileNetworkData ? (mobileNetworkData.wifi_mobile_url || (mobileNetworkData.wifi_url.replace(/\/+$/, '') + '/m')) : (window.location.origin + '/m');
+                if (statusBadge) {
+                    statusBadge.innerHTML = `<span class="inline-flex items-center gap-1.5 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 text-[11px] font-bold"><i data-lucide="wifi" class="w-3.5 h-3.5 text-blue-600"></i> 사내/소방서 동일 Wi-Fi 무선공유기 연결 필수</span>`;
+                }
+                if (urlLabel) urlLabel.textContent = "로컬 Wi-Fi 직접 접속 주소 (동일 무선망)";
+            }
+
+            if (urlInput) urlInput.value = targetUrl;
+            renderQRCode(targetUrl);
             lucide.createIcons();
         }
 
@@ -3222,6 +3307,7 @@
 
         function renderQRCode(url) {
             const container = document.getElementById('mobile-qrcode-container');
+            if (!container) return;
             container.innerHTML = '';
             if (typeof QRCode !== 'undefined') {
                 qrcodeInstance = new QRCode(container, {
