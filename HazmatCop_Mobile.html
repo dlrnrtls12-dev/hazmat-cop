@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>소방특사경 위험물 단속 모바일 현장도우미 (오프라인 단일 파일)</title>
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --card-bg: #152243;
+            --accent-blue: #2563eb;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #1e293b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 30px;
+        }
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #60a5fa;
+        }
+        .header-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .offline-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 9999px;
+            margin-left: auto;
+        }
+        /* Nav Tabs */
+        .tab-bar {
+            display: flex;
+            background: #0f172a;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 68px;
+            z-index: 90;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #60a5fa;
+            border-bottom-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.08);
+        }
+        /* Container */
+        .container {
+            padding: 14px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #e2e8f0;
+        }
+        /* Form Inputs */
+        label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0b1329;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #3b82f6;
+        }
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-align: center;
+            gap: 6px;
+        }
+        .btn:active { opacity: 0.8; }
+        .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; }
+        .btn-secondary { background: #334155; color: #f1f5f9; margin-top: 8px; }
+        .btn-danger { background: #dc2626; color: #fff; padding: 6px 10px; font-size: 0.75rem; width: auto; }
+        /* Result Banner */
+        .result-box {
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 14px;
+            display: none;
+        }
+        .result-box.danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid #ef4444;
+            display: block;
+        }
+        .result-box.warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 2px solid #f59e0b;
+            display: block;
+        }
+        .result-box.safe {
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid #10b981;
+            display: block;
+        }
+        .result-header {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+        .result-detail {
+            font-size: 0.82rem;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+        /* List items */
+        .item-row {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .item-info { font-size: 0.85rem; }
+        .item-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        /* Law Fact List */
+        .fact-card {
+            background: #0f172a;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .fact-title { font-size: 0.88rem; font-weight: 700; color: #93c5fd; margin-bottom: 4px; }
+        .fact-desc { font-size: 0.8rem; color: #cbd5e1; line-height: 1.45; }
+        .fact-law { font-size: 0.72rem; color: #64748b; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="display: flex; align-items: center;">
+        <div>
+            <div class="header-title">
+                <span>🛡️</span> HAZMAT COP MOBILE
+            </div>
+            <div class="header-sub">소방특사경 위험물 단속 현장도우미 (오프라인 전용)</div>
+        </div>
+        <div class="offline-badge">⚡ 100% 오프라인</div>
+    </div>
+</header>
+
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('tab-calc')">⚖️ 지정수량 계산</button>
+    <button class="tab-btn" onclick="switchTab('tab-docs')">📝 위반 서식 완성</button>
+    <button class="tab-btn" onclick="switchTab('tab-guide')">📖 법정 불변 기준</button>
+</div>
+
+<div class="container">
+
+    <!-- 탭 1: 지정수량 계산기 -->
+    <div id="tab-calc" class="tab-content active">
+        <div class="card">
+            <div class="card-title">🔍 적발 위험물 입력 및 배수 산정</div>
+            
+            <label>위험물 품명 선택</label>
+            <select id="chem-select" onchange="onChemSelect()">
+                <option value="">-- 주요 위험물 18종 선택 --</option>
+                <optgroup label="제4류 인화성액체">
+                    <option value="휘발유" data-class="제1석유류 비수용성" data-qty="200" data-unit="L">휘발유 (제1석유류 비수용성, 200L)</option>
+                    <option value="신나" data-class="제1석유류 비수용성" data-qty="200" data-unit="L">신나/신너 (제1석유류 비수용성, 200L)</option>
+                    <option value="톨루엔" data-class="제1석유류 비수용성" data-qty="200" data-unit="L">톨루엔 (제1석유류 비수용성, 200L)</option>
+                    <option value="아세톤" data-class="제1석유류 수용성" data-qty="400" data-unit="L">아세톤 (제1석유류 수용성, 400L)</option>
+                    <option value="에탄올" data-class="알코올류" data-qty="400" data-unit="L">에탄올/주정 (알코올류 60%+, 400L)</option>
+                    <option value="등유" data-class="제2석유류 비수용성" data-qty="1000" data-unit="L">등유/보일러유 (제2석유류 비수용성, 1,000L)</option>
+                    <option value="경유" data-class="제2석유류 비수용성" data-qty="1000" data-unit="L">경유/디젤 (제2석유류 비수용성, 1,000L)</option>
+                    <option value="중유" data-class="제3석유류 비수용성" data-qty="2000" data-unit="L">중유 (제3석유류 비수용성, 2,000L)</option>
+                    <option value="윤활유" data-class="제4석유류" data-qty="6000" data-unit="L">윤활유/기계작동유 (제4석유류, 6,000L)</option>
+                </optgroup>
+                <optgroup label="제1류~제3류">
+                    <option value="질산염류" data-class="제1류 산화성고체" data-qty="300" data-unit="kg">질산염류 (제1류, 300kg)</option>
+                    <option value="황" data-class="제2류 가연성고체" data-qty="100" data-unit="kg">황 (제2류, 100kg)</option>
+                    <option value="인화성고체" data-class="제2류 인화성고체" data-qty="1000" data-unit="kg">고형알코올 (제2류 인화성고체, 1,000kg)</option>
+                    <option value="황린" data-class="제3류 자연발화성" data-qty="20" data-unit="kg">황린 (제3류, 20kg)</option>
+                    <option value="나트륨" data-class="제3류 금수성" data-qty="50" data-unit="kg">나트륨 (제3류, 50kg)</option>
+                </optgroup>
+                <optgroup label="제5류~제6류">
+                    <option value="유기과산화물" data-class="제5류 자기반응성" data-qty="10" data-unit="kg">유기과산화물 (제5류, 10kg)</option>
+                    <option value="질산에스테르류" data-class="제5류 자기반응성" data-qty="10" data-unit="kg">질산에스테르류 (제5류, 10kg)</option>
+                    <option value="과산화수소" data-class="제6류 산화성액체" data-qty="300" data-unit="kg">과산화수소 36%+ (제6류, 300kg)</option>
+                    <option value="질산" data-class="제6류 산화성액체" data-qty="300" data-unit="kg">질산 비중1.49+ (제6류, 300kg)</option>
+                </optgroup>
+            </select>
+
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 2;">
+                    <label>적발 수량</label>
+                    <input type="number" id="chem-qty" placeholder="수량 입력 (예: 500)">
+                </div>
+                <div style="flex: 1;">
+                    <label>단위</label>
+                    <input type="text" id="chem-unit" value="L" readonly style="background: #1e293b; color: #94a3b8;">
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="addItem()">➕ 적발 품목 추가</button>
+
+            <!-- 추가된 목록 -->
+            <div id="items-container" style="margin-top: 14px;"></div>
+
+            <!-- 판정 결과 배너 -->
+            <div id="result-banner" class="result-box">
+                <div id="result-title" class="result-header"></div>
+                <div id="result-detail" class="result-detail"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 탭 2: 위반사실 확인서 및 자인서 작성 -->
+    <div id="tab-docs" class="tab-content">
+        <div class="card">
+            <div class="card-title">📋 소방관계법령 위반 서식 즉시 생성</div>
+            
+            <label>서식 종류</label>
+            <select id="doc-type">
+                <option value="confirm">위반사실 확인서 (소방관계법령 표준 서식)</option>
+                <option value="admit">피의자 자인서 (현장 자백 서약서)</option>
+            </select>
+
+            <label>상호 또는 사업장명</label>
+            <input type="text" id="doc-biz-name" placeholder="예: (주)대한정밀 화성공장">
+
+            <label>대표자 또는 피조사자 성명</label>
+            <input type="text" id="doc-rep-name" placeholder="예: 홍길동 (직책: 대표이사)">
+
+            <label>단속 현장 상세 위치</label>
+            <input type="text" id="doc-location" placeholder="예: 경기도 화성시 남양읍 공장 뒤편 나대지">
+
+            <label>단속 단속관 소속 및 성명</label>
+            <input type="text" id="doc-inspector" placeholder="예: 화성소방서 소방위 이단속">
+
+            <button type="button" class="btn btn-primary" onclick="generateDocument()">📄 법정 서식 생성하기</button>
+
+            <div id="doc-output-container" style="display: none; margin-top: 16px;">
+                <label>생성된 법정 서식 내용</label>
+                <textarea id="doc-output" rows="14" style="font-family: monospace; font-size: 0.8rem; line-height: 1.4;"></textarea>
+                <button type="button" class="btn btn-secondary" onclick="copyDocument()">📋 텍스트 전체 복사</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 탭 3: 법정 불변 기준 핸드북 -->
+    <div id="tab-guide" class="tab-content">
+        <div class="card">
+            <div class="card-title">⚖️ 위험물안전관리법 핵심 불변 수치</div>
+
+            <div class="fact-card">
+                <div class="fact-title">1. 임시저장 승인 최대 기간: 90일 이내</div>
+                <div class="fact-desc">공사나 임시 보관 시 관할 소방서장의 승인을 받아 저장할 수 있는 법정 최대 기간은 90일입니다. (30일 아님)</div>
+                <div class="fact-law">관련 법령: 「위험물안전관리법」 제5조제2항 단서</div>
+            </div>
+
+            <div class="fact-card">
+                <div class="fact-title">2. 안전관리자 선임 (30일) 및 신고 (14일)</div>
+                <div class="fact-desc">해임·퇴직일로부터 30일 이내에 새로운 안전관리자를 선임해야 하며, 선임한 날부터 14일 이내에 관할 소방서장에게 신고해야 합니다.</div>
+                <div class="fact-law">관련 법령: 「위험물안전관리법」 제15조제3항</div>
+            </div>
+
+            <div class="fact-card">
+                <div class="fact-title">3. 옥외탱크 방유제 용량: 110% 이상</div>
+                <div class="fact-desc">탱크 1기인 경우 탱크 용량의 110% 이상, 2기 이상인 경우 최대 탱크 용량의 110% 이상을 수용해야 합니다.</div>
+                <div class="fact-law">관련 법령: 「위험물안전관리법 시행규칙」 별표 6 ⅩⅦ</div>
+            </div>
+
+            <div class="fact-card">
+                <div class="fact-title">4. 정전기 방지 접지설비 접지저항: 100Ω 이하</div>
+                <div class="fact-desc">인화성 액체 배관 및 설비의 정전기 재해 방지를 위한 접지저항 기준값은 100옴 이하입니다.</div>
+                <div class="fact-law">관련 법령: 「위험물안전관리법 시행규칙」 별표 4 Ⅰ 제11호</div>
+            </div>
+
+            <div class="fact-card">
+                <div class="fact-title">5. 수용성 액체 판정 기준: 10g / 100g 이상</div>
+                <div class="fact-desc">1기압 20℃ 상태에서 물 100g에 녹는 양이 10g 이상인 물질만 위험물법상 수용성으로 인정됩니다.</div>
+                <div class="fact-law">관련 법령: 「위험물안전관리법 시행령」 별표 1 비고 16호</div>
+            </div>
+
+            <div class="fact-card">
+                <div class="fact-title">6. 알코올류 판정: 60중량% 이상</div>
+                <div class="fact-desc">탄소수 1~3개의 포화1가 알코올 함유량이 60중량% 이상이어야 제4류 알코올류(지정수량 400L)로 관리됩니다.</div>
+                <div class="fact-law">관련 법령: 「위험물안전관리법 시행령」 별표 1 제4류</div>
+            </div>
+
+            <div class="fact-card">
+                <div class="fact-title">7. 형사처벌 vs 조례 과태료 구분 기준</div>
+                <div class="fact-desc">
+                    • 1.0배 이상: 3년 이하 징역 또는 3천만원 이하 벌금 (형사입건)<br>
+                    • 0.2배 이상 ~ 1.0배 미만: 200만원 이하 과태료 (시·도 조례)
+                </div>
+                <div class="fact-law">관련 법령: 법 제5조제1항, 경기도 위험물안전관리 조례</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Tab switching
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    // Calculator logic
+    let items = [];
+
+    function onChemSelect() {
+        const select = document.getElementById('chem-select');
+        const opt = select.options[select.selectedIndex];
+        if (opt && opt.dataset.unit) {
+            document.getElementById('chem-unit').value = opt.dataset.unit;
+        }
+    }
+
+    function addItem() {
+        const select = document.getElementById('chem-select');
+        const opt = select.options[select.selectedIndex];
+        const qty = parseFloat(document.getElementById('chem-qty').value);
+
+        if (!opt.value || isNaN(qty) || qty <= 0) {
+            alert('위험물 품명을 선택하고 수량을 올바르게 입력해주세요.');
+            return;
+        }
+
+        const name = opt.value;
+        const className = opt.dataset.class;
+        const desigQty = parseFloat(opt.dataset.qty);
+        const unit = opt.dataset.unit;
+        const multiple = qty / desigQty;
+
+        items.push({ name, className, qty, desigQty, unit, multiple });
+        renderItems();
+        document.getElementById('chem-qty').value = '';
+    }
+
+    function removeItem(index) {
+        items.splice(index, 1);
+        renderItems();
+    }
+
+    function renderItems() {
+        const container = document.getElementById('items-container');
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+            document.getElementById('result-banner').style.display = 'none';
+            return;
+        }
+
+        let totalMultiple = 0;
+        items.forEach((item, idx) => {
+            totalMultiple += item.multiple;
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-info">
+                    <strong>${item.name}</strong> (${item.className}) : <strong>${item.qty.toLocaleString()} ${item.unit}</strong>
+                    <div class="item-sub">지정수량 ${item.desigQty.toLocaleString()}${item.unit} 대비 <strong>${item.multiple.toFixed(2)}배</strong></div>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="removeItem(${idx})">삭제</button>
+            `;
+            container.appendChild(row);
+        });
+
+        // Evaluate legality
+        const banner = document.getElementById('result-banner');
+        const title = document.getElementById('result-title');
+        const detail = document.getElementById('result-detail');
+        banner.className = 'result-box';
+
+        if (totalMultiple >= 1.0) {
+            banner.classList.add('danger');
+            title.textContent = `🚨 형사입건 대상 (총 ${totalMultiple.toFixed(2)}배)`;
+            title.style.color = '#f87171';
+            detail.innerHTML = `
+                • <strong>위반 조항:</strong> 「위험물안전관리법」 제5조제1항 위반 (무허가 저장·취급)<br>
+                • <strong>법정형:</strong> 3년 이하의 징역 또는 3천만원 이하의 벌금 (벌칙 제34조제1호)<br>
+                • <strong>현장 조치:</strong> 현장 채증 및 사진 촬영, 대표자 자인서 징구, 피의자 입건 및 송치 절차 착수
+            `;
+        } else if (totalMultiple >= 0.2) {
+            banner.classList.add('warning');
+            title.textContent = `⚠️ 시·도 조례 과태료 대상 (총 ${totalMultiple.toFixed(2)}배)`;
+            title.style.color = '#fbbf24';
+            detail.innerHTML = `
+                • <strong>위반 조항:</strong> 경기도 위험물안전관리 조례 제3조 위반 (소량위험물 저장·취급 기준 위반)<br>
+                • <strong>행정처분:</strong> 시정명령 및 200만원 이하의 과태료 부과<br>
+                • <strong>현장 조치:</strong> 위반사실 확인서 징구 및 즉시 안전조치 명령
+            `;
+        } else {
+            banner.classList.add('safe');
+            title.textContent = `✅ 지정수량 0.2배 미만 (총 ${totalMultiple.toFixed(2)}배)`;
+            title.style.color = '#34d399';
+            detail.innerHTML = `
+                • <strong>판정:</strong> 법령 및 조례상 허가/신고 규제 대상 미만입니다.<br>
+                • <strong>권고:</strong> 화재 예방을 위한 기본적인 소화기 비치 및 환기 상태를 점검하십시오.
+            `;
+        }
+        banner.style.display = 'block';
+    }
+
+    // Document Generation Logic
+    function generateDocument() {
+        const type = document.getElementById('doc-type').value;
+        const bizName = document.getElementById('doc-biz-name').value || '(주)미상';
+        const repName = document.getElementById('doc-rep-name').value || '홍길동';
+        const location = document.getElementById('doc-location').value || '현장 부지 내';
+        const inspector = document.getElementById('doc-inspector').value || '소방특사경 단속관';
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+
+        let summaryText = "";
+        let totalMult = 0;
+        if (items.length > 0) {
+            summaryText = items.map(i => `${i.name} ${i.qty}${i.unit} (${i.multiple.toFixed(2)}배)`).join(', ');
+            totalMult = items.reduce((acc, cur) => acc + cur.multiple, 0);
+        } else {
+            summaryText = "신나 500L (지정수량 2.5배)";
+            totalMult = 2.5;
+        }
+
+        let docText = "";
+        if (type === 'confirm') {
+            docText = `【 소방관계법령 위반사실 확인서 】
+
+1. 위반 대상자 인적사항
+   - 상 호: ${bizName}
+   - 성 명: ${repName}
+   - 소 재 지: ${location}
+
+2. 위반 사실의 요지
+   상기인은 관할 소방서장의 설치 허가를 받지 아니하고, ${dateStr} 경 상기 장소에서 허가 기준(지정수량 1.0배) 이상인 [ ${summaryText} ] 총 지정수량 ${totalMult.toFixed(2)}배의 위험물을 저장·취급한 사실이 있습니다.
+
+3. 위반 법령 및 조항
+   - 「위험물안전관리법」 제5조제1항 위반 (무허가 저장·취급)
+   - 벌칙: 동법 제34조제1호 (3년 이하의 징역 또는 3천만원 이하의 벌금)
+
+위 확인 내용은 본인이 현장에서 직접 입회하고 진술한 사실과 틀림없음을 확인합니다.
+
+${dateStr}
+
+확 인 자 (피조사자): ${repName}  (서명 또는 인)
+단 속 자 (소방특사경): ${inspector}  (서명 또는 인)`;
+        } else {
+            docText = `【 자  인  서 】
+
+성        명: ${repName}
+생 년  월 일: 1980년 01월 01일생
+직        책: 대표이사 / 관리책임자
+사업장  상호: ${bizName}
+주        소: ${location}
+
+본인은 ${dateStr} 경 상기 사업장 내에서 소방당국의 정식 설치허가를 득하지 아니한 채 [ ${summaryText} ] 총 ${totalMult.toFixed(2)}배에 달하는 위험물을 무단으로 반입하여 저장 및 취급한 사실에 대하여, 소방특별사법경찰관의 단속에 적발되어 모든 위반 사실을 숨김없이 인정합니다.
+
+향후 관계 법령에 따른 어떠한 처벌도 달게 받을 것이며, 적발된 위험물은 즉시 법정 저장소로 안전하게 이동 또는 폐기 처리할 것을 엄숙히 서약하며 본 자인서를 작성·제출합니다.
+
+${dateStr}
+
+자인인(피의자): ${repName}  (서명 또는 무인)`;
+        }
+
+        document.getElementById('doc-output').value = docText;
+        document.getElementById('doc-output-container').style.display = 'block';
+    }
+
+    function copyDocument() {
+        const text = document.getElementById('doc-output').value;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('서식 텍스트가 클립보드에 복사되었습니다! 모바일 메신저나 메모장에 붙여넣기 하실 수 있습니다.');
+        });
+    }
+</script>
+
+</body>
+</html>
