@@ -123,6 +123,27 @@
                     <kbd class="hidden lg:inline-block px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-blue-300 font-mono border border-slate-700">Ctrl+K</kbd>
                 </button>
 
+                <!-- AI 실시간 음성 통화 버튼 -->
+                <button type="button" onclick="startVoiceCallPc()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all shadow-xs group" title="AI 자문관과 실시간 음성 통화(전화) 연결">
+                    <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-400 animate-pulse"></i>
+                    <span class="hidden sm:inline">AI 음성통화</span>
+                    <span class="sm:hidden">통화</span>
+                </button>
+
+                <!-- 현재 단속 건 저장 버튼 -->
+                <button type="button" onclick="saveCurrentCasePc()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-500/40 text-blue-200 text-xs font-bold transition-all shadow-xs group" title="현재 계산 및 서류 작성 내용을 단속 건으로 영구 저장합니다">
+                    <i data-lucide="save" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span class="hidden sm:inline">단속건 저장</span>
+                    <span class="sm:hidden">저장</span>
+                </button>
+
+                <!-- 단속 기록 보관함 버튼 -->
+                <button type="button" onclick="openCaseArchiveModalPc()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600/25 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition-all shadow-xs group" title="저장된 단속 건별 기록 보관함 열기">
+                    <i data-lucide="archive" class="w-3.5 h-3.5 text-indigo-400"></i>
+                    <span class="hidden sm:inline">기록보관함 (<span id="pc-case-count-badge">0</span>)</span>
+                    <span class="sm:hidden">보관함</span>
+                </button>
+
                 <!-- 한방에 모든 정보 초기화 버튼 -->
                 <button type="button" onclick="resetAllGlobalData()" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/40 text-rose-300 text-xs font-bold transition-all shadow-xs group" title="계산기 입력 내역, 서류 작성란 등 모든 입력 데이터를 한방에 초기화합니다">
                     <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-400 group-hover:-rotate-90 transition-transform"></i>
@@ -1200,6 +1221,12 @@
                                 <option value="gemini-3.8-flash">🌐 Gemini 3.8 Flash (구글 별도충전 필요 / 비권장)</option>
                             </select>
                         </div>
+
+                        <!-- 실시간 음성 통화 시작 버튼 -->
+                        <button onclick="startVoiceCallPc()" class="text-xs font-bold text-emerald-700 hover:text-emerald-900 px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 transition-colors flex items-center gap-1.5 border border-emerald-300 shadow-2xs" title="AI 실시간 음성 통화 연결">
+                            <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-600 animate-pulse"></i>
+                            <span>실시간 음성통화</span>
+                        </button>
 
                         <button onclick="clearChat()" class="text-xs text-slate-500 hover:text-slate-800 px-2.5 py-1.5 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-1 border border-slate-200 bg-white" title="대화 내용 비우기">
                             <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
@@ -6898,6 +6925,526 @@
             }, 3000);
         }
 
+        // ========================================================
+        // 📂 PC 단속 건별(Case) 스마트 관리 엔진
+        // ========================================================
+        let pcCurrentCaseId = null;
+        let pcCachedCases = [];
+
+        async function fetchPcCases() {
+            try {
+                const res = await fetch('/api/cases');
+                if (res.ok) {
+                    const data = await res.json();
+                    pcCachedCases = data.cases || [];
+                    localStorage.setItem('hazmat_cases_v1', JSON.stringify(pcCachedCases));
+                } else {
+                    const local = localStorage.getItem('hazmat_cases_v1');
+                    pcCachedCases = local ? JSON.parse(local) : [];
+                }
+            } catch (err) {
+                const local = localStorage.getItem('hazmat_cases_v1');
+                pcCachedCases = local ? JSON.parse(local) : [];
+            }
+            updatePcCaseBadges();
+            return pcCachedCases;
+        }
+
+        function updatePcCaseBadges() {
+            const count = pcCachedCases.length;
+            const badge = document.getElementById('pc-case-count-badge');
+            if (badge) badge.textContent = count;
+            const modalBadge = document.getElementById('pc-modal-case-count');
+            if (modalBadge) modalBadge.textContent = count;
+        }
+
+        async function saveCurrentCasePc() {
+            const bizName = (document.getElementById('target-biz-name') ? document.getElementById('target-biz-name').value.trim() : '') || '현장 단속 대상처';
+            const repName = document.getElementById('target-rep-name') ? document.getElementById('target-rep-name').value.trim() : '';
+            const repPosition = document.getElementById('target-rep-position') ? document.getElementById('target-rep-position').value.trim() : '대표이사';
+            const location = document.getElementById('target-address') ? document.getElementById('target-address').value.trim() : '';
+            const inspector = document.getElementById('inspector-name') ? document.getElementById('inspector-name').value.trim() : '';
+            const docText = document.getElementById('document-preview') ? document.getElementById('document-preview').value : '';
+
+            const validItems = items.filter(it => it.name && it.name.trim() !== "");
+            if (validItems.length === 0 && !bizName) {
+                alert("저장할 계산기 품목을 입력하거나 사업장명을 기재해 주세요.");
+                return;
+            }
+
+            let totalMult = 0;
+            if (currentAssessment && currentAssessment.total_multiple) {
+                totalMult = currentAssessment.total_multiple;
+            }
+
+            let status = 'SAFE';
+            let statusLabel = '지정수량 0.2배 미만';
+            if (totalMult >= 1.0) {
+                status = 'CRIMINAL';
+                statusLabel = '🚨 형사입건 대상 (지정수량 1.0배 이상)';
+            } else if (totalMult >= 0.2) {
+                status = 'ORDINANCE';
+                statusLabel = '⚠️ 조례 과태료 대상 (0.2배~1.0배)';
+            }
+
+            const calcItems = validItems.map(it => ({
+                name: it.name,
+                className: it.className,
+                qty: parseFloat(it.quantity) || 0,
+                desig: it.designatedQty,
+                unit: it.unit || 'L',
+                multiple: it.multiple || 0
+            }));
+
+            const payload = {
+                id: pcCurrentCaseId,
+                biz_name: bizName,
+                rep_name: repName,
+                rep_position: repPosition,
+                location: location,
+                inspector: inspector,
+                calc_items: calcItems,
+                total_multiple: parseFloat(totalMult.toFixed(2)),
+                status: status,
+                status_label: statusLabel,
+                doc_text: docText
+            };
+
+            try {
+                const res = await fetch('/api/cases', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const resData = await res.json();
+                if (resData.success && resData.case) {
+                    pcCurrentCaseId = resData.case.id;
+                }
+            } catch (err) {
+                console.warn('API save fallback to localStorage:', err);
+                if (!pcCurrentCaseId) {
+                    pcCurrentCaseId = 'CASE-' + Date.now();
+                    payload.id = pcCurrentCaseId;
+                    payload.created_at = new Date().toLocaleString();
+                    pcCachedCases.unshift(payload);
+                } else {
+                    const idx = pcCachedCases.findIndex(c => c.id === pcCurrentCaseId);
+                    if (idx >= 0) pcCachedCases[idx] = payload;
+                }
+                localStorage.setItem('hazmat_cases_v1', JSON.stringify(pcCachedCases));
+            }
+
+            await fetchPcCases();
+            showSaveToast(`'${bizName}' 단속 건이 보관함에 안전하게 저장되었습니다.`);
+        }
+
+        async function openCaseArchiveModalPc() {
+            const modal = document.getElementById('pc-case-archive-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            const cases = await fetchPcCases();
+            renderPcCasesList(cases);
+            lucide.createIcons();
+        }
+
+        function closeCaseArchiveModalPc() {
+            const modal = document.getElementById('pc-case-archive-modal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function renderPcCasesList(cases) {
+            const container = document.getElementById('pc-cases-container');
+            container.innerHTML = '';
+
+            if (!cases || cases.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 space-y-2">
+                        <i data-lucide="inbox" class="w-8 h-8 text-slate-300 mx-auto"></i>
+                        <p class="font-bold">보관된 단속 기록이 없습니다.</p>
+                        <p class="text-[11px]">상단의 [단속건 저장] 버튼을 누르면 건별로 보관됩니다.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            cases.forEach(c => {
+                const card = document.createElement('div');
+                card.className = "clean-card p-3.5 rounded-xl border border-slate-200 hover:border-blue-400 space-y-2 transition-all bg-white";
+                
+                let badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                if (c.status === 'CRIMINAL' || c.total_multiple >= 1.0) {
+                    badgeClass = 'bg-rose-100 text-rose-800 border-rose-300';
+                } else if (c.status === 'ORDINANCE' || c.total_multiple >= 0.2) {
+                    badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+                }
+
+                const itemsSummary = (c.calc_items && c.calc_items.length > 0)
+                    ? c.calc_items.map(i => `${i.name} ${i.qty}${i.unit}`).join(', ')
+                    : '품목 미입력';
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 flex items-center gap-2">
+                                <span>${c.biz_name || '미상사업장'}</span>
+                                ${c.rep_name ? `<span class="text-slate-500 font-normal">(${c.rep_name})</span>` : ''}
+                            </div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">${c.created_at || '일시 미상'} | ${c.location || '위치 미상'}</div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
+                            ${c.total_multiple ? `${c.total_multiple.toFixed(2)}배` : '0배'}
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200 truncate">
+                        적발품목: <strong>${itemsSummary}</strong>
+                    </div>
+                    <div class="flex items-center justify-end space-x-2 pt-1">
+                        <button type="button" onclick="loadSpecificCasePc('${c.id}')" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs">
+                            <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                            <span>불러오기</span>
+                        </button>
+                        <button type="button" onclick="deleteSpecificCasePc('${c.id}', event)" class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50" title="삭제">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function loadSpecificCasePc(caseId) {
+            const found = pcCachedCases.find(c => c.id === caseId);
+            if (!found) return;
+
+            pcCurrentCaseId = found.id;
+            if (found.calc_items && found.calc_items.length > 0) {
+                items = found.calc_items.map((it, idx) => ({
+                    id: idx + 1,
+                    name: it.name,
+                    className: it.className,
+                    designatedQty: it.desig,
+                    quantity: it.qty,
+                    unit: it.unit || 'L',
+                    multiple: it.multiple || 0
+                }));
+                renderItemRows();
+                calculateAndAssess(false);
+            }
+
+            if (found.biz_name && document.getElementById('target-biz-name')) document.getElementById('target-biz-name').value = found.biz_name;
+            if (found.rep_name && document.getElementById('target-rep-name')) document.getElementById('target-rep-name').value = found.rep_name;
+            if (found.location && document.getElementById('target-address')) document.getElementById('target-address').value = found.location;
+            if (found.inspector && document.getElementById('inspector-name')) document.getElementById('inspector-name').value = found.inspector;
+            if (found.doc_text && document.getElementById('document-preview')) document.getElementById('document-preview').value = found.doc_text;
+
+            closeCaseArchiveModalPc();
+            switchTab('calc');
+            showSaveToast(`'${found.biz_name}' 단속 건을 불러왔습니다.`);
+        }
+
+        async function deleteSpecificCasePc(caseId, e) {
+            if (e) e.stopPropagation();
+            if (!confirm('해당 단속 건을 삭제하시겠습니까?')) return;
+
+            try {
+                await fetch(`/api/cases/${caseId}`, { method: 'DELETE' });
+            } catch (err) {}
+
+            pcCachedCases = pcCachedCases.filter(c => c.id !== caseId);
+            localStorage.setItem('hazmat_cases_v1', JSON.stringify(pcCachedCases));
+            updatePcCaseBadges();
+            renderPcCasesList(pcCachedCases);
+            if (pcCurrentCaseId === caseId) pcCurrentCaseId = null;
+        }
+
+        function exportCasesToCsvPc() {
+            if (pcCachedCases.length === 0) {
+                alert('내보낼 단속 기록이 없습니다.');
+                return;
+            }
+
+            let csv = '\uFEFF단속일시,사업장명,대표자,직책,현장주소,총배수,위법구분,적발품목\n';
+            pcCachedCases.forEach(c => {
+                const items = (c.calc_items || []).map(i => `${i.name} ${i.qty}${i.unit}`).join(' / ');
+                const row = [
+                    `"${c.created_at || ''}"`,
+                    `"${c.biz_name || ''}"`,
+                    `"${c.rep_name || ''}"`,
+                    `"${c.rep_position || ''}"`,
+                    `"${c.location || ''}"`,
+                    `"${c.total_multiple || 0}"`,
+                    `"${c.status_label || ''}"`,
+                    `"${items}"`
+                ];
+                csv += row.join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `위험물단속기록부_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ========================================================
+        // 📞 PC AI 실시간 음성 통화 (Voice Call Engine)
+        // ========================================================
+        let isPcCallActive = false;
+        let isPcCallMuted = false;
+        let isPcAiSpeaking = false;
+        let pcCallTimer = null;
+        let pcCallSeconds = 0;
+        let pcCallRecognition = null;
+        let lastPcAiSpeech = "";
+        let pcCallHistory = [];
+
+        function startVoiceCallPc() {
+            const overlay = document.getElementById('pc-voice-call-overlay');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-100');
+
+            document.getElementById('pc-call-status-title').textContent = '소방특사경 AI 법률자문관 연결 중...';
+            document.getElementById('pc-call-status-sub').textContent = '암호화 실시간 음성 채널에 접속하고 있습니다';
+            document.getElementById('pc-call-timer-display').textContent = '00:00';
+            document.getElementById('pc-call-user-transcript').textContent = '연결 대기 중...';
+            document.getElementById('pc-call-ai-transcript').textContent = '연결되면 음성 인사가 시작됩니다.';
+
+            pcCallHistory = [];
+            isPcCallMuted = false;
+
+            setTimeout(() => {
+                isPcCallActive = true;
+                pcCallSeconds = 0;
+                if (pcCallTimer) clearInterval(pcCallTimer);
+                pcCallTimer = setInterval(() => {
+                    pcCallSeconds++;
+                    const m = String(Math.floor(pcCallSeconds / 60)).padStart(2, '0');
+                    const s = String(pcCallSeconds % 60).padStart(2, '0');
+                    document.getElementById('pc-call-timer-display').textContent = `${m}:${s}`;
+                }, 1000);
+
+                const welcomeText = "안녕하십니까, 소방특사경 현장 AI 자문관입니다. 단속 현장 상황이나 법령 질문을 편하게 말씀해 주십시오.";
+                document.getElementById('pc-call-ai-transcript').textContent = welcomeText;
+                lastPcAiSpeech = welcomeText;
+                speakAiCallResponsePc(welcomeText);
+            }, 1200);
+
+            lucide.createIcons();
+        }
+
+        function initPcCallRecognition() {
+            const SpeechRecClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecClass) {
+                alert('브라우저가 실시간 음성 인식을 지원하지 않습니다. Chrome 브라우저를 권장합니다.');
+                return null;
+            }
+
+            const rec = new SpeechRecClass();
+            rec.lang = 'ko-KR';
+            rec.interimResults = true;
+            rec.continuous = false;
+
+            rec.onresult = (e) => {
+                let interim = '';
+                let final = '';
+                for (let i = 0; i < e.results.length; i++) {
+                    const text = e.results[i][0].transcript;
+                    if (e.results[i].isFinal) final += text;
+                    else interim += text;
+                }
+                const currentText = final || interim;
+                if (currentText) {
+                    document.getElementById('pc-call-user-transcript').textContent = `"${currentText}"`;
+                }
+                if (final && final.trim()) {
+                    try { rec.abort(); } catch (err) {}
+                    handlePcOfficerSpoke(final.trim());
+                }
+            };
+
+            rec.onerror = (e) => {
+                if (e.error === 'no-speech' && isPcCallActive && !isPcAiSpeaking && !isPcCallMuted) {
+                    setTimeout(() => startListeningPc(), 300);
+                }
+            };
+
+            rec.onend = () => {
+                if (isPcCallActive && !isPcAiSpeaking && !isPcCallMuted) {
+                    setTimeout(() => startListeningPc(), 300);
+                }
+            };
+
+            return rec;
+        }
+
+        function startListeningPc() {
+            if (!isPcCallActive || isPcAiSpeaking || isPcCallMuted) return;
+            try {
+                if (!pcCallRecognition) pcCallRecognition = initPcCallRecognition();
+                if (pcCallRecognition) {
+                    pcCallRecognition.start();
+                    document.getElementById('pc-call-status-title').textContent = '🎙️ 단속관님 말씀해 주세요 (경청 중)';
+                    document.getElementById('pc-call-status-sub').textContent = '마이크에 말씀하시면 자동으로 답변합니다';
+                }
+            } catch (err) {}
+        }
+
+        async function handlePcOfficerSpoke(queryText) {
+            if (!queryText) return;
+            document.getElementById('pc-call-status-title').textContent = '🧠 법리 및 위험물 수치 분석 중...';
+            document.getElementById('pc-call-status-sub').textContent = '위험물안전관리법 및 공식 질의회신집을 검토하고 있습니다';
+
+            const modelId = document.getElementById('chat-model-select') ? document.getElementById('chat-model-select').value : 'gpt-4o-mini';
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `[실시간 음성통화] ${queryText}`,
+                        model_id: modelId
+                    })
+                });
+                const data = await res.json();
+                let cleanReply = (data.response || '')
+                    .replace(/[*#_`~>•-]/g, '')
+                    .replace(/\([^)]*\)/g, '')
+                    .replace(/\n+/g, ' ')
+                    .trim();
+
+                if (!cleanReply) cleanReply = "법령 정보를 확인하지 못했습니다. 다시 말씀해 주십시오.";
+
+                document.getElementById('pc-call-ai-transcript').textContent = cleanReply;
+                lastPcAiSpeech = cleanReply;
+                pcCallHistory.push({ officer: queryText, ai: cleanReply });
+                speakAiCallResponsePc(cleanReply);
+            } catch (err) {
+                const errReply = "통신 중 오류가 발생했습니다. 다시 말씀해 주십시오.";
+                document.getElementById('pc-call-ai-transcript').textContent = errReply;
+                speakAiCallResponsePc(errReply);
+            }
+        }
+
+        function speakAiCallResponsePc(text) {
+            if (!window.speechSynthesis) {
+                setTimeout(() => startListeningPc(), 1000);
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'ko-KR';
+            utter.rate = 1.05;
+            utter.pitch = 1.0;
+
+            const voices = window.speechSynthesis.getVoices();
+            const koVoice = voices.find(v => v.lang.startsWith('ko') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Yuna') || v.name.includes('Heami') || v.name.includes('Korean')));
+            if (koVoice) utter.voice = koVoice;
+
+            utter.onstart = () => {
+                isPcAiSpeaking = true;
+                if (pcCallRecognition) {
+                    try { pcCallRecognition.abort(); } catch (err) {}
+                }
+                document.getElementById('pc-call-status-title').textContent = '🔊 AI 자문관 답변 중...';
+                document.getElementById('pc-call-status-sub').textContent = '스피커로 답변을 청취해 주세요';
+            };
+
+            utter.onend = () => {
+                isPcAiSpeaking = false;
+                if (isPcCallActive && !isPcCallMuted) {
+                    setTimeout(() => startListeningPc(), 400);
+                }
+            };
+
+            utter.onerror = () => {
+                isPcAiSpeaking = false;
+                if (isPcCallActive && !isPcCallMuted) {
+                    setTimeout(() => startListeningPc(), 400);
+                }
+            };
+
+            window.speechSynthesis.speak(utter);
+        }
+
+        function toggleCallMutePc() {
+            isPcCallMuted = !isPcCallMuted;
+            const btn = document.getElementById('pc-call-mute-btn');
+            const icon = document.getElementById('pc-call-mute-icon');
+            const label = document.getElementById('pc-call-mute-label');
+
+            if (isPcCallMuted) {
+                btn.className = 'p-3.5 rounded-full bg-rose-600 text-white border border-rose-500 flex flex-col items-center justify-center space-y-0.5 shadow-md';
+                icon.setAttribute('data-lucide', 'mic-off');
+                label.textContent = '음소거 해제';
+                if (pcCallRecognition) {
+                    try { pcCallRecognition.abort(); } catch (err) {}
+                }
+                document.getElementById('pc-call-status-sub').textContent = '마이크가 음소거되었습니다';
+            } else {
+                btn.className = 'p-3.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex flex-col items-center justify-center space-y-0.5 shadow-md';
+                icon.setAttribute('data-lucide', 'mic');
+                label.textContent = '음소거';
+                if (!isPcAiSpeaking) startListeningPc();
+            }
+            lucide.createIcons();
+        }
+
+        function repeatCallAiVoicePc() {
+            if (lastPcAiSpeech) speakAiCallResponsePc(lastPcAiSpeech);
+        }
+
+        function endVoiceCallPc() {
+            isPcCallActive = false;
+            if (pcCallTimer) {
+                clearInterval(pcCallTimer);
+                pcCallTimer = null;
+            }
+            if (pcCallRecognition) {
+                try { pcCallRecognition.abort(); } catch (err) {}
+            }
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+
+            const overlay = document.getElementById('pc-voice-call-overlay');
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+
+            if (pcCallHistory.length > 0) {
+                const chatContainer = document.getElementById('chat-messages');
+                if (chatContainer) {
+                    const card = document.createElement('div');
+                    card.className = "clean-card p-4 rounded-xl border border-emerald-300 bg-emerald-50/70 text-slate-800 space-y-2";
+                    let listHtml = '';
+                    pcCallHistory.forEach((item, idx) => {
+                        listHtml += `
+                            <div class="border-t border-emerald-200 pt-2 text-xs">
+                                <div class="font-bold text-blue-900">👮 Q${idx+1}. ${item.officer}</div>
+                                <div class="text-slate-700 pl-3 border-l-2 border-emerald-500 mt-0.5">🤖 ${item.ai}</div>
+                            </div>
+                        `;
+                    });
+                    const m = String(Math.floor(pcCallSeconds / 60)).padStart(2, '0');
+                    const s = String(pcCallSeconds % 60).padStart(2, '0');
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between font-bold text-emerald-900 text-xs">
+                            <span class="flex items-center gap-1.5"><i data-lucide="phone-incoming" class="w-4 h-4 text-emerald-600"></i>AI 실시간 음성 통화 기록</span>
+                            <span class="font-mono text-[11px] text-slate-500">통화시간 ${m}:${s}</span>
+                        </div>
+                        <div class="space-y-1">${listHtml}</div>
+                    `;
+                    chatContainer.appendChild(card);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    lucide.createIcons();
+                }
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             renderItemRows();
             const hasValid = items.some(it => it.name && it.name.trim() !== "");
@@ -6908,6 +7455,7 @@
             initSignaturePads();
             updateNetworkStatus();
             initChatbotModel();
+            fetchPcCases();
 
             // PWA Service Worker Registration for Offline Field Support
             if ('serviceWorker' in navigator) {
@@ -6919,5 +7467,111 @@
             }
         });
     </script>
+
+    <!-- ======================================================== -->
+    <!-- 📞 PC AI 실시간 음성 통화 오버레이 (Voice Call Modal) -->
+    <!-- ======================================================== -->
+    <div id="pc-voice-call-overlay" class="fixed inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+        <div class="relative w-full max-w-lg bg-[#070d1b] border border-emerald-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="text-xs font-bold text-slate-300">소방특사경 AI 법률자문관 실시간 통화</span>
+                </div>
+                <div class="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-xs font-mono font-bold text-emerald-400" id="pc-call-timer-display">
+                    00:00
+                </div>
+            </div>
+
+            <!-- Pulsing Wave Rings Visualizer -->
+            <div class="relative w-44 h-44 mx-auto flex items-center justify-center my-2">
+                <div id="pc-call-wave-outer" class="absolute inset-0 rounded-full bg-emerald-500/15 animate-ping"></div>
+                <div id="pc-call-wave-middle" class="absolute w-36 h-36 rounded-full bg-gradient-to-tr from-blue-600/20 to-emerald-500/20 border border-emerald-500/30 animate-pulse"></div>
+                <div id="pc-call-avatar-circle" class="relative z-10 w-28 h-28 rounded-full bg-gradient-to-tr from-slate-900 via-blue-950 to-slate-900 border-2 border-emerald-400 flex flex-col items-center justify-center shadow-2xl shadow-emerald-500/40">
+                    <i data-lucide="shield-check" class="w-12 h-12 text-emerald-400" id="pc-call-center-icon"></i>
+                </div>
+            </div>
+
+            <!-- Call Status -->
+            <div class="space-y-1">
+                <h3 class="text-base font-extrabold text-white" id="pc-call-status-title">통화 연결 중...</h3>
+                <p class="text-xs text-slate-400" id="pc-call-status-sub">마이크에 대고 질문하시면 음성으로 즉시 답변합니다</p>
+            </div>
+
+            <!-- Subtitle Container -->
+            <div class="clean-card bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-left space-y-2 max-h-[160px] overflow-y-auto">
+                <div class="text-[11px] font-bold text-blue-400 flex items-center gap-1">
+                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                    <span>단속관 음성:</span>
+                </div>
+                <div id="pc-call-user-transcript" class="text-xs text-slate-200 italic font-medium leading-relaxed">
+                    "말씀하시면 여기에 실시간으로 표시됩니다..."
+                </div>
+                <div class="border-t border-slate-800 pt-2 text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                    <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+                    <span>AI 자문관 회신:</span>
+                </div>
+                <div id="pc-call-ai-transcript" class="text-xs text-emerald-200 font-medium leading-relaxed">
+                    "연결 대기 중입니다."
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-center space-x-6 pt-2">
+                <button type="button" onclick="toggleCallMutePc()" id="pc-call-mute-btn" class="p-3.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex flex-col items-center justify-center space-y-0.5 shadow-md">
+                    <i data-lucide="mic" class="w-5 h-5" id="pc-call-mute-icon"></i>
+                    <span class="text-[9px] font-bold" id="pc-call-mute-label">음소거</span>
+                </button>
+
+                <button type="button" onclick="endVoiceCallPc()" class="w-16 h-16 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white flex items-center justify-center shadow-xl shadow-rose-600/40 border-2 border-white/20">
+                    <i data-lucide="phone-off" class="w-7 h-7"></i>
+                </button>
+
+                <button type="button" onclick="repeatCallAiVoicePc()" class="p-3.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex flex-col items-center justify-center space-y-0.5 shadow-md">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5 text-amber-400"></i>
+                    <span class="text-[9px] font-bold">다시듣기</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 📂 PC 단속 기록 보관함 모달 (Case Archive Modal) -->
+    <!-- ======================================================== -->
+    <div id="pc-case-archive-modal" class="fixed inset-0 z-[250] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                        <i data-lucide="archive" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">현장 단속 기록 보관함</h3>
+                        <p class="text-xs text-slate-500">저장된 단속 건별 상세 내역 및 화면 불러오기</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeCaseArchiveModalPc()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-3 bg-slate-100 border-b border-slate-200 flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-700">저장된 단속 기록: <span id="pc-modal-case-count" class="text-blue-600 font-extrabold">0</span>건</span>
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="exportCasesToCsvPc()" class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 flex items-center gap-1">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
+                        <span>CSV/엑셀 내보내기</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="pc-cases-container" class="p-4 overflow-y-auto space-y-3 flex-1 text-xs">
+                <!-- Cases dynamically populated -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>

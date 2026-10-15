@@ -843,6 +843,57 @@ async def get_system_learning_list_endpoint():
         ]
     }
 
+# =========================================================================
+# 단속 건별(Case) 관리 API (저장, 목록 조회, 개별 조회, 삭제, 전체 초기화)
+# =========================================================================
+from services.case_manager import CaseManager
+
+@app.get("/api/cases")
+async def get_all_cases_endpoint():
+    """
+    저장된 모든 단속 건(Case) 목록 조회 API (최신순)
+    """
+    cases = CaseManager.get_all_cases()
+    return {"cases": cases, "count": len(cases)}
+
+@app.get("/api/cases/{case_id}")
+async def get_case_detail_endpoint(case_id: str):
+    """
+    특정 단속 건 상세 조회 API
+    """
+    case = CaseManager.get_case_by_id(case_id)
+    if not case:
+        return JSONResponse(status_code=404, content={"message": "해당 단속 건을 찾을 수 없습니다."})
+    return case
+
+@app.post("/api/cases")
+async def save_case_endpoint(request: Request):
+    """
+    단속 건 신규 저장 및 갱신 API
+    """
+    try:
+        data = await request.json()
+        saved = CaseManager.save_case(data)
+        return {"success": True, "case": saved}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "message": str(e)})
+
+@app.delete("/api/cases/{case_id}")
+async def delete_case_endpoint(case_id: str):
+    """
+    특정 단속 건 삭제 API
+    """
+    success = CaseManager.delete_case(case_id)
+    return {"success": success}
+
+@app.delete("/api/cases")
+async def clear_all_cases_endpoint():
+    """
+    저장된 모든 단속 건 일괄 삭제 API
+    """
+    success = CaseManager.clear_all()
+    return {"success": success}
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     local_ip = get_local_ip()
