@@ -10,12 +10,24 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
     <link rel="apple-touch-icon" href="/static/icons/icon.svg">
-    <meta name="theme-color" content="#060b16">
+    <meta name="theme-color" content="#060b16" id="meta-theme-color">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" id="meta-status-bar">
     <meta name="apple-mobile-web-app-title" content="Hazmat Cop">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
+
+    <!-- Early Theme Detection Script (Prevents FOUC) -->
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('hazmat_mobile_theme');
+                if (saved === 'light') {
+                    document.documentElement.classList.add('theme-light');
+                }
+            } catch(e) {}
+        })();
+    </script>
 
     <!-- Pretendard Web Font (Strict UTF-8 & No font breakage) -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -55,17 +67,68 @@
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
         }
+
+        /* ======================================================== */
+        /* 🌓 THEME ENGINE: Dark & Light Mode System                */
+        /* ======================================================== */
+        :root {
+            --app-bg: #060b16;
+            --app-text: #f8fafc;
+            --card-bg: rgba(15, 23, 42, 0.76);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-solid: #0f172a;
+            --input-bg: rgba(15, 23, 42, 0.92);
+            --input-border: #334155;
+            --input-text: #ffffff;
+            --text-heading: #ffffff;
+            --text-sub: #cbd5e1;
+            --text-muted: #94a3b8;
+            --header-bg: rgba(6, 11, 22, 0.92);
+            --header-border: rgba(255, 255, 255, 0.08);
+            --nav-bg: rgba(9, 14, 26, 0.95);
+            --nav-border: rgba(255, 255, 255, 0.1);
+            --bubble-agent-bg: rgba(30, 41, 59, 0.88);
+            --bubble-agent-text: #f1f5f9;
+            --sheet-bg: #0b1325;
+            --sheet-border: #1e293b;
+            --ambient-bg: radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.20) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 75%);
+        }
+
+        html.theme-light, body.theme-light {
+            --app-bg: #f8fafc;
+            --app-text: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: #e2e8f0;
+            --card-solid: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --input-text: #0f172a;
+            --text-heading: #0f172a;
+            --text-sub: #334155;
+            --text-muted: #64748b;
+            --header-bg: rgba(255, 255, 255, 0.94);
+            --header-border: #e2e8f0;
+            --nav-bg: rgba(255, 255, 255, 0.96);
+            --nav-border: #e2e8f0;
+            --bubble-agent-bg: #f1f5f9;
+            --bubble-agent-text: #0f172a;
+            --sheet-bg: #ffffff;
+            --sheet-border: #e2e8f0;
+            --ambient-bg: radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.10) 0%, rgba(99, 102, 241, 0.05) 40%, transparent 70%);
+        }
+
         body {
-            font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-            background-color: #060b16;
-            color: #f8fafc;
+            font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+            background-color: var(--app-bg);
+            color: var(--app-text);
             touch-action: manipulation;
-            word-break: keep-all; /* 단어 단위 줄바꿈으로 한국어 글자 깨짐 및 어색한 분절 방지 */
+            word-break: keep-all;
             word-wrap: break-word;
-            letter-spacing: -0.022em; /* 한국어 가독성 최적 자간 */
+            letter-spacing: -0.022em;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            padding-bottom: calc(88px + env(safe-area-inset-bottom));
+            padding-bottom: calc(96px + env(safe-area-inset-bottom));
+            transition: background-color 0.25s ease, color 0.25s ease;
         }
         .safe-bottom {
             padding-bottom: env(safe-area-inset-bottom);
@@ -82,19 +145,50 @@
             width: 100vw;
             max-width: 600px;
             height: 380px;
-            background: radial-gradient(circle at 50% -10%, rgba(37, 99, 235, 0.18) 0%, rgba(99, 102, 241, 0.08) 40%, transparent 75%);
+            background: var(--ambient-bg);
             pointer-events: none;
             z-index: 0;
+            transition: background 0.3s ease;
         }
 
         /* Glassmorphism Card Style */
         .glass-card {
-            background: rgba(15, 23, 42, 0.72);
+            background: var(--card-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
             border-radius: 20px;
+            transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        header {
+            background-color: var(--header-bg) !important;
+            border-color: var(--header-border) !important;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        nav {
+            background-color: var(--nav-bg) !important;
+            border-color: var(--nav-border) !important;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        /* Forms, Inputs and Selects Mobile Optimization */
+        input, select, textarea {
+            font-size: 15px !important; /* Prevents auto-zoom on iOS Safari */
+            background-color: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--input-text) !important;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, color 0.2s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+        }
+        input::placeholder, textarea::placeholder {
+            color: var(--text-muted) !important;
         }
 
         /* Touch interaction polish */
@@ -137,16 +231,111 @@
 
         /* Chat bubbles */
         .bubble-agent {
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bubble-agent-bg);
+            border: 1px solid var(--card-border);
             border-left: 3.5px solid #3b82f6;
             border-radius: 4px 18px 18px 18px;
+            color: var(--app-text);
         }
         .bubble-user {
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             border-radius: 18px 4px 18px 18px;
             box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+            color: #ffffff !important;
         }
+
+        /* Light Theme Specific UI overrides for High-Contrast Outdoor Readability */
+        .theme-light .text-white { color: #0f172a !important; }
+        .theme-light .text-slate-100 { color: #0f172a !important; }
+        .theme-light .text-slate-200 { color: #1e293b !important; }
+        .theme-light .text-slate-300 { color: #334155 !important; }
+        .theme-light .text-slate-400 { color: #64748b !important; }
+
+        .theme-light .bg-slate-900,
+        .theme-light .bg-slate-900\/90,
+        .theme-light .bg-slate-900\/95,
+        .theme-light .bg-slate-900\/80,
+        .theme-light .bg-slate-900\/60,
+        .theme-light .bg-slate-900\/40,
+        .theme-light .bg-\[\#070d1a\],
+        .theme-light .bg-\[\#040812\],
+        .theme-light .bg-\[\#0a1122\],
+        .theme-light .bg-\[\#0f172a\] {
+            background-color: #ffffff !important;
+        }
+
+        .theme-light .bg-slate-800,
+        .theme-light .bg-slate-800\/80,
+        .theme-light .bg-slate-800\/90,
+        .theme-light .bg-slate-800\/70 {
+            background-color: #f1f5f9 !important;
+            color: #1e293b !important;
+        }
+
+        .theme-light .border-slate-800,
+        .theme-light .border-slate-700,
+        .theme-light .border-slate-700\/80,
+        .theme-light .border-white\/10 {
+            border-color: #e2e8f0 !important;
+        }
+
+        .theme-light .border-slate-600 {
+            border-color: #cbd5e1 !important;
+        }
+
+        .theme-light .bubble-agent {
+            background: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+            border-left: 4px solid #2563eb !important;
+        }
+        .theme-light .bubble-agent p {
+            color: #1e293b !important;
+        }
+
+        .theme-light #statute-bottom-sheet,
+        .theme-light #case-archive-sheet,
+        .theme-light #checklist-report-sheet,
+        .theme-light #mobile-qr-modal > div {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .theme-light #statute-bottom-sheet .w-12.h-1\.5,
+        .theme-light #case-archive-sheet .w-12.h-1\.5,
+        .theme-light #checklist-report-sheet .w-12.h-1\.5 {
+            background-color: #cbd5e1 !important;
+        }
+
+        .theme-light .shadow-neon-blue {
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25) !important;
+        }
+
+        /* Banner Light Mode Refinements */
+        .theme-light .bg-rose-950\/30 {
+            background-color: #fff1f2 !important;
+            border-color: #fecdd3 !important;
+        }
+        .theme-light .bg-amber-950\/30,
+        .theme-light .bg-amber-950\/20 {
+            background-color: #fffbeb !important;
+            border-color: #fde68a !important;
+        }
+        .theme-light .bg-emerald-950\/30,
+        .theme-light .bg-emerald-950\/20 {
+            background-color: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+        }
+        .theme-light .bg-blue-950\/40,
+        .theme-light .bg-blue-950\/70 {
+            background-color: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+
+        /* Hide scrollbars but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -160,46 +349,48 @@
     <div class="ambient-glow"></div>
 
     <!-- Top Sticky Navigation Header -->
-    <header class="sticky top-0 z-40 bg-[#060b16]/90 backdrop-blur-xl border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-lg">
-        <div class="flex items-center space-x-2.5">
+    <header class="sticky top-0 z-40 bg-[#060b16]/90 backdrop-blur-xl border-b border-white/10 px-3.5 py-2.5 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-2 min-w-0">
             <!-- App Logo Badge -->
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-neon-blue border border-white/20">
-                <i data-lucide="shield-alert" class="w-5 h-5 text-white"></i>
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-neon-blue border border-white/20 shrink-0">
+                <i data-lucide="shield-alert" class="w-4.5 h-4.5 text-white"></i>
             </div>
-            <div>
+            <div class="min-w-0">
                 <div class="flex items-center space-x-1.5">
-                    <h1 class="text-sm font-black tracking-tight text-white flex items-center gap-1">
-                        HAZMAT COP <span class="text-blue-400 font-extrabold text-xs">MOBILE</span>
+                    <h1 class="text-xs sm:text-sm font-black tracking-tight text-white flex items-center gap-1 truncate">
+                        HAZMAT COP <span class="text-blue-400 font-extrabold text-[10px] sm:text-xs">M</span>
                     </h1>
-                    <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">특사경</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 shrink-0">특사경</span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium">소방특별사법경찰 현장단속 스마트도우미</p>
+                <p class="text-[9.5px] text-slate-400 font-medium truncate hidden xs:block">현장단속 스마트도우미</p>
             </div>
         </div>
 
-        <div class="flex items-center space-x-1.5">
+        <div class="flex items-center space-x-1 shrink-0">
+            <!-- 다크/라이트 모드 원터치 토글 버튼 -->
+            <button type="button" onclick="toggleMobileTheme()" id="btn-theme-toggle" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-amber-400 border border-slate-700 flex items-center justify-center" title="다크모드 / 라이트모드 전환">
+                <i data-lucide="sun" class="w-4 h-4 text-amber-400" id="theme-toggle-icon"></i>
+            </button>
+
             <!-- AI 실시간 음성 통화 퀵 버튼 -->
-            <button type="button" onclick="startVoiceCall()" class="btn-touch p-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-400 border border-emerald-500/40 flex items-center space-x-1 shadow-sm" title="AI 실시간 음성 통화 (전화 연결)">
-                <i data-lucide="phone-call" class="w-4 h-4 text-emerald-400 animate-pulse"></i>
-                <span class="text-[11px] font-bold text-emerald-300 hidden xs:inline">AI통화</span>
+            <button type="button" onclick="startVoiceCall()" class="btn-touch p-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/35 text-emerald-400 border border-emerald-500/40 flex items-center justify-center relative" title="AI 실시간 음성 통화">
+                <i data-lucide="phone-call" class="w-4 h-4 text-emerald-400"></i>
+                <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
             </button>
 
             <!-- 법정 수치 퀵시트 열기 버튼 -->
-            <button type="button" onclick="openStatuteSheet()" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-amber-400 border border-slate-700 flex items-center space-x-1" title="법정 불변 수치 퀵 핸드북">
+            <button type="button" onclick="openStatuteSheet()" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-amber-400 border border-slate-700 flex items-center justify-center" title="법정 불변 수치 퀵 핸드북">
                 <i data-lucide="book-open" class="w-4 h-4"></i>
-                <span class="text-[11px] font-bold text-slate-200 hidden xs:inline">법정수치</span>
             </button>
 
             <!-- 현장 공유 QR코드 버튼 -->
-            <button type="button" onclick="openMobileQrModal()" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-slate-700 flex items-center space-x-1" title="동료 단속관 현장 공유 QR코드">
+            <button type="button" onclick="openMobileQrModal()" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-emerald-400 border border-slate-700 flex items-center justify-center" title="동료 단속관 현장 공유 QR">
                 <i data-lucide="qr-code" class="w-4 h-4 text-emerald-400"></i>
-                <span class="text-[11px] font-bold text-slate-200 hidden xs:inline">QR</span>
             </button>
 
             <!-- PC 모드로 전환 버튼 -->
-            <a href="/?mode=pc" class="btn-touch flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 hover:from-slate-700 hover:to-slate-800 text-slate-200 text-xs font-bold border border-slate-700 shadow-sm" title="PC 전체화면 모드로 보기">
-                <i data-lucide="monitor" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span class="text-[11px]">PC화면</span>
+            <a href="/?mode=pc" class="btn-touch p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700 flex items-center justify-center" title="PC 전체화면 모드로 보기">
+                <i data-lucide="monitor" class="w-4 h-4 text-blue-400"></i>
             </a>
         </div>
     </header>
@@ -210,8 +401,8 @@
         <!-- ======================================================== -->
         <!-- 📂 단속 건별(Case) 스마트 액션 바 (신규/저장/보관함) -->
         <!-- ======================================================== -->
-        <div class="glass-card p-3 mb-3.5 flex items-center justify-between border border-blue-500/30 bg-gradient-to-r from-slate-900 via-blue-950/40 to-slate-900 shadow-lg">
-            <div class="flex items-center space-x-2.5 min-w-0">
+        <div class="glass-card p-3 mb-3.5 flex items-center justify-between border border-blue-500/30 shadow-md">
+            <div class="flex items-center space-x-2 min-w-0 pr-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
                 <div class="min-w-0">
                     <div class="text-xs font-black text-slate-100 truncate flex items-center gap-1.5" id="mobile-current-case-title">
@@ -223,21 +414,17 @@
                     </div>
                 </div>
             </div>
-            <div class="flex items-center space-x-1 shrink-0">
-                <button type="button" onclick="switchMobileTab('tab-checklist')" class="btn-touch px-2 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-extrabold flex items-center space-x-1" title="유형별 단속 체크리스트 열기">
-                    <i data-lucide="clipboard-check" class="w-3 h-3 text-amber-400"></i>
-                    <span>체크리스트</span>
-                </button>
-                <button type="button" onclick="startNewCaseMobile()" class="btn-touch px-1.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 text-[11px] font-bold border border-rose-500/30 flex items-center space-x-1" title="새로운 단속 건 시작 (화면 초기화)">
-                    <i data-lucide="rotate-ccw" class="w-3 h-3 text-rose-400"></i>
+            <div class="flex items-center space-x-1.5 shrink-0">
+                <button type="button" onclick="startNewCaseMobile()" class="btn-touch px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 text-[11px] font-bold border border-rose-500/30 flex items-center space-x-1" title="새로운 단속 건 시작 (화면 초기화)">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-400"></i>
                     <span>초기화</span>
                 </button>
-                <button type="button" onclick="saveCurrentCaseMobile()" class="btn-touch px-2 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-extrabold shadow-neon-blue flex items-center space-x-1" title="현재 단속 내용 저장">
-                    <i data-lucide="save" class="w-3 h-3"></i>
+                <button type="button" onclick="saveCurrentCaseMobile()" class="btn-touch px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-extrabold shadow-neon-blue flex items-center space-x-1" title="현재 단속 내용 저장">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i>
                     <span>저장</span>
                 </button>
-                <button type="button" onclick="openCaseArchiveSheetMobile()" class="btn-touch px-1.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-[11px] font-bold flex items-center space-x-1" title="저장된 단속 건 목록 열기">
-                    <i data-lucide="archive" class="w-3 h-3 text-indigo-400"></i>
+                <button type="button" onclick="openCaseArchiveSheetMobile()" class="btn-touch px-2.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 text-[11px] font-bold flex items-center space-x-1" title="저장된 단속 건 목록 열기">
+                    <i data-lucide="archive" class="w-3.5 h-3.5 text-indigo-400"></i>
                     <span>보관함</span>
                 </button>
             </div>
@@ -678,7 +865,7 @@
             </div>
 
             <!-- Chat Messages Log Box -->
-            <div id="mobile-chat-log" class="glass-card p-3.5 h-[430px] overflow-y-auto space-y-3.5 text-xs">
+            <div id="mobile-chat-log" class="glass-card p-3.5 h-[calc(100vh-380px)] min-h-[300px] max-h-[560px] overflow-y-auto space-y-3.5 text-xs">
                 <!-- Welcome Agent Message -->
                 <div class="bubble-agent p-3.5 shadow-sm space-y-1.5">
                     <div class="font-extrabold text-blue-400 text-xs flex items-center space-x-1">
@@ -692,7 +879,7 @@
             </div>
 
             <!-- Chat Input & Multimodal Attachment Box -->
-            <div class="sticky bottom-[78px] pt-1 pb-1 z-30">
+            <div class="sticky bottom-[74px] pt-1 pb-1 z-30">
                 <!-- Attachment Preview Bar (Thumbnails of photos / video frames) -->
                 <div id="chat-attachment-preview" class="hidden mb-2 p-2 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-lg flex items-center space-x-2 overflow-x-auto">
                     <!-- Populated dynamically -->
@@ -733,31 +920,31 @@
     </main>
 
     <!-- Bottom Sticky Navigation Bar (Floating Glass Island) -->
-    <nav class="fixed bottom-3 left-3 right-3 z-50 bg-[#090e1a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-1.5 py-1.5 safe-bottom shadow-2xl max-w-lg mx-auto">
+    <nav class="fixed bottom-2.5 left-2.5 right-2.5 z-50 bg-[#090e1a]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-1.5 py-1.5 safe-bottom shadow-2xl max-w-lg mx-auto">
         <div class="grid grid-cols-5 gap-0.5">
-            <button type="button" onclick="switchMobileTab('tab-calc')" id="btn-tab-calc" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-blue-400 font-bold transition-all">
-                <i data-lucide="calculator" class="w-4.5 h-4.5 mb-0.5"></i>
-                <span class="text-[9.5px] tracking-tight">계산기</span>
+            <button type="button" onclick="switchMobileTab('tab-calc')" id="btn-tab-calc" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-blue-500 font-bold transition-all">
+                <i data-lucide="calculator" class="w-5 h-5 mb-0.5"></i>
+                <span class="text-[10px] tracking-tight">계산기</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-0.5 shadow-neon-blue"></span>
             </button>
             <button type="button" onclick="switchMobileTab('tab-checklist')" id="btn-tab-checklist" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
-                <i data-lucide="clipboard-check" class="w-4.5 h-4.5 mb-0.5 text-amber-400"></i>
-                <span class="text-[9.5px] tracking-tight">체크리스트</span>
+                <i data-lucide="clipboard-check" class="w-5 h-5 mb-0.5"></i>
+                <span class="text-[10px] tracking-tight">체크리스트</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
             <button type="button" onclick="switchMobileTab('tab-docs')" id="btn-tab-docs" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
-                <i data-lucide="file-text" class="w-4.5 h-4.5 mb-0.5"></i>
-                <span class="text-[9.5px] tracking-tight">위반서식</span>
+                <i data-lucide="file-text" class="w-5 h-5 mb-0.5"></i>
+                <span class="text-[10px] tracking-tight">위반서식</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
             <button type="button" onclick="switchMobileTab('tab-evidence')" id="btn-tab-evidence" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
-                <i data-lucide="camera" class="w-4.5 h-4.5 mb-0.5"></i>
-                <span class="text-[9.5px] tracking-tight">현장채증</span>
+                <i data-lucide="camera" class="w-5 h-5 mb-0.5"></i>
+                <span class="text-[10px] tracking-tight">현장채증</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
             <button type="button" onclick="switchMobileTab('tab-ai')" id="btn-tab-ai" class="nav-tab-btn btn-touch flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-semibold transition-all">
-                <i data-lucide="bot" class="w-4.5 h-4.5 mb-0.5"></i>
-                <span class="text-[9.5px] tracking-tight">AI특사경</span>
+                <i data-lucide="bot" class="w-5 h-5 mb-0.5"></i>
+                <span class="text-[10px] tracking-tight">AI특사경</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>
             </button>
         </div>
@@ -1038,6 +1225,59 @@
 
     <!-- Client-side Logic Script -->
     <script>
+        // ========================================================
+        // 🌓 Theme Engine Functions (Dark / Light Mode)
+        // ========================================================
+        function toggleMobileTheme() {
+            const isLight = document.documentElement.classList.toggle('theme-light');
+            document.body.classList.toggle('theme-light', isLight);
+            const mode = isLight ? 'light' : 'dark';
+            try {
+                localStorage.setItem('hazmat_mobile_theme', mode);
+            } catch (e) {}
+            updateThemeUI(mode);
+        }
+
+        function updateThemeUI(mode) {
+            const icon = document.getElementById('theme-toggle-icon');
+            const themeColorMeta = document.getElementById('meta-theme-color');
+            const statusBarMeta = document.getElementById('meta-status-bar');
+
+            if (mode === 'light') {
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'moon');
+                    icon.className = 'w-4 h-4 text-indigo-600';
+                }
+                if (themeColorMeta) themeColorMeta.setAttribute('content', '#f8fafc');
+                if (statusBarMeta) statusBarMeta.setAttribute('content', 'default');
+            } else {
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'sun');
+                    icon.className = 'w-4 h-4 text-amber-400';
+                }
+                if (themeColorMeta) themeColorMeta.setAttribute('content', '#060b16');
+                if (statusBarMeta) statusBarMeta.setAttribute('content', 'black-translucent');
+            }
+            lucide.createIcons();
+        }
+
+        function initTheme() {
+            let saved = 'dark';
+            try {
+                saved = localStorage.getItem('hazmat_mobile_theme') || 'dark';
+            } catch (e) {}
+
+            if (saved === 'light') {
+                document.documentElement.classList.add('theme-light');
+                document.body.classList.add('theme-light');
+                updateThemeUI('light');
+            } else {
+                document.documentElement.classList.remove('theme-light');
+                document.body.classList.remove('theme-light');
+                updateThemeUI('dark');
+            }
+        }
+
         // Bottom Sheet Functions
         function openStatuteSheet() {
             document.getElementById('sheet-backdrop').classList.remove('backdrop-hidden');
@@ -1162,22 +1402,29 @@
         // Tab Switching Function
         function switchMobileTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
 
             document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-                btn.classList.remove('text-blue-400', 'font-bold');
+                btn.classList.remove('text-blue-500', 'text-blue-400', 'font-bold', 'font-black');
                 btn.classList.add('text-slate-400', 'font-semibold');
                 const dot = btn.querySelector('span:last-child');
-                dot.classList.remove('bg-blue-500', 'shadow-neon-blue');
-                dot.classList.add('bg-transparent');
+                if (dot) {
+                    dot.classList.remove('bg-blue-500', 'shadow-neon-blue');
+                    dot.classList.add('bg-transparent');
+                }
             });
 
             const activeBtn = document.getElementById('btn-' + tabId);
-            activeBtn.classList.remove('text-slate-400', 'font-semibold');
-            activeBtn.classList.add('text-blue-400', 'font-bold');
-            const activeDot = activeBtn.querySelector('span:last-child');
-            activeDot.classList.remove('bg-transparent');
-            activeDot.classList.add('bg-blue-500', 'shadow-neon-blue');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'font-semibold');
+                activeBtn.classList.add('text-blue-500', 'font-bold');
+                const activeDot = activeBtn.querySelector('span:last-child');
+                if (activeDot) {
+                    activeDot.classList.remove('bg-transparent');
+                    activeDot.classList.add('bg-blue-500', 'shadow-neon-blue');
+                }
+            }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
             lucide.createIcons();
@@ -2955,8 +3202,9 @@ ${dateStr}
             alert("📋 단속 사업장 정보가 [위반서식] 탭으로 전송되었습니다. 즉시 서식을 출력하실 수 있습니다!");
         }
 
-        // Initialize icons, default value, and load cases on DOM load
+        // Initialize theme, icons, default value, and load cases on DOM load
         window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
             lucide.createIcons();
             quickSelectChem('신나', '제1석유류 비수용성', 200, 'L');
             fetchAllCases();
